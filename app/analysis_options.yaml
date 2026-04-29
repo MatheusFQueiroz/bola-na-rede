@@ -40,4 +40,5 @@ linter:
     avoid_print: true
 
     # desativados intencionalmente
+    directives_ordering: false
     public_member_api_docs: false

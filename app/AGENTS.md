@@ -234,9 +234,27 @@ import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import '../domain/entities/user.dart';
 ```
 
-Imports are sorted by `import_sorter` (configured in `pubspec.yaml`,
-`comments: false`, ignoring `*.g.dart`). Run it before committing if you
-touched imports broadly.
+**Import order** is enforced by `import_sorter` (in `dev_dependencies`,
+configured in `pubspec.yaml`). The tool splits imports into groups separated
+by a blank line, in this fixed order:
+
+```
+1. dart:          (SDK)
+2. package:flutter (Flutter SDK only)
+3. package:other  (third-party)
+4. package:bola_na_rede  (this project — always last)
+```
+
+No section comments are emitted (`comments: false`). Generated files
+(`*.g.dart`) are ignored. Run the tool after touching imports broadly:
+
+```
+dart run import_sorter:main
+```
+
+`directives_ordering` lint is disabled in `analysis_options.yaml` because it
+conflicts with import_sorter's grouping (the lint wants strict alphabetical
+with no blank lines).
 
 ---
 
