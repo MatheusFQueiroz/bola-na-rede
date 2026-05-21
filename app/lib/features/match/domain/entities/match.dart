@@ -1,63 +1,81 @@
-// lib/features/match/domain/entities/match.dart
+import 'package:json_annotation/json_annotation.dart';
+import 'package:bola_na_rede/core/shared/enums.dart';
+import 'package:bola_na_rede/core/shared/snapshots.dart';
 
-class MatchPlayer {
-  final String id;
-  final String name;
-  final String initials;
-  final int goals;
-  final int assists;
+part 'match.g.dart';
 
-  const MatchPlayer({
-    required this.id,
-    required this.name,
-    required this.initials,
-    this.goals = 0,
-    this.assists = 0,
-  });
+// ---------------------------------------------------------------------------
+// Match
+// Tabela: game-service → matches
+// Criado quando um MatchProposal é aceito (evento MatchAccepted)
+// ---------------------------------------------------------------------------
 
-  MatchPlayer copyWith({int? goals, int? assists}) => MatchPlayer(
-        id: id,
-        name: name,
-        initials: initials,
-        goals: goals ?? this.goals,
-        assists: assists ?? this.assists,
-      );
-}
-
+@JsonSerializable()
 class Match {
+  /// = matches.external_id (UUID)
   final String id;
-  final String teamAName;
-  final String teamAInitials;
-  final String teamBName;
-  final String teamBInitials;
-  final String date;
-  final String time;
-  final String location;
-  final String modality;
-  final String status; // confirmed | pending | waiting | cancelled
-  final int scoreA;
-  final int scoreB;
-  final List<MatchPlayer> playersA;
-  final List<MatchPlayer> playersB;
-  final int maxPlayersA;
-  final int maxPlayersB;
+
+  /// = match_proposals.external_id
+  @JsonKey(name: 'proposal_id')
+  final String proposalId;
+
+  /// = teams.external_id
+  @JsonKey(name: 'team_a_id')
+  final String teamAId;
+
+  /// = teams.external_id
+  @JsonKey(name: 'team_b_id')
+  final String teamBId;
+
+  /// Snapshots imutáveis dos times no momento da aceitação
+  @JsonKey(name: 'team_a_snapshot')
+  final TeamSnapshot? teamASnapshot;
+
+  @JsonKey(name: 'team_b_snapshot')
+  final TeamSnapshot? teamBSnapshot;
+
+  /// = fields.external_id
+  @JsonKey(name: 'field_id')
+  final String? fieldId;
+
+  @JsonKey(name: 'field_snapshot')
+  final FieldSnapshot? fieldSnapshot;
+
+  @JsonKey(name: 'scheduled_date')
+  final DateTime scheduledDate;
+
+  @JsonKey(name: 'scheduled_time_start')
+  final String scheduledTimeStart; // HH:mm
+
+  @JsonKey(name: 'scheduled_time_end')
+  final String scheduledTimeEnd; // HH:mm
+
+  final MatchStatus status;
+
+  @JsonKey(name: 'created_at')
+  final DateTime createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final DateTime updatedAt;
 
   const Match({
     required this.id,
-    required this.teamAName,
-    required this.teamAInitials,
-    required this.teamBName,
-    required this.teamBInitials,
-    required this.date,
-    required this.time,
-    required this.location,
-    required this.modality,
+    required this.proposalId,
+    required this.teamAId,
+    required this.teamBId,
+    this.teamASnapshot,
+    this.teamBSnapshot,
+    this.fieldId,
+    this.fieldSnapshot,
+    required this.scheduledDate,
+    required this.scheduledTimeStart,
+    required this.scheduledTimeEnd,
     required this.status,
-    this.scoreA = 0,
-    this.scoreB = 0,
-    this.playersA = const [],
-    this.playersB = const [],
-    this.maxPlayersA = 8,
-    this.maxPlayersB = 8,
+    required this.createdAt,
+    required this.updatedAt,
   });
+
+  factory Match.fromJson(Map<String, dynamic> json) => _$MatchFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MatchToJson(this);
 }
