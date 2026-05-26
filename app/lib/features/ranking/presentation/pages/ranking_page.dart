@@ -1,23 +1,11 @@
-// lib/features/ranking/presentation/pages/ranking_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/themes/app_tokens.dart';
 import '../../../../shared/widgets/app_components.dart';
 import '../../../../core/routes/app_routes.dart';
-
-class _RankItem {
-  final int pos;
-  final String initials;
-  final Color color;
-  final String name;
-  final String sub;
-  final String value;
-  final String extra;
-  const _RankItem({required this.pos, required this.initials,
-      required this.color, required this.name, required this.sub,
-      required this.value, required this.extra});
-}
+import '../viewmodels/ranking_viewmodel.dart';
+import '../../domain/entities/ranking.dart';
 
 class RankingPage extends StatefulWidget {
   const RankingPage({super.key});
@@ -28,34 +16,29 @@ class RankingPage extends StatefulWidget {
 class _RankingPageState extends State<RankingPage> {
   int _tab = 0;
   String _filter = 'Geral';
-  final _filters = ['Geral', 'Sao Paulo', 'Esta semana', 'Este mes'];
+  final _filters = ['Geral', 'Curitiba', 'Esta semana', 'Este mes'];
 
-  final _teams = [
-    _RankItem(pos:1, initials:'UN', color:AppColors.avatarBlue, name:'Uniao Vila', sub:'46 jogos', value:'40 pts', extra:'+18'),
-    _RankItem(pos:2, initials:'DZ', color:AppColors.avatarRed, name:'Dragoes da ZL', sub:'36 jogos', value:'30 pts', extra:'+10'),
-    _RankItem(pos:3, initials:'FU', color:AppColors.avatarGreen, name:'Furacao FC', sub:'42 jogos', value:'20 pts', extra:'+5'),
-    _RankItem(pos:4, initials:'LE', color:AppColors.avatarTeal, name:'Leoes FC', sub:'28 jogos', value:'18 pts', extra:'+12'),
-    _RankItem(pos:5, initials:'RS', color:AppColors.avatarPurple, name:'Rapidos SC', sub:'19 jogos', value:'15 pts', extra:'+5'),
-    _RankItem(pos:6, initials:'TR', color:AppColors.avatarOrange, name:'Trovoes', sub:'22 jogos', value:'12 pts', extra:'-3'),
-    _RankItem(pos:7, initials:'ES', color:AppColors.avatarBlue, name:'Estrelas', sub:'15 jogos', value:'10 pts', extra:'-1'),
-    _RankItem(pos:8, initials:'GU', color:AppColors.avatarRed, name:'Guerreiros', sub:'12 jogos', value:'6 pts', extra:'-8'),
-  ];
-
-  final _players = [
-    _RankItem(pos:1, initials:'CA', color:AppColors.avatarGreen, name:'Carlos Souza', sub:'Furacao FC · Atacante', value:'28 gols', extra:'42 jogos'),
-    _RankItem(pos:2, initials:'AN', color:AppColors.avatarBlue, name:'Andre Lima', sub:'Uniao Vila · Meia', value:'22 gols', extra:'38 jogos'),
-    _RankItem(pos:3, initials:'MA', color:AppColors.avatarRed, name:'Marcos Rocha', sub:'Dragoes da ZL · Atacante', value:'19 gols', extra:'30 jogos'),
-    _RankItem(pos:4, initials:'JO', color:AppColors.avatarTeal, name:'Joao Silva', sub:'Furacao FC · Goleiro', value:'3 gols', extra:'40 jogos'),
-    _RankItem(pos:5, initials:'PE', color:AppColors.avatarPurple, name:'Pedro Alves', sub:'Furacao FC · Zagueiro', value:'5 gols', extra:'35 jogos'),
-    _RankItem(pos:6, initials:'LU', color:AppColors.avatarOrange, name:'Lucas Costa', sub:'Furacao FC · Meia', value:'8 gols', extra:'32 jogos'),
+  final _colors = [
+    AppColors.avatarBlue,
+    AppColors.avatarRed,
+    AppColors.avatarGreen,
+    AppColors.avatarTeal,
+    AppColors.avatarPurple,
+    AppColors.avatarOrange,
+    AppColors.avatarBlue,
+    AppColors.avatarRed,
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final items = _tab == 0 ? _teams : _players;
-    final top3 = items.take(3).toList();
-    final rest = items.skip(3).toList();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RankingViewModel>().loadRankings();
+    });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(children: [
@@ -64,7 +47,8 @@ class _RankingPageState extends State<RankingPage> {
           height: 48,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
             itemCount: _filters.length,
             separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
             itemBuilder: (_, i) => AppFilterChip(
@@ -74,18 +58,7 @@ class _RankingPageState extends State<RankingPage> {
             ),
           ),
         ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              _buildPodium(top3),
-              const SizedBox(height: AppSpacing.md),
-              _buildList(rest),
-              const SizedBox(height: AppSpacing.md),
-              _buildMyCard(),
-            ],
-          ),
-        ),
+        Expanded(child: _buildBody()),
       ]),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 3,
@@ -99,57 +72,116 @@ class _RankingPageState extends State<RankingPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
-      child: SafeArea(bottom: false, child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-          child: Row(children: [
-            const Expanded(child: Text('Ranking', textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textOnPrimary, fontSize: 17, fontWeight: FontWeight.w600))),
-            Icon(PhosphorIcons.trophy(), color: AppColors.textOnPrimary, size: AppSizes.iconLg),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(AppRadius.full),
-            ),
-            child: Row(
-              children: ['Times', 'Jogadores'].asMap().entries.map((e) {
-                final active = _tab == e.key;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _tab = e.key),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: active ? AppColors.surface : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppRadius.full),
-                      ),
-                      child: Text(e.value, textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: active ? AppColors.primary : AppColors.textOnPrimary,
-                            fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                            fontSize: 14,
-                          )),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ])),
+  Widget _buildBody() {
+    return Consumer<RankingViewModel>(
+      builder: (_, vm, __) {
+        if (vm.state == RankingViewState.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (vm.state == RankingViewState.error) {
+          return Center(child: Text(vm.error ?? 'Erro'));
+        }
+
+        final teams = vm.teamRankings;
+        final players = vm.playerRankings;
+        final top3 =
+            _tab == 0 ? teams.take(3).toList() : players.take(3).toList();
+        final rest =
+            _tab == 0 ? teams.skip(3).toList() : players.skip(3).toList();
+
+        return ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            _buildPodium(top3),
+            const SizedBox(height: AppSpacing.md),
+            _buildList(rest),
+            const SizedBox(height: AppSpacing.md),
+            _buildMyCard(vm),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildPodium(List<_RankItem> top3) {
+  Widget _buildHeader() {
+    return Container(
+      decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
+      child: SafeArea(
+          bottom: false,
+          child: Column(children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              child: Row(children: [
+                const Expanded(
+                  child: Text('Ranking',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: AppColors.textOnPrimary,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600)),
+                ),
+                Icon(PhosphorIcons.trophy(),
+                    color: AppColors.textOnPrimary, size: AppSizes.iconLg),
+              ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+                child: Row(
+                  children: ['Times', 'Jogadores'].asMap().entries.map((e) {
+                    final active = _tab == e.key;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _tab = e.key),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color:
+                                active ? AppColors.surface : Colors.transparent,
+                            borderRadius: BorderRadius.circular(AppRadius.full),
+                          ),
+                          child: Text(e.value,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: active
+                                    ? AppColors.primary
+                                    : AppColors.textOnPrimary,
+                                fontWeight:
+                                    active ? FontWeight.w700 : FontWeight.w400,
+                                fontSize: 14,
+                              )),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ])),
+    );
+  }
+
+  Widget _buildPodium(List<dynamic> top3) {
     if (top3.length < 3) return const SizedBox();
+
+    String getName(dynamic item) =>
+        _tab == 0 ? (item as TeamRanking).name : (item as PlayerRanking).name;
+
+    String getValue(dynamic item) => _tab == 0
+        ? '${(item as TeamRanking).points} pts'
+        : '${(item as PlayerRanking).goals} gols';
+
+    int getRank(dynamic item) =>
+        _tab == 0 ? (item as TeamRanking).rank : (item as PlayerRanking).rank;
+
     return AppCard(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -157,88 +189,184 @@ class _RankingPageState extends State<RankingPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _podiumItem(top3[1], 52),
-            _podiumItem(top3[0], 72),
-            _podiumItem(top3[2], 44),
+            _podiumItem(top3[1], 52, getName, getValue, getRank),
+            _podiumItem(top3[0], 72, getName, getValue, getRank),
+            _podiumItem(top3[2], 44, getName, getValue, getRank),
           ],
         ),
       ),
     );
   }
 
-  Widget _podiumItem(_RankItem item, double size) {
+  Widget _podiumItem(
+      dynamic item,
+      double size,
+      String Function(dynamic) getName,
+      String Function(dynamic) getValue,
+      int Function(dynamic) getRank) {
+    final rank = getRank(item);
+    final name = getName(item);
+    final value = getValue(item);
+    final initials = name.substring(0, 2).toUpperCase();
+    final color = _colors[(rank - 1) % _colors.length];
+
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      if (item.pos == 1)
+      if (rank == 1)
         Icon(PhosphorIcons.crown(PhosphorIconsStyle.fill),
             color: AppColors.warningIcon, size: 18),
-      AppTeamAvatar(initials: item.initials, color: item.color,
-          size: size, fontSize: size > 60 ? 20 : 14),
+      AppTeamAvatar(
+          initials: initials,
+          color: color,
+          size: size,
+          fontSize: size > 60 ? 20 : 14),
       const SizedBox(height: AppSpacing.xs),
-      Text('${item.pos}', style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: item.pos == 1 ? 18 : 14,
-          color: item.pos == 1 ? AppColors.warningIcon : AppColors.textSecondary)),
+      Text('$rank',
+          style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: rank == 1 ? 18 : 14,
+              color:
+                  rank == 1 ? AppColors.warningIcon : AppColors.textSecondary)),
       SizedBox(
         width: 80,
-        child: Text(item.name, style: const TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-            textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+        child: Text(name,
+            style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis),
       ),
-      Text(item.value, style: const TextStyle(
-          color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
+      Text(value,
+          style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 13)),
     ]);
   }
 
-  Widget _buildList(List<_RankItem> items) {
+  Widget _buildList(List<dynamic> items) {
+    String getName(dynamic item) =>
+        _tab == 0 ? (item as TeamRanking).name : (item as PlayerRanking).name;
+
+    String getSub(dynamic item) => _tab == 0
+        ? '${(item as TeamRanking).matchesPlayed} jogos'
+        : '${(item as PlayerRanking).teamName} · ${(item as PlayerRanking).position}';
+
+    String getValue(dynamic item) => _tab == 0
+        ? '${(item as TeamRanking).points} pts'
+        : '${(item as PlayerRanking).goals} gols';
+
+    String getExtra(dynamic item) => _tab == 0
+        ? (item as TeamRanking).goalDifference >= 0
+            ? '+${(item as TeamRanking).goalDifference}'
+            : '${(item as TeamRanking).goalDifference}'
+        : '${(item as PlayerRanking).matchesPlayed} jogos';
+
+    int getRank(dynamic item) =>
+        _tab == 0 ? (item as TeamRanking).rank : (item as PlayerRanking).rank;
+
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Text('Classificacao completa', style: AppTextStyles.titleSmall),
           const Spacer(),
           Text('Temporada 2025',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppColors.textSecondary)),
         ]),
-        ...items.map((item) => Column(children: [
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Row(children: [
-              SizedBox(width: 28,
-                  child: Text('#${item.pos}',
-                      style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w700))),
-              AppTeamAvatar(initials: item.initials, color: item.color, size: 32, fontSize: 11),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(item.name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
-                Text(item.sub, style: AppTextStyles.bodySmall),
-              ])),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(item.value, style: const TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
-                Text(item.extra, style: AppTextStyles.bodySmall),
+        ...items.map((item) {
+          final rank = getRank(item);
+          final name = getName(item);
+          final initials = name.substring(0, 2).toUpperCase();
+          final color = _colors[(rank - 1) % _colors.length];
+
+          return Column(children: [
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Row(children: [
+                SizedBox(
+                    width: 28,
+                    child: Text('#$rank',
+                        style: AppTextStyles.bodySmall
+                            .copyWith(fontWeight: FontWeight.w700))),
+                AppTeamAvatar(
+                    initials: initials, color: color, size: 32, fontSize: 11),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(name,
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(fontWeight: FontWeight.w700)),
+                      Text(getSub(item), style: AppTextStyles.bodySmall),
+                    ])),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Text(getValue(item),
+                      style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
+                  Text(getExtra(item), style: AppTextStyles.bodySmall),
+                ]),
               ]),
-            ]),
-          ),
-        ])),
+            ),
+          ]);
+        }),
       ]),
     );
   }
 
-  Widget _buildMyCard() {
-    return AppCard(
-      color: AppColors.primarySurface,
-      border: Border.all(color: AppColors.primary),
-      child: Row(children: [
-        const AppTeamAvatar(initials: 'FU', color: AppColors.avatarGreen, size: 40),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Furacao FC', style: AppTextStyles.titleSmall),
-          Text(
-            _tab == 0 ? 'Sua posicao: #3  20 pts' : 'Carlos Souza  #1  28 gols',
-            style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.w600)),
-        ])),
-      ]),
-    );
+  Widget _buildMyCard(RankingViewModel vm) {
+    if (_tab == 0) {
+      final myTeam =
+          vm.teamRankings.where((t) => t.id == 'team-001').firstOrNull;
+      if (myTeam == null) return const SizedBox();
+
+      return AppCard(
+        color: AppColors.primarySurface,
+        border: Border.all(color: AppColors.primary),
+        child: Row(children: [
+          const AppTeamAvatar(
+              initials: 'FU', color: AppColors.avatarGreen, size: 40),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(myTeam.name, style: AppTextStyles.titleSmall),
+                Text('Sua posicao: #${myTeam.rank}  ${myTeam.points} pts',
+                    style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.primary, fontWeight: FontWeight.w600)),
+              ])),
+        ]),
+      );
+    } else {
+      final myPlayer =
+          vm.playerRankings.where((p) => p.id == 'user-001').firstOrNull;
+      if (myPlayer == null) return const SizedBox();
+
+      return AppCard(
+        color: AppColors.primarySurface,
+        border: Border.all(color: AppColors.primary),
+        child: Row(children: [
+          const AppTeamAvatar(
+              initials: 'CS', color: AppColors.avatarGreen, size: 40),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(myPlayer.name, style: AppTextStyles.titleSmall),
+                Text(
+                    '#${myPlayer.rank}  ${myPlayer.goals} gols  '
+                    '${myPlayer.matchesPlayed} jogos',
+                    style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.primary, fontWeight: FontWeight.w600)),
+              ])),
+        ]),
+      );
+    }
   }
 }

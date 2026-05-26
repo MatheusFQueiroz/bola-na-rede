@@ -1,0 +1,68 @@
+import 'package:flutter/material.dart';
+import '../../../match/domain/entities/match.dart';
+import '../../../team/domain/entities/team.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import '../../../ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import '../../domain/repositories/home_repository.dart';
+
+enum HomeViewState { idle, loading, success, error }
+
+class HomeViewModel extends ChangeNotifier {
+  final HomeRepository repository;
+  final AuthViewModel authViewModel;
+  final RankingViewModel rankingViewModel;
+
+  HomeViewModel({
+    required this.repository,
+    required this.authViewModel,
+    required this.rankingViewModel,
+  });
+
+  HomeViewState _state = HomeViewState.idle;
+  Match? _nextMatch;
+  Match? _pendingRequest;
+  Team? _myTeam;
+  String? _error;
+
+  HomeViewState get state => _state;
+  Match? get nextMatch => _nextMatch;
+  Match? get pendingRequest => _pendingRequest;
+  Team? get myTeam => _myTeam;
+  String? get error => _error;
+
+  // stats fixos por enquanto
+  int get myRank => 3;
+  int get playerCount => 6;
+  int get winStreak => 8;
+
+  Future<void> loadHome() async {
+    _state = HomeViewState.loading;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final teamId = authViewModel.currentTeamId;
+
+      final results = await Future.wait([
+        repository.getNextMatch(teamId),
+        repository.getPendingRequest(teamId),
+        repository.getMyTeam(teamId),
+      ]);
+
+      _nextMatch = results[0] as Match?;
+      _pendingRequest = results[1] as Match?;
+      _myTeam = results[2] as Team?;
+
+      // carrega rankings se ainda não carregou
+      if (rankingViewModel.state == RankingViewState.idle) {
+        await rankingViewModel.loadRankings();
+      }
+
+      _state = HomeViewState.success;
+    } catch (e) {
+      _error = 'Não foi possível carregar a home.';
+      _state = HomeViewState.error;
+    }
+    notifyListeners();
+  }
+}

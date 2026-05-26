@@ -16,6 +16,7 @@ import '../../features/team/presentation/pages/team_manage_page.dart';
 import '../../features/team/presentation/pages/create_team_page.dart';
 import '../../features/ranking/presentation/pages/ranking_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/team/presentation/pages/team_search_page.dart';
 
 abstract class AppRoutes {
   static const String splash = '/';
@@ -33,6 +34,7 @@ abstract class AppRoutes {
   static const String createTeam = '/team/create';
   static const String ranking = '/ranking';
   static const String profile = '/profile';
+  static const String teamSearch = '/team/search';
 
   static Map<String, WidgetBuilder> get routes => {
         splash: (_) => const SplashPage(),
@@ -50,5 +52,6 @@ abstract class AppRoutes {
         createTeam: (_) => const CreateTeamPage(),
         ranking: (_) => const RankingPage(),
         profile: (_) => const ProfilePage(),
+        teamSearch: (_) => const TeamSearchPage(),
       };
 }

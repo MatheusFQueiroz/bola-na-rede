@@ -1,79 +1,143 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/themes/app_tokens.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../shared/widgets/app_components.dart';
 import '../../../../shared/widgets/app_main_nav_bar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../viewmodels/profile_viewmodel.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/core/shared/enums.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileViewModel>().loadProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(slivers: [
-        SliverToBoxAdapter(child: _buildHeader()),
-        SliverPadding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          sliver: SliverList(delegate: SliverChildListDelegate([
-            _buildStatsGrid(),
-            const SizedBox(height: AppSpacing.md),
-            _buildMyTeams(context),
-            const SizedBox(height: AppSpacing.md),
-            _buildRecentMatches(),
-            const SizedBox(height: AppSpacing.md),
-            _buildAchievements(),
-            const SizedBox(height: AppSpacing.md),
-            _buildSettings(context),
-            const SizedBox(height: AppSpacing.lg),
-          ])),
-        ),
-      ]),
+      body: Consumer<ProfileViewModel>(
+        builder: (_, vm, __) {
+          if (vm.state == ProfileViewState.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (vm.state == ProfileViewState.error) {
+            return Center(child: Text(vm.error ?? 'Erro'));
+          }
+
+          final profile = vm.profile;
+          final initials =
+              profile?.displayName.substring(0, 2).toUpperCase() ?? 'CS';
+          final name = profile?.displayName ?? 'Carlos Souza';
+          final city = profile?.city ?? 'Curitiba';
+          final position = _positionLabel(profile?.position);
+
+          return CustomScrollView(slivers: [
+            SliverToBoxAdapter(
+                child: _buildHeader(initials, name, city, position)),
+            SliverPadding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                _buildStatsGrid(vm),
+                const SizedBox(height: AppSpacing.md),
+                _buildMyTeams(context),
+                const SizedBox(height: AppSpacing.md),
+                _buildRecentMatches(vm),
+                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
+                _buildSettings(context),
+                const SizedBox(height: AppSpacing.lg),
+              ])),
+            ),
+          ]);
+        },
+      ),
       bottomNavigationBar: const AppMainNavBar(currentIndex: 4),
     );
   }
 
-  Widget _buildHeader() {
+  String _positionLabel(PlayerPosition? position) {
+    switch (position) {
+      case PlayerPosition.goalkeeper:
+        return 'Goleiro';
+      case PlayerPosition.defender:
+        return 'Zagueiro';
+      case PlayerPosition.midfielder:
+        return 'Meia';
+      case PlayerPosition.forward:
+        return 'Atacante';
+      default:
+        return 'Jogador';
+    }
+  }
+
+  Widget _buildHeader(
+      String initials, String name, String city, String position) {
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
       child: SafeArea(
         bottom: false,
         child: Column(children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
             child: Row(children: [
               const Spacer(),
               IconButton(
-                icon: Icon(PhosphorIcons.gear(), color: AppColors.textOnPrimary),
+                icon:
+                    Icon(PhosphorIcons.gear(), color: AppColors.textOnPrimary),
                 onPressed: () {},
               ),
             ]),
           ),
           Container(
-            width: 80, height: 80,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.textOnPrimary, width: 3),
             ),
             alignment: Alignment.center,
-            child: const Text('CS',
-                style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.w700, fontSize: 28)),
+            child: Text(initials,
+                style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 28)),
           ),
           const SizedBox(height: AppSpacing.sm),
-          const Text('Carlos Souza',
-              style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.w700, fontSize: 20)),
-          Text('Atacante  Sao Paulo, SP',
-              style: TextStyle(color: AppColors.textOnPrimary.withOpacity(0.7), fontSize: 13)),
+          Text(name,
+              style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20)),
+          Text('$position  $city',
+              style: TextStyle(
+                  color: AppColors.textOnPrimary.withOpacity(0.7),
+                  fontSize: 13)),
           const SizedBox(height: AppSpacing.sm),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(AppRadius.full),
             ),
-            child: const Text('Capitao', style: TextStyle(color: AppColors.textOnPrimary, fontSize: 11)),
+            child: const Text('Capitao',
+                style: TextStyle(color: AppColors.textOnPrimary, fontSize: 11)),
           ),
           const SizedBox(height: AppSpacing.xl),
         ]),
@@ -81,12 +145,12 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(ProfileViewModel vm) {
     final stats = [
-      (PhosphorIcons.calendar(), 'Partidas', '42'),
-      (PhosphorIcons.soccerBall(), 'Gols', '28'),
-      (PhosphorIcons.trophy(), 'Vitorias', '28'),
-      (PhosphorIcons.chartBar(), '% Vitorias', '67%'),
+      (PhosphorIcons.calendar(), 'Partidas', '${vm.totalMatches}'),
+      (PhosphorIcons.soccerBall(), 'Gols', '${vm.totalGoals}'),
+      (PhosphorIcons.trophy(), 'Vitorias', '${vm.totalWins}'),
+      (PhosphorIcons.chartBar(), '% Vitorias', vm.winRate),
     ];
     return GridView.count(
       crossAxisCount: 2,
@@ -95,16 +159,20 @@ class ProfilePage extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       childAspectRatio: 1.8,
-      children: stats.map((s) => AppCard(
-        child: Row(children: [
-          Icon(s.$1, color: AppColors.primary, size: AppSizes.iconLg),
-          const SizedBox(width: AppSpacing.sm),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.$3, style: AppTextStyles.statNumber),
-            Text(s.$2, style: AppTextStyles.statLabel),
-          ]),
-        ]),
-      )).toList(),
+      children: stats
+          .map((s) => AppCard(
+                child: Row(children: [
+                  Icon(s.$1, color: AppColors.primary, size: AppSizes.iconLg),
+                  const SizedBox(width: AppSpacing.sm),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.$3, style: AppTextStyles.statNumber),
+                        Text(s.$2, style: AppTextStyles.statLabel),
+                      ]),
+                ]),
+              ))
+          .toList(),
     );
   }
 
@@ -120,28 +188,39 @@ class ProfilePage extends StatelessWidget {
           ),
         ]),
         const Divider(),
-        _teamRow('FU', AppColors.avatarGreen, 'Furacao FC', 'Capitao', 'Sao Paulo', context),
+        _teamRow('FU', AppColors.avatarGreen, 'Furacao FC', 'Capitao',
+            'Curitiba', context),
         const Divider(),
-        _teamRow('LS', AppColors.avatarBlue, 'Los Sharkis', 'Membro', 'Sao Paulo', context),
+        _teamRow('LS', AppColors.avatarBlue, 'Los Sharkis', 'Membro',
+            'Curitiba', context),
       ]),
     );
   }
 
-  Widget _teamRow(String initials, Color color, String name, String role, String city, BuildContext context) {
+  Widget _teamRow(String initials, Color color, String name, String role,
+      String city, BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: AppTeamAvatar(initials: initials, color: color, size: 40, fontSize: 13),
-      title: Text(name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+      leading: AppTeamAvatar(
+          initials: initials, color: color, size: 40, fontSize: 13),
+      title: Text(name,
+          style:
+              AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
       subtitle: Text(city, style: AppTextStyles.bodySmall),
       trailing: Row(mainAxisSize: MainAxisSize.min, children: [
         if (role == 'Capitao')
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: 2),
             decoration: BoxDecoration(
               color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(AppRadius.xs),
             ),
-            child: const Text('Capitao', style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
+            child: const Text('Capitao',
+                style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600)),
           ),
         Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
       ]),
@@ -149,12 +228,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentMatches() {
-    final matches = [
-      ('FU 3 x 1 UN', AppBadgeType.confirmed, '15/03  Soccer Place'),
-      ('FU 2 x 2 D2', AppBadgeType.waiting, '10/03  Arena Xaxim'),
-      ('FU 0 x 1 RS', AppBadgeType.closed, '05/03  Campo do Ze'),
-    ];
+  Widget _buildRecentMatches(ProfileViewModel vm) {
     return AppCard(
       child: Column(children: [
         Row(children: [
@@ -162,56 +236,34 @@ class ProfilePage extends StatelessWidget {
           const Spacer(),
           TextButton(onPressed: () {}, child: const Text('Ver todas')),
         ]),
-        ...matches.map((m) => Column(children: [
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Row(children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(m.$1, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
-                Text(m.$3, style: AppTextStyles.bodySmall),
-              ])),
-              AppBadge(type: m.$2),
-            ]),
-          ),
-        ])),
-      ]),
-    );
-  }
+        ...vm.recentMatches.map((m) {
+          final badgeType = m['result'] == 'win'
+              ? AppBadgeType.confirmed
+              : m['result'] == 'draw'
+                  ? AppBadgeType.waiting
+                  : AppBadgeType.closed;
 
-  Widget _buildAchievements() {
-    final achievements = [
-      (PhosphorIcons.trophy(PhosphorIconsStyle.fill), 'Artilheiro', false),
-      (PhosphorIcons.lightning(), 'Invicto', false),
-      (PhosphorIcons.star(PhosphorIconsStyle.fill), 'MVP', false),
-      (PhosphorIcons.medal(), 'Veterano', true),
-    ];
-    return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Text('Conquistas', style: AppTextStyles.titleSmall),
-          const Spacer(),
-          TextButton(onPressed: () {}, child: const Text('Ver todas')),
-        ]),
-        const SizedBox(height: AppSpacing.sm),
-        Row(children: achievements.map((a) => Expanded(
-          child: Opacity(
-            opacity: a.$3 ? 0.4 : 1.0,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Column(children: [
-                Icon(a.$1, color: a.$3 ? AppColors.textDisabled : AppColors.warningIcon, size: 22),
-                const SizedBox(height: AppSpacing.xs),
-                Text(a.$2, style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
+          return Column(children: [
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Row(children: [
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m['title'] as String,
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(fontWeight: FontWeight.w700)),
+                        Text('${m['date']}  ${m['location']}',
+                            style: AppTextStyles.bodySmall),
+                      ]),
+                ),
+                AppBadge(type: badgeType),
               ]),
             ),
-          ),
-        )).toList()),
+          ]);
+        }),
       ]),
     );
   }
@@ -225,22 +277,35 @@ class ProfilePage extends StatelessWidget {
         const Divider(),
         _settingRow(PhosphorIcons.shield(), 'Privacidade', false, () {}),
         const Divider(),
-        _settingRow(PhosphorIcons.signOut(), 'Sair', true,
-            () => Navigator.pushNamedAndRemoveUntil(context, AppRoutes.splash, (_) => false)),
+        _settingRow(
+          PhosphorIcons.signOut(),
+          'Sair',
+          true,
+          () async {
+            await context.read<AuthViewModel>().logout();
+            if (!context.mounted) return;
+            Navigator.pushNamedAndRemoveUntil(
+                context, AppRoutes.splash, (_) => false);
+          },
+        ),
       ]),
     );
   }
 
-  Widget _settingRow(IconData icon, String label, bool isDanger, VoidCallback onTap) {
+  Widget _settingRow(
+      IconData icon, String label, bool isDanger, VoidCallback onTap) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: isDanger ? AppColors.error : AppColors.textSecondary),
+      leading: Icon(icon,
+          color: isDanger ? AppColors.error : AppColors.textSecondary),
       title: Text(label,
           style: TextStyle(
             color: isDanger ? AppColors.error : AppColors.textPrimary,
             fontWeight: FontWeight.w500,
           )),
-      trailing: isDanger ? null : const Icon(Icons.chevron_right, color: AppColors.textDisabled),
+      trailing: isDanger
+          ? null
+          : const Icon(Icons.chevron_right, color: AppColors.textDisabled),
       onTap: onTap,
     );
   }

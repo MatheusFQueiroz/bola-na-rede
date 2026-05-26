@@ -28,21 +28,26 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
       appBar: AppGradientAppBar(title: 'Criar Time', showBackButton: true),
       body: Stack(children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100),
           child: AppCard(
             padding: const EdgeInsets.all(AppSpacing.xxl),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               // Upload logo
               Center(
                 child: Column(children: [
                   GestureDetector(
                     onTap: () {},
                     child: Container(
-                      width: 80, height: 80,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         color: AppColors.surfaceVariant,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border, width: 2,
+                        border: Border.all(
+                            color: AppColors.border,
+                            width: 2,
                             style: BorderStyle.solid),
                       ),
                       child: Icon(PhosphorIcons.camera(),
@@ -76,48 +81,60 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
               const SizedBox(height: AppSpacing.xl),
               const Text('Cor do avatar', style: AppTextStyles.labelMedium),
               const SizedBox(height: AppSpacing.sm),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: _colors.map((c) {
-                final selected = _selectedColor == c;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = c),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: c,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: selected ? AppColors.primary : Colors.transparent,
-                        width: 2,
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: _colors.map((c) {
+                    final selected = _selectedColor == c;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedColor = c),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm),
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: c,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: selected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: selected
+                            ? Icon(PhosphorIcons.check(),
+                                color: AppColors.textOnPrimary, size: 18)
+                            : null,
                       ),
-                    ),
-                    child: selected
-                        ? Icon(PhosphorIcons.check(), color: AppColors.textOnPrimary, size: 18)
-                        : null,
-                  ),
-                );
-              }).toList()),
+                    );
+                  }).toList()),
               const SizedBox(height: AppSpacing.xl),
               const AppWarningBanner(
-                message: 'Seu time precisa de pelo menos 5 jogadores para disputar partidas. Convide membros apos criar o time.',
+                message:
+                    'Seu time precisa de pelo menos 5 jogadores para disputar partidas. Convide membros apos criar o time.',
               ),
               const SizedBox(height: AppSpacing.xl),
               AppButton.primary(
                 label: 'Criar Time',
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.teamManage),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.teamManage),
               ),
             ]),
           ),
         ),
         Positioned(
-          bottom: 0, left: 0, right: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
           child: Container(
             padding: const EdgeInsets.all(AppSpacing.lg),
             color: AppColors.background,
             child: Text(
               'Ao criar um time, voce sera automaticamente o capitao.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppColors.textSecondary),
             ),
           ),
         ),

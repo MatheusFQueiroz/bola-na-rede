@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/themes/app_tokens.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../shared/widgets/app_components.dart';
 import '../../../../shared/widgets/app_main_nav_bar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../viewmodels/home_viewmodel.dart';
+import '../../../match/domain/entities/match.dart';
+import '../../../ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,36 +18,58 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeViewModel>().loadHome();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _buildHeader()),
-          SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildNextMatch(),
-                const SizedBox(height: AppSpacing.md),
-                _buildPendingRequest(),
-                const SizedBox(height: AppSpacing.md),
-                _buildQuickActions(),
-                const SizedBox(height: AppSpacing.md),
-                _buildRanking(),
-                const SizedBox(height: AppSpacing.md),
-                _buildMyTeam(),
-                const SizedBox(height: AppSpacing.lg),
-              ]),
-            ),
-          ),
-        ],
+      body: Consumer<HomeViewModel>(
+        builder: (_, vm, __) {
+          if (vm.state == HomeViewState.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(child: _buildHeader(vm)),
+              SliverPadding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    if (vm.nextMatch != null) ...[
+                      _buildNextMatch(vm.nextMatch!),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    if (vm.pendingRequest != null) ...[
+                      _buildPendingRequest(vm.pendingRequest!),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    _buildQuickActions(),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildRanking(context, vm),
+                    const SizedBox(height: AppSpacing.md),
+                    if (vm.myTeam != null) _buildMyTeam(vm),
+                    const SizedBox(height: AppSpacing.lg),
+                  ]),
+                ),
+              ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: const AppMainNavBar(currentIndex: 0),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(HomeViewModel vm) {
+    final user = context.read<AuthViewModel>().currentUser;
+    final name = user?.displayName ?? 'Jogador';
+
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + AppSpacing.lg,
@@ -51,50 +78,47 @@ class _HomePageState extends State<HomePage> {
         bottom: AppSpacing.xl,
       ),
       decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
-      child: Column(
-        children: [
-          Row(children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                  color: AppColors.primaryLight, shape: BoxShape.circle),
-              alignment: Alignment.center,
-              child: const Text('C',
-                  style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16)),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Bem-vindo de volta,',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textOnPrimary)),
-              const Text('Carlos',
-                  style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16)),
-            ]),
-            const Spacer(),
-            Icon(PhosphorIcons.mapPin(),
-                color: AppColors.textOnPrimary, size: 14),
-            Text(' Sao Paulo',
+      child: Column(children: [
+        Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+                color: AppColors.primaryLight, shape: BoxShape.circle),
+            alignment: Alignment.center,
+            child: Text(name.substring(0, 1).toUpperCase(),
+                style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16)),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Bem-vindo de volta,',
                 style: AppTextStyles.bodySmall
                     .copyWith(color: AppColors.textOnPrimary)),
+            Text(name,
+                style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16)),
           ]),
-          const SizedBox(height: AppSpacing.lg),
-          // Stats
-          Row(children: [
-            _statCard(PhosphorIcons.trophy(), '3', 'Lugar'),
-            const SizedBox(width: AppSpacing.sm),
-            _statCard(PhosphorIcons.users(), '6', 'Jogadores'),
-            const SizedBox(width: AppSpacing.sm),
-            _statCard(PhosphorIcons.lightning(), '8', 'Vitorias'),
-          ]),
-        ],
-      ),
+          const Spacer(),
+          Icon(PhosphorIcons.mapPin(),
+              color: AppColors.textOnPrimary, size: 14),
+          Text(' ${user?.city ?? 'Curitiba'}',
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppColors.textOnPrimary)),
+        ]),
+        const SizedBox(height: AppSpacing.lg),
+        Row(children: [
+          _statCard(PhosphorIcons.trophy(), '${vm.myRank}', 'Lugar'),
+          const SizedBox(width: AppSpacing.sm),
+          _statCard(PhosphorIcons.users(), '${vm.playerCount}', 'Jogadores'),
+          const SizedBox(width: AppSpacing.sm),
+          _statCard(PhosphorIcons.lightning(), '${vm.winStreak}', 'Vitorias'),
+        ]),
+      ]),
     );
   }
 
@@ -123,11 +147,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNextMatch() {
+  Widget _buildNextMatch(Match match) {
+    final teamA = match.teamASnapshot?.name ?? 'Time A';
+    final teamB = match.teamBSnapshot?.name ?? 'Time B';
+    final initialsA = teamA.substring(0, 2).toUpperCase();
+    final initialsB = teamB.substring(0, 2).toUpperCase();
+    final field = match.fieldSnapshot?.name ?? 'Local a definir';
+    final date =
+        '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}';
+
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Text('Proxima Partida...',
+          Text('Proxima Partida',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
           const Spacer(),
@@ -136,10 +168,10 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: AppSpacing.lg),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Column(children: [
-            const AppTeamAvatar(
-                initials: 'FU', color: AppColors.avatarGreen, size: 48),
+            AppTeamAvatar(
+                initials: initialsA, color: AppColors.avatarGreen, size: 48),
             const SizedBox(height: AppSpacing.xs),
-            const Text('Furacao FC', style: AppTextStyles.labelMedium),
+            Text(teamA, style: AppTextStyles.labelMedium),
           ]),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -148,43 +180,33 @@ class _HomePageState extends State<HomePage> {
                     .copyWith(color: AppColors.textSecondary)),
           ),
           Column(children: [
-            const AppTeamAvatar(
-                initials: 'UN', color: AppColors.avatarBlue, size: 48),
+            AppTeamAvatar(
+                initials: initialsB, color: AppColors.avatarBlue, size: 48),
             const SizedBox(height: AppSpacing.xs),
-            const Text('Uniao Vila', style: AppTextStyles.labelMedium),
+            Text(teamB, style: AppTextStyles.labelMedium),
           ]),
         ]),
         const SizedBox(height: AppSpacing.md),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(PhosphorIcons.calendar(),
-              size: 14, color: AppColors.primary),
-          Text(' 15/03/2025  ',
+          Icon(PhosphorIcons.calendar(), size: 14, color: AppColors.primary),
+          Text(' $date',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
-          Icon(PhosphorIcons.clock(),
-              size: 14, color: AppColors.primary),
-          Text(' 18:00',
+          const SizedBox(width: AppSpacing.md),
+          Icon(PhosphorIcons.clock(), size: 14, color: AppColors.primary),
+          Text(' ${match.scheduledTimeStart}',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
         ]),
         const SizedBox(height: AppSpacing.xs),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(PhosphorIcons.mapPin(),
-              size: 14, color: AppColors.primary),
-          Text(' Soccer Place',
+          Icon(PhosphorIcons.mapPin(), size: 14, color: AppColors.primary),
+          Text(' $field',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
         ]),
         const SizedBox(height: AppSpacing.md),
         const Divider(),
-        const SizedBox(height: AppSpacing.md),
-        Text('Jogadores confirmados',
-            style:
-                AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: AppSpacing.sm),
-        _progressBar('Furacao FC', 4, 8),
-        const SizedBox(height: AppSpacing.sm),
-        _progressBar('Uniao Vila', 2, 7),
         const SizedBox(height: AppSpacing.md),
         AppButton.outline(
           label: 'Ver detalhes',
@@ -195,66 +217,33 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _progressBar(String team, int confirmed, int total) {
-    return Row(children: [
-      SizedBox(
-        width: 80,
-        child: Text(team,
-            style: AppTextStyles.bodySmall
-                .copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
-            overflow: TextOverflow.ellipsis),
-      ),
-      const SizedBox(width: AppSpacing.sm),
-      Expanded(
-        child: Stack(children: [
-          Container(
-            height: 20,
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(AppRadius.full),
-            ),
-          ),
-          FractionallySizedBox(
-            widthFactor: confirmed / total,
-            child: Container(
-              height: 20,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(AppRadius.full),
-              ),
-              alignment: Alignment.center,
-              child: Text('$confirmed/$total',
-                  style: const TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600)),
-            ),
-          ),
-        ]),
-      ),
-    ]);
-  }
+  Widget _buildPendingRequest(Match match) {
+    final teamA = match.teamASnapshot?.name ?? 'Time';
+    final initialsA = teamA.substring(0, 2).toUpperCase();
+    final field = match.fieldSnapshot?.name ?? 'Local a definir';
+    final date =
+        '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}';
 
-  Widget _buildPendingRequest() {
     return AppCard(
       border: const Border(
           left: BorderSide(color: AppColors.warningIcon, width: 4)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const AppTeamAvatar(
-              initials: 'D2', color: AppColors.avatarRed, size: 40),
+          AppTeamAvatar(
+              initials: initialsA, color: AppColors.avatarRed, size: 40),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Dragoes da ZL',
-                  style: TextStyle(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(teamA,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                       color: AppColors.textPrimary)),
               Text('quer jogar contra seu time',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: AppColors.textSecondary)),
-              Text('25/03/2025 as 19:00  Arena Sports',
+              Text('$date as ${match.scheduledTimeStart}  $field',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: AppColors.textDisabled)),
             ]),
@@ -289,41 +278,46 @@ class _HomePageState extends State<HomePage> {
       Expanded(
         child: AppCard(
           onTap: () => Navigator.pushNamed(context, AppRoutes.search),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(PhosphorIcons.magnifyingGlass(), color: AppColors.primary, size: AppSizes.iconLg),
-              const SizedBox(height: AppSpacing.sm),
-              const Text('Buscar partida', style: AppTextStyles.titleSmall),
-              Text('Encontre adversarios',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textSecondary)),
-            ],
-          ),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(PhosphorIcons.magnifyingGlass(),
+                color: AppColors.primary, size: AppSizes.iconLg),
+            const SizedBox(height: AppSpacing.sm),
+            const Text('Buscar partida', style: AppTextStyles.titleSmall),
+            Text('Encontre adversarios',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+          ]),
         ),
       ),
       const SizedBox(width: AppSpacing.md),
       Expanded(
         child: AppCard(
           onTap: () => Navigator.pushNamed(context, AppRoutes.fieldCatalog),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(PhosphorIcons.soccerBall(),
-                  color: AppColors.primary, size: AppSizes.iconLg),
-              const SizedBox(height: AppSpacing.sm),
-              const Text('Reservar campo', style: AppTextStyles.titleSmall),
-              Text('Veja campos proximos',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textSecondary)),
-            ],
-          ),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(PhosphorIcons.soccerBall(),
+                color: AppColors.primary, size: AppSizes.iconLg),
+            const SizedBox(height: AppSpacing.sm),
+            const Text('Reservar campo', style: AppTextStyles.titleSmall),
+            Text('Veja campos proximos',
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: AppColors.textSecondary)),
+          ]),
         ),
       ),
     ]);
   }
 
-  Widget _buildRanking() {
+  Widget _buildRanking(BuildContext context, HomeViewModel vm) {
+    final rankings =
+        context.read<RankingViewModel>().teamRankings.take(3).toList();
+    final colors = [
+      AppColors.avatarBlue,
+      AppColors.avatarRed,
+      AppColors.avatarGreen,
+    ];
+
     return AppCard(
       child: Column(children: [
         Row(children: [
@@ -336,46 +330,54 @@ class _HomePageState extends State<HomePage> {
           ),
         ]),
         const SizedBox(height: AppSpacing.md),
-        _rankingItem(1, 'UN', AppColors.avatarBlue, 'Uniao Vila', '46 jogos', '40 pts'),
-        const Divider(),
-        _rankingItem(2, 'D2', AppColors.avatarRed, 'Dragoes da ZL', '36 jogos', '30 pts'),
-        const Divider(),
-        _rankingItem(3, 'FU', AppColors.avatarGreen, 'Furacao FC', '42 jogos', '20 pts'),
+        ...rankings.asMap().entries.map((e) {
+          final team = e.value;
+          final initials = team.name.substring(0, 2).toUpperCase();
+          final color = colors[e.key % colors.length];
+          return Column(children: [
+            if (e.key > 0) const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: Row(children: [
+                SizedBox(
+                  width: 24,
+                  child: Text('${team.rank}',
+                      style: AppTextStyles.bodySmall.copyWith(
+                          color: team.rank == 1
+                              ? AppColors.warningIcon
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                AppTeamAvatar(
+                    initials: initials, color: color, size: 32, fontSize: 12),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(team.name,
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(fontWeight: FontWeight.w700)),
+                        Text('${team.matchesPlayed} jogos',
+                            style: AppTextStyles.bodySmall),
+                      ]),
+                ),
+                Text('${team.points} pts',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primary, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+          ]);
+        }),
       ]),
     );
   }
 
-  Widget _rankingItem(int pos, String initials, Color color,
-      String name, String games, String pts) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(children: [
-        SizedBox(
-          width: 24,
-          child: Text('$pos',
-              style: AppTextStyles.bodySmall.copyWith(
-                  color: pos == 1 ? AppColors.warningIcon : AppColors.textSecondary,
-                  fontWeight: FontWeight.w700)),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        AppTeamAvatar(initials: initials, color: color, size: 32, fontSize: 12),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(fontWeight: FontWeight.w700)),
-            Text(games, style: AppTextStyles.bodySmall),
-          ]),
-        ),
-        Text(pts,
-            style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.w700)),
-      ]),
-    );
-  }
+  Widget _buildMyTeam(HomeViewModel vm) {
+    final team = vm.myTeam!;
+    final initials = team.name.substring(0, 2).toUpperCase();
 
-  Widget _buildMyTeam() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -384,17 +386,18 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Column(children: [
         Row(children: [
-          const AppTeamAvatar(
-              initials: 'FU', color: AppColors.primaryLight, size: 40),
+          AppTeamAvatar(
+              initials: initials, color: AppColors.primaryLight, size: 40),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Furacao FC',
-                  style: TextStyle(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(team.name,
+                  style: const TextStyle(
                       color: AppColors.textOnPrimary,
                       fontWeight: FontWeight.w700,
                       fontSize: 15)),
-              Text('Sao Paulo, SP',
+              Text(team.city,
                   style: TextStyle(
                       color: AppColors.textOnPrimary.withOpacity(0.7),
                       fontSize: 12)),
@@ -417,8 +420,8 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: AppSpacing.md),
         Row(children: [
           _teamStat('Capitao', 'Voce'),
-          _teamStat('Jogadores', '6'),
-          _teamStat('Serie', '3V'),
+          _teamStat('Jogadores', '${vm.playerCount}'),
+          _teamStat('Serie', '${vm.winStreak}V'),
         ]),
       ]),
     );

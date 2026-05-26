@@ -254,9 +254,7 @@ class _AppInputState extends State<AppInput> {
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
-                      _obscure
-                          ? PhosphorIcons.eye()
-                          : PhosphorIcons.eyeSlash(),
+                      _obscure ? PhosphorIcons.eye() : PhosphorIcons.eyeSlash(),
                       size: AppSizes.iconMd,
                       color: AppColors.textSecondary,
                     ),
@@ -517,7 +515,14 @@ class AppGradientAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: showBackButton,
+        automaticallyImplyLeading: false,
+        leading: showBackButton
+            ? IconButton(
+                icon: Icon(PhosphorIcons.arrowLeft(),
+                    color: AppColors.textOnPrimary),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(title),
         actions: actions,
       ),
@@ -555,7 +560,8 @@ class AppBottomNavBar extends StatelessWidget {
             label: 'Início'),
         BottomNavigationBarItem(
             icon: Icon(PhosphorIcons.magnifyingGlass()),
-            activeIcon: Icon(PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.fill)),
+            activeIcon:
+                Icon(PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.fill)),
             label: 'Buscar'),
         BottomNavigationBarItem(
             icon: Icon(PhosphorIcons.calendar()),
