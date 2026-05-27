@@ -4,10 +4,10 @@ import type { PlayerProfile } from '../../domain/models/player-profile.entity';
 
 export class UserDto {
   @ApiProperty({ description: 'ID público do usuário (UUID)' })
-  id: string;
+  id!: string;
 
   @ApiPropertyOptional({ description: 'Email' })
-  email: string | null;
+  email!: string | null;
 
   @ApiPropertyOptional({ description: 'Nome de exibição' })
   displayName?: string;
@@ -31,7 +31,7 @@ export class UserDto {
   isPublic?: boolean;
 
   @ApiProperty({ description: 'Data de criação da conta' })
-  createdAt: Date;
+  createdAt!: Date;
 
   static fromUserAndProfile(user: User, profile: PlayerProfile | null): UserDto {
     const dto = new UserDto();
