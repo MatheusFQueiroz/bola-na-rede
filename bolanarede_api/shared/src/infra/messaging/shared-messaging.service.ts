@@ -8,7 +8,13 @@ export class SharedMessagingService {
   constructor(private readonly amqp: AmqpConnection) {}
 
   async publish(routingKey: string, payload: Record<string, unknown>): Promise<void> {
-    await this.amqp.publish('bolanarededb', routingKey, payload);
-    this.logger.debug(`Published event: ${routingKey}`);
+    try {
+      await this.amqp.publish('bolanarededb', routingKey, payload);
+      this.logger.debug(`Published event: ${routingKey}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to publish event ${routingKey}: ${message}`);
+      throw error;
+    }
   }
 }

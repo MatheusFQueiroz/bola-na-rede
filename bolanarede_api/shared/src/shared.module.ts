@@ -20,6 +20,6 @@ import { createRabbitMQConfig } from './infra/messaging/rabbitmq.service';
     }),
   ],
   providers: [DrizzleService, JwtAuthGuard, PermissionsGuard, SharedMessagingService],
-  exports: [DrizzleService, JwtAuthGuard, PermissionsGuard, SharedMessagingService, JwtModule],
+  exports: [DrizzleService, JwtAuthGuard, PermissionsGuard, SharedMessagingService, JwtModule, RabbitMQModule],
 })
 export class SharedModule {}
