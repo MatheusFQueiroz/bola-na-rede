@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/auth_viewmodel.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
-    final success = await context.read<AuthViewModel>().login(
+    final success = await ref.read(authViewModelProvider.notifier).login(
           _emailController.text.trim(),
           _passwordController.text,
         );
@@ -39,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content:
-              Text(context.read<AuthViewModel>().error ?? 'Erro ao entrar'),
+              Text(ref.read(authViewModelProvider).error ?? 'Erro ao entrar'),
         ),
       );
     }
@@ -48,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final isLoading =
-        context.watch<AuthViewModel>().state == AuthViewState.loading;
+        ref.watch(authViewModelProvider).status == AuthStatus.loading;
 
     return Scaffold(
       body: Column(children: [

@@ -4,9 +4,6 @@ import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_theme.dart';
-import 'package:bola_na_rede/features/auth/data/datasources/auth_mock_datasource.dart';
-import 'package:bola_na_rede/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/field/data/datasources/field_mock_datasource.dart';
 import 'package:bola_na_rede/features/field/data/repositories/field_repository_impl.dart';
 import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmodel.dart';
@@ -36,16 +33,12 @@ class BolaNaRedeApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
-    final authViewModel = AuthViewModel(
-      repository: AuthRepositoryImpl(dataSource: AuthMockDataSource()),
-    );
     final rankingViewModel = RankingViewModel(
       repository: RankingRepositoryImpl(dataSource: RankingMockDataSource()),
     );
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: authViewModel),
         ChangeNotifierProvider.value(value: rankingViewModel),
         ChangeNotifierProvider(
           create: (_) => FieldViewModel(
@@ -53,10 +46,8 @@ class BolaNaRedeApp extends ConsumerWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => MatchViewModel(
-            repository: MatchRepositoryImpl(dataSource: MatchMockDataSource()),
-            authViewModel: authViewModel,
-          ),
+          create: (_) =>
+              MatchViewModel(repository: MatchRepositoryImpl(dataSource: MatchMockDataSource())),
         ),
         ChangeNotifierProvider(
           create: (_) => TeamViewModel(
@@ -68,13 +59,11 @@ class BolaNaRedeApp extends ConsumerWidget {
             repository: ProfileRepositoryImpl(
               dataSource: ProfileMockDataSource(),
             ),
-            authViewModel: authViewModel,
           ),
         ),
         ChangeNotifierProvider(
           create: (_) => HomeViewModel(
             repository: HomeRepositoryImpl(dataSource: HomeMockDataSource()),
-            authViewModel: authViewModel,
             rankingViewModel: rankingViewModel,
           ),
         ),

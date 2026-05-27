@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/auth_viewmodel.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   String _selectedPosition = 'Qualquer';
   final _positions = [
     'Goleiro',
@@ -47,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    final success = await context.read<AuthViewModel>().register(
+    final success = await ref.read(authViewModelProvider.notifier).register(
           _nameController.text.trim(),
           _emailController.text.trim(),
           _passwordController.text,
@@ -61,7 +61,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              context.read<AuthViewModel>().error ?? 'Erro ao criar conta'),
+              ref.read(authViewModelProvider).error ?? 'Erro ao criar conta'),
         ),
       );
     }
@@ -70,7 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final isLoading =
-        context.watch<AuthViewModel>().state == AuthViewState.loading;
+        ref.watch(authViewModelProvider).status == AuthStatus.loading;
 
     return Scaffold(
       body: Column(children: [

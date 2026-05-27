@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../match/domain/entities/match.dart';
-import '../../../team/domain/entities/team.dart';
-import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
-import '../../../ranking/presentation/viewmodels/ranking_viewmodel.dart';
+
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import '../../domain/repositories/home_repository.dart';
 
 enum HomeViewState { idle, loading, success, error }
 
 class HomeViewModel extends ChangeNotifier {
   final HomeRepository repository;
-  final AuthViewModel authViewModel;
   final RankingViewModel rankingViewModel;
 
   HomeViewModel({
     required this.repository,
-    required this.authViewModel,
     required this.rankingViewModel,
   });
 
@@ -41,7 +39,7 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final teamId = authViewModel.currentTeamId;
+      const teamId = 'team-001';
 
       final results = await Future.wait([
         repository.getNextMatch(teamId),

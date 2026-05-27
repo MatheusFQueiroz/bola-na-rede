@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide Consumer;
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,7 @@ import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmode
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/home_viewmodel.dart';
+import 'package:bola_na_rede/features/home/presentation/viewmodels/home_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -67,7 +68,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeader(HomeViewModel vm) {
-    final user = context.read<AuthViewModel>().currentUser;
+    final user = ProviderScope.containerOf(context)
+        .read(authViewModelProvider)
+        .currentUser;
     final name = user?.displayName ?? 'Jogador';
 
     return Container(

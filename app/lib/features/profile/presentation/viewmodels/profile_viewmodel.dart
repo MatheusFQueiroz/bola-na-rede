@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../../auth/domain/entities/user.dart';
-import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+
+import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 enum ProfileViewState { idle, loading, success, error }
 
 class ProfileViewModel extends ChangeNotifier {
   final ProfileRepository repository;
-  final AuthViewModel authViewModel;
 
-  ProfileViewModel({
-    required this.repository,
-    required this.authViewModel,
-  });
+  ProfileViewModel({required this.repository});
 
   ProfileViewState _state = ProfileViewState.idle;
   PlayerProfile? _profile;
@@ -31,17 +27,12 @@ class ProfileViewModel extends ChangeNotifier {
   String get winRate => '67%';
 
   Future<void> loadProfile() async {
-    // se já tem usuário logado usa os dados dele
-    if (authViewModel.currentUser != null) {
-      _profile = authViewModel.currentUser;
-    }
-
     _state = ProfileViewState.loading;
     _error = null;
     notifyListeners();
 
     try {
-      final userId = authViewModel.currentUser?.userId ?? 'user-001';
+      const userId = 'user-001';
       final results = await Future.wait([
         repository.getProfile(userId),
         repository.getRecentMatches(userId),

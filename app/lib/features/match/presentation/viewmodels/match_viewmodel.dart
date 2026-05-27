@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import '../../domain/entities/match.dart';
-import '../../domain/repositories/match_repository.dart';
-import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+
 import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/shared/snapshots.dart';
+import '../../domain/entities/match.dart';
+import '../../domain/repositories/match_repository.dart';
 
 enum MatchViewState { idle, loading, success, error }
 
 class MatchViewModel extends ChangeNotifier {
   final MatchRepository repository;
-  final AuthViewModel authViewModel;
 
-  MatchViewModel({
-    required this.repository,
-    required this.authViewModel,
-  });
+  MatchViewModel({required this.repository});
 
   // — Lista
   MatchViewState _listState = MatchViewState.idle;
@@ -76,16 +72,14 @@ class MatchViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // pega dados do usuário logado
-      final currentUser = authViewModel.currentUser;
-      final teamAId = authViewModel.currentTeamId;
-      final teamAName = currentUser?.displayName ?? 'Meu Time';
+      const teamAId = 'team-001';
+      const teamAName = 'Meu Time';
 
       // monta snapshots conforme db-game-service.md
       final teamASnapshot = TeamSnapshot(
         teamId: teamAId,
         name: teamAName,
-        city: currentUser?.city ?? 'Curitiba',
+        city: 'Curitiba',
       );
 
       final teamBSnapshot = TeamSnapshot(

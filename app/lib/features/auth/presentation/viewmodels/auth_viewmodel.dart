@@ -1,67 +1,80 @@
-import 'package:flutter/material.dart';
-import '../../domain/entities/user.dart';
-import '../../domain/repositories/auth_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum AuthViewState { idle, loading, success, error }
+import 'package:bola_na_rede/features/auth/data/repositories/auth_repository_provider.dart';
+import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
+import 'package:bola_na_rede/features/auth/domain/repositories/auth_repository.dart';
 
-class AuthViewModel extends ChangeNotifier {
-  final AuthRepository repository;
+enum AuthStatus { idle, loading, success, error }
 
-  AuthViewModel({required this.repository});
+class AuthState {
+  final AuthStatus status;
+  final PlayerProfile? currentUser;
+  final String? error;
 
-  AuthViewState _state = AuthViewState.idle;
-  PlayerProfile? _currentUser;
-  String? _error;
+  const AuthState({required this.status, this.currentUser, this.error});
 
-  AuthViewState get state => _state;
-  PlayerProfile? get currentUser => _currentUser;
-  String? get error => _error;
-  bool get isLoggedIn => _currentUser != null;
+  const AuthState.initial()
+      : status = AuthStatus.idle,
+        currentUser = null,
+        error = null;
 
-  // time do usuário logado — fixo por enquanto, virá da API
+  bool get isLoggedIn => currentUser != null;
   String get currentTeamId => 'team-001';
-  String get currentTeamName => _currentUser?.displayName ?? 'Meu Time';
+  String get currentTeamName => currentUser?.displayName ?? 'Meu Time';
+
+  AuthState copyWith({
+    AuthStatus? status,
+    PlayerProfile? currentUser,
+    String? error,
+  }) =>
+      AuthState(
+        status: status ?? this.status,
+        currentUser: currentUser ?? this.currentUser,
+        error: error ?? this.error,
+      );
+}
+
+final authViewModelProvider =
+    NotifierProvider<AuthViewModel, AuthState>(AuthViewModel.new);
+
+class AuthViewModel extends Notifier<AuthState> {
+  @override
+  AuthState build() => const AuthState.initial();
+
+  AuthRepository get _repo => ref.read(authRepositoryProvider);
 
   Future<bool> login(String email, String password) async {
-    _state = AuthViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(status: AuthStatus.loading, error: null);
     try {
-      _currentUser = await repository.login(email, password);
-      _state = AuthViewState.success;
-      notifyListeners();
+      final user = await _repo.login(email, password);
+      state = state.copyWith(status: AuthStatus.success, currentUser: user);
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _state = AuthViewState.error;
-      notifyListeners();
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
       return false;
     }
   }
 
   Future<bool> register(String name, String email, String password) async {
-    _state = AuthViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(status: AuthStatus.loading, error: null);
     try {
-      _currentUser = await repository.register(name, email, password);
-      _state = AuthViewState.success;
-      notifyListeners();
+      final user = await _repo.register(name, email, password);
+      state = state.copyWith(status: AuthStatus.success, currentUser: user);
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
-      _state = AuthViewState.error;
-      notifyListeners();
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
       return false;
     }
   }
 
   Future<void> logout() async {
-    await repository.logout();
-    _currentUser = null;
-    _state = AuthViewState.idle;
-    notifyListeners();
+    await _repo.logout();
+    state = const AuthState.initial();
   }
 }
