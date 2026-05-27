@@ -12,10 +12,16 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly config: ConfigService) {}
 
   async onModuleInit(): Promise<void> {
-    const url = this.config.getOrThrow<string>('DATABASE_URL');
-    this.pool = new Pool({ connectionString: url });
-    this.db = drizzle(this.pool);
-    this.logger.log('Database connected');
+    try {
+      const url = this.config.getOrThrow<string>('DATABASE_URL');
+      this.pool = new Pool({ connectionString: url });
+      this.db = drizzle(this.pool);
+      this.logger.log('Database connected');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to initialize database: ${message}`);
+      throw error;
+    }
   }
 
   async onModuleDestroy(): Promise<void> {

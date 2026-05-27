@@ -30,6 +30,12 @@ export async function bootstrapHttpApp(app: INestApplication): Promise<void> {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(port);
-  logger.log(`Service running on port ${port}`);
+  try {
+    await app.listen(port);
+    logger.log(`Service running on port ${port}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to start service on port ${port}: ${message}`);
+    throw error;
+  }
 }

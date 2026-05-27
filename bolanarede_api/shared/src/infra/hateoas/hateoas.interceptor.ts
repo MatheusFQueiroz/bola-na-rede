@@ -23,7 +23,9 @@ export class HateoasInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<{ protocol: string; get: (h: string) => string; url: string }>();
 
-    const selfHref = `${request.protocol}://${request.get('host')}${request.url}`;
+    const protocol = request.protocol || 'http';
+    const host = request.get('host') || 'localhost';
+    const selfHref = `${protocol}://${host}${request.url}`;
 
     return next.handle().pipe(
       map((data) => ({ data, _links: { self: { href: selfHref } } })),
