@@ -1,10 +1,10 @@
 # BolaNaRede — Status de Desenvolvimento
-Última atualização: 2026-05-26
+Última atualização: 2026-05-27
 
 | Serviço      | Status   | Concluídas | Próxima task pendente        |
 |--------------|----------|------------|------------------------------|
-| shared       | ⏳ TODO  | 0/29       | Task 1: tsconfig.base.json   |
-| identity     | ⏳ TODO  | 0/37       | —                            |
+| shared       | ✅ DONE  | 29/29      | —                            |
+| identity     | ✅ DONE  | 37/37      | —                            |
 | team         | ⏳ TODO  | 0/?        | —                            |
 | field        | ⏳ TODO  | 0/?        | —                            |
 | open-game    | ⏳ TODO  | 0/?        | —                            |
