@@ -77,6 +77,10 @@ export class DrizzleUserRepository implements UserRepositoryInterface {
       .where(eq(users.externalId, userId))
       .limit(1);
 
+    if (!userRow) {
+      throw new Error(`User with externalId "${userId}" not found`);
+    }
+
     const updateData: Partial<typeof playerProfiles.$inferInsert> = { updatedAt: new Date() };
     if (data.displayName !== undefined) updateData.displayName = data.displayName;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
@@ -91,6 +95,10 @@ export class DrizzleUserRepository implements UserRepositoryInterface {
       .set(updateData)
       .where(eq(playerProfiles.userId, userRow.id))
       .returning();
+
+    if (!row) {
+      throw new Error(`PlayerProfile not found for user "${userRow.externalId}"`);
+    }
 
     return this.toProfile(row, userRow.externalId);
   }
