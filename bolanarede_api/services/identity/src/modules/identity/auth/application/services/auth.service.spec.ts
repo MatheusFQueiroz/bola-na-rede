@@ -19,9 +19,14 @@ const mockUserRepo = {
 
 describe('AuthService', () => {
   let service: AuthService;
+  let jwtServiceSignAsync: jest.Mock;
+  let jwtServiceVerifyAsync: jest.Mock;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    jwtServiceSignAsync = jest.fn().mockResolvedValue('mock-access-token');
+    jwtServiceVerifyAsync = jest.fn();
 
     const module = await Test.createTestingModule({
       providers: [
@@ -29,7 +34,10 @@ describe('AuthService', () => {
         { provide: USER_REPOSITORY, useValue: mockUserRepo },
         {
           provide: JwtService,
-          useValue: { signAsync: jest.fn().mockResolvedValue('mock-access-token') },
+          useValue: {
+            signAsync: jwtServiceSignAsync,
+            verifyAsync: jwtServiceVerifyAsync,
+          },
         },
         {
           provide: ConfigService,
@@ -84,6 +92,7 @@ describe('AuthService', () => {
       expect(mockUserRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({ email: 'new@test.com', displayName: 'Novo Jogador' }),
       );
+      expect(bcryptMock.hash).toHaveBeenCalledWith('senha123', 10);
     });
   });
 
@@ -141,6 +150,26 @@ describe('AuthService', () => {
 
       const result = await service.login({ email: 'test@test.com', password: 'correta123' });
       expect(result.accessToken).toBe('mock-access-token');
+    });
+  });
+
+  describe('refresh', () => {
+    it('returns a new accessToken when token is valid', async () => {
+      jwtServiceVerifyAsync.mockResolvedValue({
+        id: 'uuid-1',
+        name: 'Test User',
+        email: 'test@test.com',
+        permissions: ['players:read'],
+      });
+
+      const result = await service.refresh('valid-token');
+      expect(result.accessToken).toBe('mock-access-token');
+    });
+
+    it('throws UnauthorizedException when token is invalid', async () => {
+      jwtServiceVerifyAsync.mockRejectedValue(new Error('invalid signature'));
+
+      await expect(service.refresh('bad-token')).rejects.toThrow(UnauthorizedException);
     });
   });
 });
