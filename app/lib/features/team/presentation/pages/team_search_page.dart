@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../shared/widgets/app_components.dart';
+import 'package:provider/provider.dart';
+
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/team_viewmodel.dart';
-import '../../domain/entities/team.dart';
 
 class TeamSearchPage extends StatefulWidget {
   const TeamSearchPage({super.key});
@@ -55,7 +57,7 @@ class _TeamSearchPageState extends State<TeamSearchPage> {
               IconButton(
                 icon: Icon(PhosphorIcons.arrowLeft(),
                     color: AppColors.textOnPrimary),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
               ),
               const Expanded(
                 child: Text('Selecionar Adversário',
@@ -156,7 +158,7 @@ class _TeamSearchPageState extends State<TeamSearchPage> {
             final color = colors[i % colors.length];
 
             return AppCard(
-              onTap: () => Navigator.pop(context, team),
+              onTap: () => context.pop(team),
               child: Row(children: [
                 AppTeamAvatar(
                     initials: initials, color: color, size: 48, fontSize: 15),

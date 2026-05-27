@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
-import '../../../../shared/widgets/app_main_nav_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/home_viewmodel.dart';
-import '../../../match/domain/entities/match.dart';
-import '../../../ranking/presentation/viewmodels/ranking_viewmodel.dart';
-import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -62,7 +63,6 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
-      bottomNavigationBar: const AppMainNavBar(currentIndex: 0),
     );
   }
 
@@ -211,7 +211,7 @@ class _HomePageState extends State<HomePage> {
         AppButton.outline(
           label: 'Ver detalhes',
           height: AppSizes.buttonHeightSmall,
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.matchDetail),
+          onPressed: () => context.push(AppRoutes.matchDetail),
         ),
       ]),
     );
@@ -277,7 +277,7 @@ class _HomePageState extends State<HomePage> {
     return Row(children: [
       Expanded(
         child: AppCard(
-          onTap: () => Navigator.pushNamed(context, AppRoutes.search),
+          onTap: () => context.push(AppRoutes.search),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(PhosphorIcons.magnifyingGlass(),
@@ -293,7 +293,7 @@ class _HomePageState extends State<HomePage> {
       const SizedBox(width: AppSpacing.md),
       Expanded(
         child: AppCard(
-          onTap: () => Navigator.pushNamed(context, AppRoutes.fieldCatalog),
+          onTap: () => context.push(AppRoutes.fieldCatalog),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(PhosphorIcons.soccerBall(),
@@ -324,7 +324,7 @@ class _HomePageState extends State<HomePage> {
           const Text('Ranking dos times', style: AppTextStyles.titleSmall),
           const Spacer(),
           GestureDetector(
-            onTap: () => Navigator.pushNamed(context, AppRoutes.ranking),
+            onTap: () => context.push(AppRoutes.ranking),
             child: Text('Ver todos',
                 style: AppTextStyles.link.copyWith(fontSize: 13)),
           ),
@@ -404,7 +404,7 @@ class _HomePageState extends State<HomePage> {
             ]),
           ),
           OutlinedButton(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.teamManage),
+            onPressed: () => context.push(AppRoutes.teamManage),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.textOnPrimary,
               side: const BorderSide(color: AppColors.textOnPrimary),

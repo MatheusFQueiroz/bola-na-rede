@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/themes/app_tokens.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
 
 // =============================================================================
 // SCRUM-15 — Componentes Base: AppButton, AppInput, AppCard,
@@ -520,7 +522,7 @@ class AppGradientAppBar extends StatelessWidget implements PreferredSizeWidget {
             ? IconButton(
                 icon: Icon(PhosphorIcons.arrowLeft(),
                     color: AppColors.textOnPrimary),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
               )
             : null,
         title: Text(title),
@@ -531,53 +533,6 @@ class AppGradientAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(AppSizes.appBarHeight);
-}
-
-// -----------------------------------------------------------------------------
-// AppBottomNavBar
-// BottomNavigationBar com 5 itens: Início, Buscar, Partidas, Ranking, Perfil
-// -----------------------------------------------------------------------------
-
-class AppBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final void Function(int) onTap;
-
-  const AppBottomNavBar({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      items: [
-        BottomNavigationBarItem(
-            icon: Icon(PhosphorIcons.house()),
-            activeIcon: Icon(PhosphorIcons.house(PhosphorIconsStyle.fill)),
-            label: 'Início'),
-        BottomNavigationBarItem(
-            icon: Icon(PhosphorIcons.magnifyingGlass()),
-            activeIcon:
-                Icon(PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.fill)),
-            label: 'Buscar'),
-        BottomNavigationBarItem(
-            icon: Icon(PhosphorIcons.calendar()),
-            activeIcon: Icon(PhosphorIcons.calendar(PhosphorIconsStyle.fill)),
-            label: 'Partidas'),
-        BottomNavigationBarItem(
-            icon: Icon(PhosphorIcons.trophy()),
-            activeIcon: Icon(PhosphorIcons.trophy(PhosphorIconsStyle.fill)),
-            label: 'Ranking'),
-        BottomNavigationBarItem(
-            icon: Icon(PhosphorIcons.user()),
-            activeIcon: Icon(PhosphorIcons.user(PhosphorIconsStyle.fill)),
-            label: 'Perfil'),
-      ],
-    );
-  }
 }
 
 // -----------------------------------------------------------------------------

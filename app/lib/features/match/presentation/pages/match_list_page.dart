@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../shared/widgets/app_components.dart';
-import '../../../../core/routes/app_routes.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/shared/enums.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/match_viewmodel.dart';
 import '../../domain/entities/match.dart';
-import 'package:bola_na_rede/core/shared/enums.dart';
 
 class MatchListPage extends StatefulWidget {
   const MatchListPage({super.key});
@@ -32,20 +34,11 @@ class _MatchListPageState extends State<MatchListPage> {
         Expanded(child: _buildBody()),
       ]),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.createMatch),
+        onPressed: () => context.push(AppRoutes.createMatch),
         backgroundColor: AppColors.primary,
         icon: Icon(PhosphorIcons.plus(), color: AppColors.textOnPrimary),
         label: const Text('Nova Partida',
             style: TextStyle(color: AppColors.textOnPrimary)),
-      ),
-      bottomNavigationBar: AppBottomNavBar(
-        currentIndex: 2,
-        onTap: (i) {
-          if (i == 0) Navigator.pushNamed(context, AppRoutes.home);
-          if (i == 1) Navigator.pushNamed(context, AppRoutes.search);
-          if (i == 3) Navigator.pushNamed(context, AppRoutes.ranking);
-          if (i == 4) Navigator.pushNamed(context, AppRoutes.profile);
-        },
       ),
     );
   }
@@ -68,7 +61,7 @@ class _MatchListPageState extends State<MatchListPage> {
                       fontWeight: FontWeight.w600)),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.createMatch),
+              onTap: () => context.push(AppRoutes.createMatch),
               child: Icon(PhosphorIcons.plus(),
                   color: AppColors.textOnPrimary, size: AppSizes.iconLg),
             ),
@@ -112,7 +105,7 @@ class _MatchListPageState extends State<MatchListPage> {
         : AppBadgeType.closed;
 
     return AppCard(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.matchDetail),
+      onTap: () => context.push(AppRoutes.matchDetail),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           AppBadge(type: badgeType),

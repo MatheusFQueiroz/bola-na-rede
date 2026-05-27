@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/match_viewmodel.dart';
 
 class MatchDetailPage extends StatelessWidget {
@@ -237,7 +239,7 @@ class MatchDetailPage extends StatelessWidget {
             label: 'Registrar Resultado',
             height: AppSizes.buttonHeightSmall,
             onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.registerResult),
+                context.push(AppRoutes.registerResult),
           ),
         ),
       ]),

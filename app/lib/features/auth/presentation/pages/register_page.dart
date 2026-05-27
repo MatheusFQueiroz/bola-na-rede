@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
+import 'package:provider/provider.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -54,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+      context.go(AppRoutes.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -85,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 IconButton(
                   icon: Icon(PhosphorIcons.arrowLeft(),
                       color: AppColors.textOnPrimary),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                 ),
                 const Expanded(
                   child: Text('Criar sua conta',
@@ -160,7 +162,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: AppTextStyles.bodyMedium
                         .copyWith(color: AppColors.textSecondary)),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => context.pop(),
                   child: Text('Entrar',
                       style: AppTextStyles.link
                           .copyWith(fontWeight: FontWeight.w700)),

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
-import '../../../../shared/widgets/app_main_nav_bar.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/search_viewmodel.dart';
-import '../../../match/domain/entities/match.dart';
-import '../../../team/domain/entities/team.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -55,7 +56,6 @@ class _SearchPageState extends State<SearchPage> {
         _buildFilters(),
         Expanded(child: _buildBody()),
       ]),
-      bottomNavigationBar: const AppMainNavBar(currentIndex: 1),
     );
   }
 
@@ -72,7 +72,7 @@ class _SearchPageState extends State<SearchPage> {
               IconButton(
                 icon: Icon(PhosphorIcons.arrowLeft(),
                     color: AppColors.textOnPrimary),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
               ),
               const Expanded(
                 child: Text('Buscar',
@@ -265,7 +265,7 @@ class _SearchPageState extends State<SearchPage> {
         AppButton.outline(
           label: 'Propor horario',
           height: AppSizes.buttonHeightSmall,
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.matchDetail),
+          onPressed: () => context.push(AppRoutes.matchDetail),
         ),
       ]),
     );

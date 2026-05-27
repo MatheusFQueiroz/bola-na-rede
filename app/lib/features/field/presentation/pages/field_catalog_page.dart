@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
-import '../../../../shared/widgets/app_main_nav_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class FieldCatalogPage extends StatefulWidget {
   const FieldCatalogPage({super.key});
@@ -33,7 +34,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
                   IconButton(
                     icon: Icon(PhosphorIcons.arrowLeft(),
                         color: AppColors.textOnPrimary),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                   ),
                   const Expanded(
                     child: Text('Campos Proximo',
@@ -137,7 +138,6 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
           ),
         ),
       ]),
-      bottomNavigationBar: const AppMainNavBar(currentIndex: 1),
     );
   }
 
@@ -152,7 +152,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
     required bool available,
   }) {
     return AppCard(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.fieldDetail),
+      onTap: () => context.push(AppRoutes.fieldDetail),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // Foto placeholder
         Stack(children: [
@@ -217,7 +217,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
                 label: 'Ver mais',
                 filled: false,
                 onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.fieldDetail),
+                    context.push(AppRoutes.fieldDetail),
               ),
             ]),
             const SizedBox(height: AppSpacing.xs),

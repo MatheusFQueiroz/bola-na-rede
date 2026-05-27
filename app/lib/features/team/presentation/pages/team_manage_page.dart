@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../shared/widgets/app_components.dart';
+
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class TeamManagePage extends StatelessWidget {
   const TeamManagePage({super.key});
@@ -40,7 +42,7 @@ class TeamManagePage extends StatelessWidget {
             child: Row(children: [
               IconButton(
                 icon: Icon(PhosphorIcons.arrowLeft(), color: AppColors.textOnPrimary),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
               ),
               const Expanded(
                 child: Text('Furacao FC', textAlign: TextAlign.center,

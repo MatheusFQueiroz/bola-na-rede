@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class CreateTeamPage extends StatefulWidget {
   const CreateTeamPage({super.key});
@@ -118,7 +120,7 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
               AppButton.primary(
                 label: 'Criar Time',
                 onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.teamManage),
+                    context.push(AppRoutes.teamManage),
               ),
             ]),
           ),

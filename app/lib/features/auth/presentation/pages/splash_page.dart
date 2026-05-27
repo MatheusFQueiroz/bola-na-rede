@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
@@ -59,7 +60,7 @@ class SplashPage extends StatelessWidget {
                       height: AppSizes.buttonHeight,
                       child: ElevatedButton(
                         onPressed: () =>
-                            Navigator.pushNamed(context, AppRoutes.login),
+                            context.push(AppRoutes.login),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.surface,
                           foregroundColor: AppColors.primary,
@@ -83,7 +84,7 @@ class SplashPage extends StatelessWidget {
                       height: AppSizes.buttonHeight,
                       child: OutlinedButton(
                         onPressed: () =>
-                            Navigator.pushNamed(context, AppRoutes.register),
+                            context.push(AppRoutes.register),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.textOnPrimary,
                           side: const BorderSide(
@@ -97,7 +98,7 @@ class SplashPage extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xl),
                     TextButton(
                       onPressed: () =>
-                          Navigator.pushNamed(context, AppRoutes.home),
+                          context.push(AppRoutes.home),
                       child: Text(
                         'Continuar sem conta',
                         style: AppTextStyles.bodyMedium.copyWith(

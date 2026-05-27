@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
-import '../../../../shared/widgets/app_main_nav_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../viewmodels/profile_viewmodel.dart';
-import '../../../auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:provider/provider.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
+import '../viewmodels/profile_viewmodel.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -65,7 +66,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ]);
         },
       ),
-      bottomNavigationBar: const AppMainNavBar(currentIndex: 4),
     );
   }
 
@@ -183,7 +183,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const Text('Meus Times (2/3)', style: AppTextStyles.titleSmall),
           const Spacer(),
           TextButton(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.createTeam),
+            onPressed: () => context.push(AppRoutes.createTeam),
             child: const Text('Criar time'),
           ),
         ]),
@@ -224,7 +224,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
       ]),
-      onTap: () => Navigator.pushNamed(context, AppRoutes.teamManage),
+      onTap: () => context.push(AppRoutes.teamManage),
     );
   }
 
@@ -284,8 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
           () async {
             await context.read<AuthViewModel>().logout();
             if (!context.mounted) return;
-            Navigator.pushNamedAndRemoveUntil(
-                context, AppRoutes.splash, (_) => false);
+            context.go(AppRoutes.splash);
           },
         ),
       ]),

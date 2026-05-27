@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class FieldDetailPage extends StatefulWidget {
   const FieldDetailPage({super.key});
@@ -72,7 +73,7 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         left: AppSpacing.sm,
         child: _circleButton(
           Icons.arrow_back,
-          () => Navigator.pop(context),
+          () => context.pop(),
         ),
       ),
       Positioned(

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../core/routes/app_routes.dart';
-import '../../../../shared/widgets/app_components.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
+
+import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/match_viewmodel.dart';
-import '../../../team/presentation/viewmodels/team_viewmodel.dart';
-import '../../../team/domain/entities/team.dart';
 
 class CreateMatchPage extends StatefulWidget {
   const CreateMatchPage({super.key});
@@ -94,7 +96,7 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushNamed(context, AppRoutes.matchList);
+      context.go(AppRoutes.matchList);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -256,10 +258,7 @@ class _CreateMatchPageState extends State<CreateMatchPage> {
   Widget _buildTeamButton() {
     return GestureDetector(
       onTap: () async {
-        final team = await Navigator.pushNamed(
-          context,
-          AppRoutes.teamSearch,
-        );
+        final team = await context.push<Object?>(AppRoutes.teamSearch);
         if (team != null && team is Team) {
           setState(() => _selectedTeam = team);
         }

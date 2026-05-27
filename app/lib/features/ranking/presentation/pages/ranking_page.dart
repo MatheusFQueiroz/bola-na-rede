@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/themes/app_tokens.dart';
-import '../../../../shared/widgets/app_components.dart';
-import '../../../../core/routes/app_routes.dart';
+
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/shared/widgets/app_components.dart';
 import '../viewmodels/ranking_viewmodel.dart';
 import '../../domain/entities/ranking.dart';
 
@@ -60,15 +60,6 @@ class _RankingPageState extends State<RankingPage> {
         ),
         Expanded(child: _buildBody()),
       ]),
-      bottomNavigationBar: AppBottomNavBar(
-        currentIndex: 3,
-        onTap: (i) {
-          if (i == 0) Navigator.pushNamed(context, AppRoutes.home);
-          if (i == 1) Navigator.pushNamed(context, AppRoutes.search);
-          if (i == 2) Navigator.pushNamed(context, AppRoutes.matchList);
-          if (i == 4) Navigator.pushNamed(context, AppRoutes.profile);
-        },
-      ),
     );
   }
 
