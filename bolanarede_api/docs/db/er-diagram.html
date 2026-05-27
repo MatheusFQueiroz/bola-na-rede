@@ -1,0 +1,1499 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BolaNaRede — ER Diagram v2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #080c12;
+        --bg2: #0d1117;
+        --bg3: #151b24;
+        --border: #1e2a38;
+        --muted: #4a5a6e;
+        --text: #c9d4e0;
+        --head: #e8f0fc;
+        --id: #3b82f6;
+        --tm: #10b981;
+        --fd: #f59e0b;
+        --mm: #8b5cf6;
+        --gm: #ef4444;
+        --rk: #06b6d4;
+        --og: #ec4899;
+        --sc: #14b8a6;
+        --ga: #f97316;
+        --nt: #84cc16;
+        --r: 6px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--text);
+        min-height: 100vh;
+        padding: 28px 20px 60px;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      header h1 {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--head);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      header p {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 5px;
+        letter-spacing: 0.08em;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        justify-content: center;
+        margin-bottom: 32px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .badge-ref {
+        font-size: 8px;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-weight: 600;
+      }
+      .pk {
+        background: rgba(234, 179, 8, 0.15);
+        color: #eab308;
+      }
+      .fk {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+      }
+      .uk {
+        background: rgba(16, 185, 129, 0.12);
+        color: #34d399;
+      }
+      .gen {
+        background: rgba(139, 92, 246, 0.12);
+        color: #a78bfa;
+      }
+      .snap {
+        background: rgba(249, 115, 22, 0.12);
+        color: #fb923c;
+      }
+      .proj {
+        background: rgba(6, 182, 212, 0.12);
+        color: #22d3ee;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 18px;
+        max-width: 1500px;
+        margin: 0 auto;
+      }
+      .svc {
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        background: var(--bg2);
+        overflow: hidden;
+      }
+      .svc-hdr {
+        padding: 9px 13px;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .svc-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .svc-tech {
+        margin-left: auto;
+        font-size: 9px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .tw {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .tc {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .tn {
+        padding: 5px 9px;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--head);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .tn-note {
+        font-size: 8px;
+        color: var(--muted);
+        font-weight: 400;
+        margin-left: auto;
+      }
+      .cl {
+        list-style: none;
+        padding: 3px 0;
+      }
+      .ci {
+        display: grid;
+        grid-template-columns: 14px 1fr auto auto;
+        align-items: center;
+        gap: 0 5px;
+        padding: 2px 9px;
+        font-size: 9.5px;
+        line-height: 1.6;
+      }
+      .ci:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .cn {
+        color: var(--text);
+      }
+      .ct {
+        color: var(--muted);
+        font-size: 8.5px;
+      }
+      .ref {
+        color: var(--muted);
+        font-size: 8px;
+        font-style: italic;
+      }
+      .section {
+        max-width: 1500px;
+        margin: 24px auto 0;
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        background: var(--bg2);
+        overflow: hidden;
+      }
+      .sec-hdr {
+        padding: 9px 13px;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--head);
+        border-bottom: 1px solid var(--border);
+      }
+      .rel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      }
+      .rg {
+        padding: 12px 14px;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .rg:last-child {
+        border-right: none;
+      }
+      .rg-t {
+        font-size: 9px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 7px;
+      }
+      .rr {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 9.5px;
+        padding: 2px 0;
+      }
+      .rf {
+        color: var(--head);
+      }
+      .ra {
+        color: var(--muted);
+      }
+      .rt {
+        color: var(--text);
+      }
+      .rtype {
+        font-size: 8px;
+        color: var(--muted);
+        margin-left: auto;
+      }
+      .ev-flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0;
+        padding: 14px 18px;
+      }
+      .ev-step {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .ev-node {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 9px;
+        font-weight: 600;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+      .ev-lbl {
+        font-size: 8px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .ev-arr {
+        color: var(--muted);
+        font-size: 12px;
+        margin: 0 3px;
+      }
+      .patterns {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 0;
+      }
+      .pat {
+        padding: 12px 14px;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .pat:last-child {
+        border-right: none;
+      }
+      .pat-title {
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--head);
+        margin-bottom: 5px;
+      }
+      .pat-row {
+        font-size: 9px;
+        color: var(--muted);
+        padding: 1px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>BolaNaRede — Entity Relationship Diagram v2</h1>
+      <p>
+        10 microserviços · Database per Service · Snapshot + Projection + BFF
+        Patterns · RabbitMQ Events
+      </p>
+    </header>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="dot" style="background: var(--id)"></div>
+        identity
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--tm)"></div>
+        team
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--fd)"></div>
+        field (SaaS)
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--mm)"></div>
+        matchmaking
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--gm)"></div>
+        game
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--rk)"></div>
+        ranking
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--og)"></div>
+        open-game ✦NEW
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--sc)"></div>
+        social ✦NEW
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--ga)"></div>
+        gamification ✦NEW
+      </div>
+      <div class="legend-item">
+        <div class="dot" style="background: var(--nt)"></div>
+        notification
+      </div>
+      <div class="legend-item" style="margin-left: 8px">
+        <span class="badge-ref pk">PK</span>
+      </div>
+      <div class="legend-item"><span class="badge-ref fk">FK</span></div>
+      <div class="legend-item"><span class="badge-ref uk">UK</span></div>
+      <div class="legend-item"><span class="badge-ref gen">GEN</span></div>
+      <div class="legend-item">
+        <span class="badge-ref snap">SNAP</span> snapshot
+      </div>
+      <div class="legend-item">
+        <span class="badge-ref proj">PROJ</span> projeção local
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- IDENTITY -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--id) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--id)">
+          <div class="svc-dot" style="background: var(--id)"></div>
+          identity-service<span class="svc-tech">PostgreSQL isolated</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">users</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref pk">PK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">external_id</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">email / phone</span
+                ><span class="ct">text</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">status</span
+                ><span class="ct">text</span
+                ><span class="ref">ACTIVE|ANONYMIZED</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              player_profiles <span class="tn-note">✦ novo</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">user_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">display_name / photo_url</span
+                ><span class="ct">text</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">city / position</span
+                ><span class="ct">text</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">skill_level</span
+                ><span class="ct">smallint</span><span class="ref">1–5</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">device_tokens</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">user_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">token</span
+                ><span class="ct">text</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">platform</span
+                ><span class="ct">text</span
+                ><span class="ref">ios|android</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">credentials / account_deletions</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">user_id FK · provider · password_hash</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEAM -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--tm) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--tm)">
+          <div class="svc-dot" style="background: var(--tm)"></div>
+          team-service<span class="svc-tech">PostgreSQL</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">teams</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">name / city / status</span
+                ><span class="ct">text</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">created_by</span
+                ><span class="ct">text</span
+                ><span class="ref">→ users.ext_id</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">team_members</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">team_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">user_id</span
+                ><span class="ct">text</span
+                ><span class="ref">→ users.ext_id</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">role / joined_at / left_at</span
+                ><span class="ct">text</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">team_invitations · captaincy_transfers</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">team_id FK · invited_user_id · status</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- FIELD SaaS -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--fd) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--fd)">
+          <div class="svc-dot" style="background: var(--fd)"></div>
+          field-service (SaaS) ✦<span class="svc-tech"
+            >PostgreSQL + PostGIS</span
+          >
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">fields</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">location</span
+                ><span class="ct">geography</span
+                ><span class="ref">PostGIS POINT</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">plan</span
+                ><span class="ct">text</span
+                ><span class="ref">BASIC|PRO|MULTI</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              field_courts · pricing_rules · availability_slots
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >field_id FK · day_of_week · start/end_time · price</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              reservations ✦ <span class="tn-note">todos os canais</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">field_id / court_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">channel</span
+                ><span class="ct">text</span
+                ><span class="ref">app|manual|phone…</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">booker_snapshot</span
+                ><span class="ct">jsonb</span
+                ><span class="badge-ref snap">SNAP</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">price / platform_fee / net_amount</span
+                ><span class="ct">numeric</span
+                ><span class="badge-ref gen">GEN</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">status / payment_status</span
+                ><span class="ct">text</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">recurring_plans ✦</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">day_of_week / start_time</span
+                ><span class="ct">smallint/time</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">release_before_h</span
+                ><span class="ct">smallint</span
+                ><span class="ref">padrão: 12h</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">linked_entity_type</span
+                ><span class="ct">text</span
+                ><span class="ref">team|og_group</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">recurring_plan_slots ✦</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">plan_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">status</span
+                ><span class="ct">text</span
+                ><span class="ref">PRE_RESERVED|CONFIRMED|RELEASED</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">release_at</span
+                ><span class="ct">timestamptz</span
+                ><span class="ref">job automático</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">field_customers (CRM básico)</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">user_id / display_name / contact</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">total_bookings / last_booking_at</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATCHMAKING -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--mm) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--mm)">
+          <div class="svc-dot" style="background: var(--mm)"></div>
+          matchmaking-service<span class="svc-tech">PostgreSQL + Redis</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">match_requests</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">requesting_team_id</span
+                ><span class="ct">text</span
+                ><span class="ref">→ teams.ext_id</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">status / expires_at</span
+                ><span class="ct">text</span><span class="ref">48h RN05</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">match_proposals</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">match_request_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">proposing_team_id / field_id</span
+                ><span class="ct">text</span><span class="ref">→ ext_ids</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">field_snapshot</span
+                ><span class="ct">jsonb</span
+                ><span class="badge-ref snap">SNAP</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              team_summaries <span class="tn-note">projeção local</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">id (= teams.ext_id)</span
+                ><span></span><span class="badge-ref proj">PROJ</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">name / city / rating / player_count</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAME -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--gm) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--gm)">
+          <div class="svc-dot" style="background: var(--gm)"></div>
+          game-service<span class="svc-tech">PostgreSQL</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">matches</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id / proposal_id</span
+                ><span class="ct">uuid/text</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">team_a_snapshot / team_b_snapshot</span
+                ><span class="ct">jsonb</span
+                ><span class="badge-ref snap">SNAP</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">field_snapshot</span
+                ><span class="ct">jsonb</span
+                ><span class="badge-ref snap">SNAP</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">scheduled_date / status</span
+                ><span class="ct">date/text</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">match_results</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">match_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">score_team_a / score_team_b</span
+                ><span class="ct">smallint</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">auto_accept_after</span
+                ><span class="ct">timestamptz</span
+                ><span class="ref">24h RN06</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">result_confirmations · disputes</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >match_result_id FK · team_id · confirmed/reason</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- RANKING -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--rk) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--rk)">
+          <div class="svc-dot" style="background: var(--rk)"></div>
+          ranking-service<span class="svc-tech">PostgreSQL · CQRS</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">team_standings</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">team_id / season</span
+                ><span class="ct">text</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">points / wins / draws / losses</span
+                ><span class="ct">int</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">goal_difference</span
+                ><span class="ct">int</span
+                ><span class="badge-ref gen">GEN</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">is_inactive / rank</span
+                ><span class="ct">bool/int</span><span class="ref">RN14</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              ranking_events <span class="tn-note">inbox</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">event_type / match_id / scores</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">processed</span
+                ><span class="ct">boolean</span
+                ><span class="ref">SKIP LOCKED</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPEN GAME -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--og) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--og)">
+          <div class="svc-dot" style="background: var(--og)"></div>
+          open-game-service ✦NEW<span class="svc-tech">PostgreSQL + Redis</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">open_games (peladas)</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id / share_token</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">organizer_snapshot</span
+                ><span class="ct">jsonb</span
+                ><span class="badge-ref snap">SNAP</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">field_snapshot</span
+                ><span class="ct">jsonb</span
+                ><span class="badge-ref snap">SNAP</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">type / status</span
+                ><span class="ct">text</span
+                ><span class="ref">OPEN|CLOSED</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">max_players / min_players</span
+                ><span class="ct">smallint</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">scheduled_at / registration_closes_at</span
+                ><span class="ct">timestamptz</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">game_participations</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">open_game_id</span
+                ><span class="ct">bigint</span
+                ><span class="badge-ref fk">FK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">player_id</span
+                ><span class="ct">text</span
+                ><span class="ref">→ users.ext_id</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">status / checked_in</span
+                ><span class="ct">text/bool</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">game_stats</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">open_game_id FK (unique)</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">stats</span
+                ><span class="ct">jsonb</span
+                ><span class="ref">[{player_id,goals,assists}]</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              player_summaries <span class="tn-note">projeção local</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">player_id (= users.ext_id)</span
+                ><span></span><span class="badge-ref proj">PROJ</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">display_name / photo_url / city</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">overall_score / review_count</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOCIAL -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--sc) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--sc)">
+          <div class="svc-dot" style="background: var(--sc)"></div>
+          social-service ✦NEW<span class="svc-tech">PostgreSQL</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">player_reviews</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">reviewer_id / reviewed_id / game_id</span
+                ><span class="ct">text</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">fair_play / punctuality / skill / vibe</span
+                ><span class="ct">smallint</span><span class="ref">1–5</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">is_anonymous</span
+                ><span class="ct">boolean</span
+                ><span class="ref">default true</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">review_windows</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">game_id (unique)</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">eligible_players</span
+                ><span class="ct">text[]</span
+                ><span class="ref">quem fez check-in</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">opens_at / closes_at</span
+                ><span class="ct">timestamptz</span
+                ><span class="ref">+24h</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              player_scores <span class="tn-note">read model</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">player_id (PK = users.ext_id)</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >fair_play / punctuality / skill / vibe / overall _avg</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">review_count</span
+                ><span class="ct">int</span><span class="ref">últimas 50</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAMIFICATION -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--ga) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--ga)">
+          <div class="svc-dot" style="background: var(--ga)"></div>
+          gamification-service ✦NEW<span class="svc-tech">PostgreSQL</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">seasons</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >name / type / starts_at / ends_at / status</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">player_season_stats</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">player_id + season_id</span
+                ><span></span><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">goals / assists / games_played / wins</span
+                ><span class="ct">int</span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">peladas_played / goals_rank</span
+                ><span class="ct">int</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">stat_events_inbox</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">event_type + source_game_id</span
+                ><span></span><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">payload</span
+                ><span class="ct">jsonb</span
+                ><span class="ref">stats do jogo</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">processed</span
+                ><span class="ct">boolean</span
+                ><span class="ref">SKIP LOCKED</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">leagues</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">external_id / invite_token</span
+                ><span class="ct">uuid</span
+                ><span class="badge-ref uk">UK</span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">created_by / scoring_metric</span
+                ><span class="ct">text</span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">league_members · league_seasons</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >league_id FK · player_id · role · joined_at</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">challenges (eventos)</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">external_id / title / sponsor</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span
+                ><span class="cn">metric / scope / starts_at / ends_at</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">challenge_participants</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >challenge_id FK · player_id · score · rank</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              badge_definitions · player_badges · player_streaks
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >code · player_id · current_streak · longest_streak</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              player_identities <span class="tn-note">projeção local</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn"
+                  >player_id · display_name · photo_url · city</span
+                ><span></span><span class="badge-ref proj">PROJ</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATION -->
+      <div
+        class="svc"
+        style="border-color: color-mix(in srgb, var(--nt) 30%, var(--border))"
+      >
+        <div class="svc-hdr" style="color: var(--nt)">
+          <div class="svc-dot" style="background: var(--nt)"></div>
+          notification-service<span class="svc-tech">MongoDB + Redis</span>
+        </div>
+        <div class="tw">
+          <div class="tc">
+            <div class="tn">notifications (collection)</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">recipient_id / type / title / body</span
+                ><span></span><span></span>
+              </li>
+              <li class="ci">
+                <span></span><span class="cn">status / created_at</span
+                ><span></span><span class="ref">TTL 30 dias</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">
+              user_tokens <span class="tn-note">projeção local</span>
+            </div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span><span class="cn">user_id · token · platform</span
+                ><span></span><span class="badge-ref proj">PROJ</span>
+              </li>
+            </ul>
+          </div>
+          <div class="tc">
+            <div class="tn">notification_preferences (collection)</div>
+            <ul class="cl">
+              <li class="ci">
+                <span></span
+                ><span class="cn">user_id · push · email · types{}</span
+                ><span></span><span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /grid -->
+
+    <!-- PATTERNS -->
+    <div class="section">
+      <div class="sec-hdr">
+        Padrões Cross-Service (ver doc-arq-cross-service.md)
+      </div>
+      <div class="patterns">
+        <div class="pat">
+          <div class="pat-title" style="color: #fb923c">
+            🔸 Snapshot (imutável na criação)
+          </div>
+          <div class="pat-row">
+            open_games → field_snapshot, organizer_snapshot
+          </div>
+          <div class="pat-row">matches → field_snapshot, team_a/b_snapshot</div>
+          <div class="pat-row">reservations → booker_snapshot</div>
+          <div class="pat-row">match_proposals → field_snapshot</div>
+        </div>
+        <div class="pat">
+          <div class="pat-title" style="color: #22d3ee">
+            🔷 Projeção Local (via eventos RabbitMQ)
+          </div>
+          <div class="pat-row">
+            matchmaking → team_summaries (team + ranking events)
+          </div>
+          <div class="pat-row">
+            open-game → player_summaries (identity + social events)
+          </div>
+          <div class="pat-row">
+            gamification → player_identities (identity events)
+          </div>
+          <div class="pat-row">
+            notification → user_tokens (identity events)
+          </div>
+        </div>
+        <div class="pat">
+          <div class="pat-title" style="color: #a78bfa">
+            🔹 BFF Aggregation (telas complexas)
+          </div>
+          <div class="pat-row">
+            Perfil completo do jogador (identity + social + gamification)
+          </div>
+          <div class="pat-row">Detalhes de partida (game + team + field)</div>
+          <div class="pat-row">
+            Cache Redis 5–15 min para queries frequentes
+          </div>
+        </div>
+        <div class="pat">
+          <div class="pat-title" style="color: #f87171">
+            🔴 Sync + Circuit Breaker (crítico)
+          </div>
+          <div class="pat-row">
+            Verificação de auth token (identity-service guard)
+          </div>
+          <div class="pat-row">Processamento de pagamento (v2)</div>
+          <div class="pat-row">Timeout: 500ms · Fallback: erro controlado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATIONS -->
+    <div class="section">
+      <div class="sec-hdr">Relacionamentos Internos por Serviço (FK)</div>
+      <div class="rel-grid">
+        <div class="rg">
+          <div class="rg-t" style="color: var(--id)">identity</div>
+          <div class="rr">
+            <span class="rf">users</span><span class="ra"> ──&lt; </span
+            ><span class="rt">credentials</span><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">users</span><span class="ra"> ──|| </span
+            ><span class="rt">player_profiles</span
+            ><span class="rtype">1:1</span>
+          </div>
+          <div class="rr">
+            <span class="rf">users</span><span class="ra"> ──&lt; </span
+            ><span class="rt">device_tokens</span><span class="rtype">1:N</span>
+          </div>
+        </div>
+        <div class="rg">
+          <div class="rg-t" style="color: var(--tm)">team</div>
+          <div class="rr">
+            <span class="rf">teams</span><span class="ra"> ──&lt; </span
+            ><span class="rt">team_members</span><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">teams</span><span class="ra"> ──&lt; </span
+            ><span class="rt">team_invitations</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">teams</span><span class="ra"> ──&lt; </span
+            ><span class="rt">captaincy_transfers</span
+            ><span class="rtype">1:N</span>
+          </div>
+        </div>
+        <div class="rg">
+          <div class="rg-t" style="color: var(--fd)">field (SaaS)</div>
+          <div class="rr">
+            <span class="rf">fields</span><span class="ra"> ──&lt; </span
+            ><span class="rt">field_courts</span><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">fields</span><span class="ra"> ──&lt; </span
+            ><span class="rt">reservations</span><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">fields</span><span class="ra"> ──&lt; </span
+            ><span class="rt">recurring_plans</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">recurring_plans</span
+            ><span class="ra"> ──&lt; </span
+            ><span class="rt">recurring_plan_slots</span
+            ><span class="rtype">1:N</span>
+          </div>
+        </div>
+        <div class="rg">
+          <div class="rg-t" style="color: var(--og)">open-game</div>
+          <div class="rr">
+            <span class="rf">open_games</span><span class="ra"> ──&lt; </span
+            ><span class="rt">game_participations</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">open_games</span><span class="ra"> ──|| </span
+            ><span class="rt">game_stats</span><span class="rtype">1:1</span>
+          </div>
+        </div>
+        <div class="rg">
+          <div class="rg-t" style="color: var(--gm)">game</div>
+          <div class="rr">
+            <span class="rf">matches</span><span class="ra"> ──|| </span
+            ><span class="rt">match_results</span><span class="rtype">1:1</span>
+          </div>
+          <div class="rr">
+            <span class="rf">match_results</span><span class="ra"> ──&lt; </span
+            ><span class="rt">result_confirmations</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">match_results</span><span class="ra"> ──&lt; </span
+            ><span class="rt">disputes</span><span class="rtype">1:N</span>
+          </div>
+        </div>
+        <div class="rg">
+          <div class="rg-t" style="color: var(--ga)">gamification</div>
+          <div class="rr">
+            <span class="rf">seasons</span><span class="ra"> ──&lt; </span
+            ><span class="rt">player_season_stats</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">leagues</span><span class="ra"> ──&lt; </span
+            ><span class="rt">league_members</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">leagues</span><span class="ra"> ──&lt; </span
+            ><span class="rt">league_seasons</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">challenges</span><span class="ra"> ──&lt; </span
+            ><span class="rt">challenge_participants</span
+            ><span class="rtype">1:N</span>
+          </div>
+          <div class="rr">
+            <span class="rf">badge_definitions</span
+            ><span class="ra"> ──&lt; </span
+            ><span class="rt">player_badges</span><span class="rtype">1:N</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAGA FLOW -->
+    <div class="section">
+      <div class="sec-hdr">Event Flow — Saga Completa</div>
+      <div class="ev-flow">
+        <div class="ev-step">
+          <div
+            class="ev-node"
+            style="
+              background: rgba(236, 72, 153, 0.12);
+              border-color: rgba(236, 72, 153, 0.3);
+              color: #f472b6;
+            "
+          >
+            OpenGameCreated
+          </div>
+          <span class="ev-lbl">open-game</span>
+        </div>
+        <span class="ev-arr">→</span>
+        <div class="ev-step">
+          <div
+            class="ev-node"
+            style="
+              background: rgba(236, 72, 153, 0.12);
+              border-color: rgba(236, 72, 153, 0.3);
+              color: #f472b6;
+            "
+          >
+            OpenGameFinished
+          </div>
+          <span class="ev-lbl">open-game</span>
+        </div>
+        <span class="ev-arr">→</span>
+        <div class="ev-step">
+          <div
+            class="ev-node"
+            style="
+              background: rgba(20, 184, 166, 0.12);
+              border-color: rgba(20, 184, 166, 0.3);
+              color: #2dd4bf;
+            "
+          >
+            review_window
+          </div>
+          <span class="ev-lbl">social</span>
+        </div>
+        <span class="ev-arr">→</span>
+        <div class="ev-step">
+          <div
+            class="ev-node"
+            style="
+              background: rgba(249, 115, 22, 0.12);
+              border-color: rgba(249, 115, 22, 0.3);
+              color: #fb923c;
+            "
+          >
+            stats inbox
+          </div>
+          <span class="ev-lbl">gamification</span>
+        </div>
+        <span class="ev-arr">→</span>
+        <div class="ev-step">
+          <div
+            class="ev-node"
+            style="
+              background: rgba(249, 115, 22, 0.12);
+              border-color: rgba(249, 115, 22, 0.3);
+              color: #fb923c;
+            "
+          >
+            season stats updated
+          </div>
+          <span class="ev-lbl">gamification</span>
+        </div>
+        <span class="ev-arr">→</span>
+        <div class="ev-step">
+          <div
+            class="ev-node"
+            style="
+              background: rgba(132, 204, 22, 0.12);
+              border-color: rgba(132, 204, 22, 0.3);
+              color: #a3e635;
+            "
+          >
+            push notification
+          </div>
+          <span class="ev-lbl">notification</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
