@@ -50,7 +50,7 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": { "^.+\\.(t|j)s$": "ts-jest" },
     "moduleNameMapper": {
-      "^@shared/(.*)$": "<rootDir>/../../shared/src/$1"
+      "^@shared/(.*)$": "<rootDir>/../../../shared/src/$1"
     },
     "testEnvironment": "node"
   }
