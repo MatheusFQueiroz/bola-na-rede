@@ -11,26 +11,28 @@ export class DrizzleDeviceTokenRepository implements DeviceTokenRepositoryInterf
   constructor(private readonly drizzle: DrizzleService) {}
 
   async upsert(userId: string, token: string, platform: 'ios' | 'android'): Promise<DeviceToken> {
-    const [userRow] = await this.drizzle.db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.externalId, userId))
-      .limit(1);
+    return this.drizzle.db.transaction(async (tx) => {
+      const [userRow] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.externalId, userId))
+        .limit(1);
 
-    if (!userRow) throw new Error(`User with externalId "${userId}" not found`);
+      if (!userRow) throw new Error(`User with externalId "${userId}" not found`);
 
-    const [row] = await this.drizzle.db
-      .insert(deviceTokens)
-      .values({ userId: userRow.id, token, platform, isActive: true, updatedAt: new Date() })
-      .onConflictDoUpdate({
-        target: [deviceTokens.userId, deviceTokens.platform],
-        set: { token, isActive: true, updatedAt: new Date() },
-      })
-      .returning();
+      const [row] = await tx
+        .insert(deviceTokens)
+        .values({ userId: userRow.id, token, platform, isActive: true, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: [deviceTokens.userId, deviceTokens.platform],
+          set: { token, isActive: true, updatedAt: new Date() },
+        })
+        .returning();
 
-    if (!row) throw new Error(`Failed to upsert device token for user "${userId}"`);
+      if (!row) throw new Error(`Failed to upsert device token for user "${userId}"`);
 
-    return { userId, token: row.token, platform: row.platform as 'ios' | 'android', isActive: row.isActive, updatedAt: row.updatedAt };
+      return { userId, token: row.token, platform: row.platform as 'ios' | 'android', isActive: row.isActive, updatedAt: row.updatedAt };
+    });
   }
 
   async findByUserId(userId: string): Promise<DeviceToken[]> {
