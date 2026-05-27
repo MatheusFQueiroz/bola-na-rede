@@ -3,6 +3,8 @@ import {
   USER_REPOSITORY,
   UserRepositoryInterface,
 } from '../../domain/repositories/user-repository.interface';
+import { User } from '../../domain/models/user.entity';
+import { PlayerProfile } from '../../domain/models/player-profile.entity';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { UserDto } from '../dto/user.dto';
 
@@ -24,7 +26,7 @@ export class UserService {
   async updateProfile(
     userId: string,
     dto: UpdateProfileDto,
-    messagingService: { publishProfileUpdated: (user: unknown, profile: unknown) => Promise<void> },
+    messagingService: { publishProfileUpdated: (user: User, profile: PlayerProfile) => Promise<void> },
   ): Promise<UserDto> {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException(`User ${userId} not found`);
