@@ -1,0 +1,125 @@
+// lib/core/routes/app_router.dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:bola_na_rede/features/auth/presentation/pages/login_page.dart';
+import 'package:bola_na_rede/features/auth/presentation/pages/register_page.dart';
+import 'package:bola_na_rede/features/auth/presentation/pages/splash_page.dart';
+import 'package:bola_na_rede/features/field/presentation/pages/field_catalog_page.dart';
+import 'package:bola_na_rede/features/field/presentation/pages/field_detail_page.dart';
+import 'package:bola_na_rede/features/home/presentation/pages/home_page.dart';
+import 'package:bola_na_rede/features/match/presentation/pages/create_match_page.dart';
+import 'package:bola_na_rede/features/match/presentation/pages/match_detail_page.dart';
+import 'package:bola_na_rede/features/match/presentation/pages/match_list_page.dart';
+import 'package:bola_na_rede/features/match/presentation/pages/register_result_page.dart';
+import 'package:bola_na_rede/features/profile/presentation/pages/profile_page.dart';
+import 'package:bola_na_rede/features/ranking/presentation/pages/ranking_page.dart';
+import 'package:bola_na_rede/features/search/presentation/pages/search_page.dart';
+import 'package:bola_na_rede/features/team/presentation/pages/create_team_page.dart';
+import 'package:bola_na_rede/features/team/presentation/pages/team_manage_page.dart';
+import 'package:bola_na_rede/features/team/presentation/pages/team_search_page.dart';
+import 'package:bola_na_rede/shared/widgets/app_shell.dart';
+
+abstract class AppRoutes {
+  static const splash = '/';
+  static const login = '/login';
+  static const register = '/register';
+  static const home = '/home';
+  static const search = '/search';
+  static const matchList = '/match';
+  static const matchDetail = '/match/detail';
+  static const createMatch = '/match/create';
+  static const registerResult = '/match/result';
+  static const ranking = '/ranking';
+  static const profile = '/profile';
+  static const fieldCatalog = '/fields';
+  static const fieldDetail = '/fields/detail';
+  static const teamManage = '/team/manage';
+  static const createTeam = '/team/create';
+  static const teamSearch = '/team/search';
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    initialLocation: AppRoutes.splash,
+    // TODO(auth): redirect: (context, state) {
+    //   final isLoggedIn = ref.read(authViewModelProvider).isLoggedIn;
+    //   final onAuth = state.matchedLocation == AppRoutes.login ||
+    //       state.matchedLocation == AppRoutes.register;
+    //   if (!isLoggedIn && !onAuth) return AppRoutes.login;
+    //   if (isLoggedIn && onAuth) return AppRoutes.home;
+    //   return null;
+    // },
+    routes: [
+      GoRoute(
+        path: AppRoutes.splash,
+        builder: (_, __) => const SplashPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (_, __) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        builder: (_, __) => const RegisterPage(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.home,
+            builder: (_, __) => const HomePage(),
+          ),
+          GoRoute(
+            path: AppRoutes.search,
+            builder: (_, __) => const SearchPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.matchList,
+            builder: (_, __) => const MatchListPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.ranking,
+            builder: (_, __) => const RankingPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.profile,
+            builder: (_, __) => const ProfilePage(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.fieldCatalog,
+        builder: (_, __) => const FieldCatalogPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.fieldDetail,
+        builder: (_, __) => const FieldDetailPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.matchDetail,
+        builder: (_, __) => const MatchDetailPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.createMatch,
+        builder: (_, __) => const CreateMatchPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.registerResult,
+        builder: (_, __) => const RegisterResultPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.teamManage,
+        builder: (_, __) => const TeamManagePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.createTeam,
+        builder: (_, __) => const CreateTeamPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.teamSearch,
+        builder: (_, __) => const TeamSearchPage(),
+      ),
+    ],
+  );
+});
