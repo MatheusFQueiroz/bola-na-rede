@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'app.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() {
+import 'package:bola_na_rede/app.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const BolaNaRedeApp());
+  await dotenv.load();
+  runApp(const ProviderScope(child: BolaNaRedeApp()));
 }
