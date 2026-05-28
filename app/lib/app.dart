@@ -13,9 +13,6 @@ import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmo
 import 'package:bola_na_rede/features/profile/data/datasources/profile_mock_datasource.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
-import 'package:bola_na_rede/features/search/data/datasources/search_mock_datasource.dart';
-import 'package:bola_na_rede/features/search/data/repositories/search_repository_impl.dart';
-import 'package:bola_na_rede/features/search/presentation/viewmodels/search_viewmodel.dart';
 import 'package:bola_na_rede/features/team/data/datasources/team_mock_datasource.dart';
 import 'package:bola_na_rede/features/team/data/repositories/team_repository_impl.dart';
 import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
@@ -48,13 +45,6 @@ class BolaNaRedeApp extends ConsumerWidget {
           create: (_) => ProfileViewModel(
             repository: ProfileRepositoryImpl(
               dataSource: ProfileMockDataSource(),
-            ),
-          ),
-        ),
-ChangeNotifierProvider(
-          create: (_) => SearchViewModel(
-            repository: SearchRepositoryImpl(
-              dataSource: SearchMockDataSource(),
             ),
           ),
         ),

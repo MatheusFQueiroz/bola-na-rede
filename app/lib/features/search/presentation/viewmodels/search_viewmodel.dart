@@ -1,53 +1,80 @@
-import 'package:flutter/material.dart';
-import '../../../match/domain/entities/match.dart';
-import '../../../team/domain/entities/team.dart';
-import '../../domain/repositories/search_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum SearchViewState { idle, loading, success, error }
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/search/data/repositories/search_repository_provider.dart';
+import 'package:bola_na_rede/features/search/domain/repositories/search_repository.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 
-class SearchViewModel extends ChangeNotifier {
-  final SearchRepository repository;
+enum SearchStatus { idle, loading, success, error }
 
-  SearchViewModel({required this.repository});
+class SearchState {
+  final SearchStatus status;
+  final List<Match> matches;
+  final List<Team> teams;
+  final String query;
+  final String? error;
 
-  SearchViewState _state = SearchViewState.idle;
-  List<Match> _matches = [];
-  List<Team> _teams = [];
-  String _query = '';
-  String? _error;
+  const SearchState({
+    required this.status,
+    required this.matches,
+    required this.teams,
+    required this.query,
+    this.error,
+  });
 
-  SearchViewState get state => _state;
-  List<Match> get matches => _matches;
-  List<Team> get teams => _teams;
-  String get query => _query;
-  String? get error => _error;
+  const SearchState.initial()
+      : status = SearchStatus.idle,
+        matches = const [],
+        teams = const [],
+        query = '',
+        error = null;
+
+  SearchState copyWith({
+    SearchStatus? status,
+    List<Match>? matches,
+    List<Team>? teams,
+    String? query,
+    String? error,
+  }) =>
+      SearchState(
+        status: status ?? this.status,
+        matches: matches ?? this.matches,
+        teams: teams ?? this.teams,
+        query: query ?? this.query,
+        error: error ?? this.error,
+      );
+}
+
+final searchViewModelProvider =
+    NotifierProvider<SearchViewModel, SearchState>(SearchViewModel.new);
+
+class SearchViewModel extends Notifier<SearchState> {
+  @override
+  SearchState build() => const SearchState.initial();
+
+  SearchRepository get _repo => ref.read(searchRepositoryProvider);
 
   Future<void> search(String query) async {
-    _query = query;
-    _state = SearchViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(
+        status: SearchStatus.loading, query: query, error: null);
     try {
       final results = await Future.wait([
-        repository.searchMatches(query),
-        repository.searchTeams(query),
+        _repo.searchMatches(query),
+        _repo.searchTeams(query),
       ]);
-      _matches = results[0] as List<Match>;
-      _teams = results[1] as List<Team>;
-      _state = SearchViewState.success;
-    } catch (e) {
-      _error = 'Não foi possível realizar a busca.';
-      _state = SearchViewState.error;
+      state = state.copyWith(
+        status: SearchStatus.success,
+        matches: results[0] as List<Match>,
+        teams: results[1] as List<Team>,
+      );
+    } catch (_) {
+      state = state.copyWith(
+          status: SearchStatus.error,
+          error: 'Não foi possível realizar a busca.');
     }
-    notifyListeners();
   }
 
   void clear() {
-    _query = '';
-    _matches = [];
-    _teams = [];
-    _state = SearchViewState.idle;
-    notifyListeners();
+    state = const SearchState.initial();
   }
 }

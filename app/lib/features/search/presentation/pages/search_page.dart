@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/search/presentation/viewmodels/search_viewmodel.dart';
 import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/search_viewmodel.dart';
 
-class SearchPage extends StatefulWidget {
+class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  ConsumerState<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends ConsumerState<SearchPage> {
   int _tabIndex = 0;
   String _filter = 'Perto de mim';
   final _tabs = ['Partidas', 'Times'];
@@ -36,7 +36,7 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SearchViewModel>().search('');
+      ref.read(searchViewModelProvider.notifier).search('');
     });
   }
 
@@ -96,7 +96,8 @@ class _SearchPageState extends State<SearchPage> {
               ),
               child: TextField(
                 controller: _searchController,
-                onChanged: (v) => context.read<SearchViewModel>().search(v),
+                onChanged: (v) =>
+                    ref.read(searchViewModelProvider.notifier).search(v),
                 decoration: InputDecoration(
                   hintText: 'Buscar partidas ou times...',
                   prefixIcon: Icon(PhosphorIcons.magnifyingGlass(),
@@ -107,8 +108,12 @@ class _SearchPageState extends State<SearchPage> {
                               color: AppColors.textSecondary, size: 16),
                           onPressed: () {
                             _searchController.clear();
-                            context.read<SearchViewModel>().clear();
-                            context.read<SearchViewModel>().search('');
+                            ref
+                                .read(searchViewModelProvider.notifier)
+                                .clear();
+                            ref
+                                .read(searchViewModelProvider.notifier)
+                                .search('');
                           },
                         )
                       : null,
@@ -187,19 +192,17 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildBody() {
-    return Consumer<SearchViewModel>(
-      builder: (_, vm, __) {
-        if (vm.state == SearchViewState.loading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (vm.state == SearchViewState.error) {
-          return Center(child: Text(vm.error ?? 'Erro'));
-        }
+    final vm = ref.watch(searchViewModelProvider);
 
-        if (_tabIndex == 0) return _buildMatchList(vm.matches);
-        return _buildTeamList(vm.teams);
-      },
-    );
+    if (vm.status == SearchStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (vm.status == SearchStatus.error) {
+      return Center(child: Text(vm.error ?? 'Erro'));
+    }
+
+    if (_tabIndex == 0) return _buildMatchList(vm.matches);
+    return _buildTeamList(vm.teams);
   }
 
   Widget _buildMatchList(List<Match> matches) {
