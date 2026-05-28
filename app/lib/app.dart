@@ -7,9 +7,6 @@ import 'package:bola_na_rede/core/themes/app_theme.dart';
 import 'package:bola_na_rede/features/field/data/datasources/field_mock_datasource.dart';
 import 'package:bola_na_rede/features/field/data/repositories/field_repository_impl.dart';
 import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmodel.dart';
-import 'package:bola_na_rede/features/home/data/datasources/home_mock_datasource.dart';
-import 'package:bola_na_rede/features/home/data/repositories/home_repository_impl.dart';
-import 'package:bola_na_rede/features/home/presentation/viewmodels/home_viewmodel.dart';
 import 'package:bola_na_rede/features/match/data/datasources/match_mock_datasource.dart';
 import 'package:bola_na_rede/features/match/data/repositories/match_repository_impl.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
@@ -54,12 +51,7 @@ class BolaNaRedeApp extends ConsumerWidget {
             ),
           ),
         ),
-        ChangeNotifierProvider(
-          create: (_) => HomeViewModel(
-            repository: HomeRepositoryImpl(dataSource: HomeMockDataSource()),
-          ),
-        ),
-        ChangeNotifierProvider(
+ChangeNotifierProvider(
           create: (_) => SearchViewModel(
             repository: SearchRepositoryImpl(
               dataSource: SearchMockDataSource(),

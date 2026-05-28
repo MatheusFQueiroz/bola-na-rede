@@ -1,39 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' hide Consumer;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/home/presentation/viewmodels/home_viewmodel.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import 'package:bola_na_rede/features/home/presentation/viewmodels/home_viewmodel.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeViewModel>().loadHome();
+      ref.read(homeViewModelProvider.notifier).loadHome();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final vm = ref.watch(homeViewModelProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Consumer<HomeViewModel>(
-        builder: (_, vm, __) {
-          if (vm.state == HomeViewState.loading) {
+      body: Builder(
+        builder: (_) {
+          if (vm.status == HomeStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
           return CustomScrollView(
@@ -53,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                     _buildQuickActions(),
                     const SizedBox(height: AppSpacing.md),
-                    _buildRanking(context, vm),
+                    _buildRanking(),
                     const SizedBox(height: AppSpacing.md),
                     if (vm.myTeam != null) _buildMyTeam(vm),
                     const SizedBox(height: AppSpacing.lg),
@@ -67,10 +68,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader(HomeViewModel vm) {
-    final user = ProviderScope.containerOf(context)
-        .read(authViewModelProvider)
-        .currentUser;
+  Widget _buildHeader(HomeState vm) {
+    final user = ref.read(authViewModelProvider).currentUser;
     final name = user?.displayName ?? 'Jogador';
 
     return Container(
@@ -312,12 +311,9 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
-  Widget _buildRanking(BuildContext context, HomeViewModel vm) {
-    final rankings = ProviderScope.containerOf(context)
-        .read(rankingViewModelProvider)
-        .teamRankings
-        .take(3)
-        .toList();
+  Widget _buildRanking() {
+    final rankings =
+        ref.read(rankingViewModelProvider).teamRankings.take(3).toList();
     final colors = [
       AppColors.avatarBlue,
       AppColors.avatarRed,
@@ -380,7 +376,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildMyTeam(HomeViewModel vm) {
+  Widget _buildMyTeam(HomeState vm) {
     final team = vm.myTeam!;
     final initials = team.name.substring(0, 2).toUpperCase();
 

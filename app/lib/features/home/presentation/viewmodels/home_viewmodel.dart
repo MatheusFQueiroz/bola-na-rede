@@ -1,55 +1,91 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:bola_na_rede/features/match/domain/entities/match.dart';
-import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/home/data/repositories/home_repository_provider.dart';
 import 'package:bola_na_rede/features/home/domain/repositories/home_repository.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 
-enum HomeViewState { idle, loading, success, error }
+enum HomeStatus { idle, loading, success, error }
 
-class HomeViewModel extends ChangeNotifier {
-  final HomeRepository repository;
+class HomeState {
+  final HomeStatus status;
+  final Match? nextMatch;
+  final Match? pendingRequest;
+  final Team? myTeam;
+  final String? error;
 
-  HomeViewModel({required this.repository});
+  const HomeState({
+    required this.status,
+    this.nextMatch,
+    this.pendingRequest,
+    this.myTeam,
+    this.error,
+  });
 
-  HomeViewState _state = HomeViewState.idle;
-  Match? _nextMatch;
-  Match? _pendingRequest;
-  Team? _myTeam;
-  String? _error;
-
-  HomeViewState get state => _state;
-  Match? get nextMatch => _nextMatch;
-  Match? get pendingRequest => _pendingRequest;
-  Team? get myTeam => _myTeam;
-  String? get error => _error;
+  const HomeState.initial()
+      : status = HomeStatus.idle,
+        nextMatch = null,
+        pendingRequest = null,
+        myTeam = null,
+        error = null;
 
   int get myRank => 3;
   int get playerCount => 6;
   int get winStreak => 8;
 
+  HomeState copyWith({
+    HomeStatus? status,
+    Match? nextMatch,
+    Match? pendingRequest,
+    Team? myTeam,
+    String? error,
+  }) =>
+      HomeState(
+        status: status ?? this.status,
+        nextMatch: nextMatch ?? this.nextMatch,
+        pendingRequest: pendingRequest ?? this.pendingRequest,
+        myTeam: myTeam ?? this.myTeam,
+        error: error ?? this.error,
+      );
+}
+
+final homeViewModelProvider =
+    NotifierProvider<HomeViewModel, HomeState>(HomeViewModel.new);
+
+class HomeViewModel extends Notifier<HomeState> {
+  @override
+  HomeState build() => const HomeState.initial();
+
+  HomeRepository get _repo => ref.read(homeRepositoryProvider);
+
   Future<void> loadHome() async {
-    _state = HomeViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(status: HomeStatus.loading, error: null);
     try {
-      const teamId = 'team-001';
-
+      final teamId = ref.read(authViewModelProvider).currentTeamId;
       final results = await Future.wait([
-        repository.getNextMatch(teamId),
-        repository.getPendingRequest(teamId),
-        repository.getMyTeam(teamId),
+        _repo.getNextMatch(teamId),
+        _repo.getPendingRequest(teamId),
+        _repo.getMyTeam(teamId),
       ]);
 
-      _nextMatch = results[0] as Match?;
-      _pendingRequest = results[1] as Match?;
-      _myTeam = results[2] as Team?;
+      final rankingState = ref.read(rankingViewModelProvider);
+      if (rankingState.status == RankingStatus.idle) {
+        await ref.read(rankingViewModelProvider.notifier).loadRankings();
+      }
 
-      _state = HomeViewState.success;
-    } catch (e) {
-      _error = 'Não foi possível carregar a home.';
-      _state = HomeViewState.error;
+      state = HomeState(
+        status: HomeStatus.success,
+        nextMatch: results[0] as Match?,
+        pendingRequest: results[1] as Match?,
+        myTeam: results[2] as Team?,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        status: HomeStatus.error,
+        error: 'Não foi possível carregar a home.',
+      );
     }
-    notifyListeners();
   }
 }
