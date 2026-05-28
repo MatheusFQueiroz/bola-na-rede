@@ -4,9 +4,6 @@ import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_theme.dart';
-import 'package:bola_na_rede/features/field/data/datasources/field_mock_datasource.dart';
-import 'package:bola_na_rede/features/field/data/repositories/field_repository_impl.dart';
-import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmodel.dart';
 import 'package:bola_na_rede/features/profile/data/datasources/profile_mock_datasource.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
@@ -19,11 +16,6 @@ class BolaNaRedeApp extends ConsumerWidget {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => FieldViewModel(
-            repository: FieldRepositoryImpl(dataSource: FieldMockDataSource()),
-          ),
-        ),
         ChangeNotifierProvider(
           create: (_) => ProfileViewModel(
             repository: ProfileRepositoryImpl(
