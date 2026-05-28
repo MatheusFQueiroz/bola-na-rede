@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/match_viewmodel.dart';
-import '../../domain/entities/match.dart';
 
-class MatchListPage extends StatefulWidget {
+class MatchListPage extends ConsumerStatefulWidget {
   const MatchListPage({super.key});
   @override
-  State<MatchListPage> createState() => _MatchListPageState();
+  ConsumerState<MatchListPage> createState() => _MatchListPageState();
 }
 
-class _MatchListPageState extends State<MatchListPage> {
+class _MatchListPageState extends ConsumerState<MatchListPage> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MatchViewModel>().loadMatches();
+      ref.read(matchViewModelProvider.notifier).loadMatches();
     });
   }
 
@@ -72,22 +72,20 @@ class _MatchListPageState extends State<MatchListPage> {
   }
 
   Widget _buildBody() {
-    return Consumer<MatchViewModel>(
-      builder: (_, vm, __) {
-        if (vm.listState == MatchViewState.loading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (vm.listState == MatchViewState.error) {
-          return Center(child: Text(vm.listError ?? 'Erro'));
-        }
-        if (vm.matches.isEmpty) return _buildEmpty();
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          itemCount: vm.matches.length,
-          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-          itemBuilder: (_, i) => _matchCard(vm.matches[i]),
-        );
-      },
+    final vm = ref.watch(matchViewModelProvider);
+
+    if (vm.listStatus == MatchLoadStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (vm.listStatus == MatchLoadStatus.error) {
+      return Center(child: Text(vm.listError ?? 'Erro'));
+    }
+    if (vm.matches.isEmpty) return _buildEmpty();
+    return ListView.separated(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      itemCount: vm.matches.length,
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+      itemBuilder: (_, i) => _matchCard(vm.matches[i]),
     );
   }
 

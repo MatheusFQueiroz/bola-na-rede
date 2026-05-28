@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/match_viewmodel.dart';
 
-class MatchDetailPage extends StatelessWidget {
+class MatchDetailPage extends ConsumerWidget {
   const MatchDetailPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final vm = context.watch<MatchViewModel>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vm = ref.watch(matchViewModelProvider);
     final match = vm.selectedMatch;
 
     // dados reais se disponíveis, fallback nos hardcoded originais

@@ -1,58 +1,91 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/shared/snapshots.dart';
-import '../../domain/entities/match.dart';
-import '../../domain/repositories/match_repository.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/match/data/repositories/match_repository_provider.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/match/domain/repositories/match_repository.dart';
 
-enum MatchViewState { idle, loading, success, error }
+enum MatchLoadStatus { idle, loading, success, error }
 
-class MatchViewModel extends ChangeNotifier {
-  final MatchRepository repository;
+class MatchState {
+  final MatchLoadStatus listStatus;
+  final List<Match> matches;
+  final String? listError;
+  final Match? selectedMatch;
+  final MatchLoadStatus createStatus;
+  final String? createError;
 
-  MatchViewModel({required this.repository});
+  const MatchState({
+    required this.listStatus,
+    required this.matches,
+    this.listError,
+    this.selectedMatch,
+    required this.createStatus,
+    this.createError,
+  });
 
-  // — Lista
-  MatchViewState _listState = MatchViewState.idle;
-  List<Match> _matches = [];
-  String? _listError;
+  const MatchState.initial()
+      : listStatus = MatchLoadStatus.idle,
+        matches = const [],
+        listError = null,
+        selectedMatch = null,
+        createStatus = MatchLoadStatus.idle,
+        createError = null;
 
-  MatchViewState get listState => _listState;
-  List<Match> get matches => _matches;
-  String? get listError => _listError;
+  List<Match> get scheduledMatches =>
+      matches.where((m) => m.status == MatchStatus.scheduled).toList();
+  List<Match> get completedMatches =>
+      matches.where((m) => m.status == MatchStatus.completed).toList();
 
-  // — Detalhe
-  Match? _selectedMatch;
-  Match? get selectedMatch => _selectedMatch;
+  MatchState copyWith({
+    MatchLoadStatus? listStatus,
+    List<Match>? matches,
+    String? listError,
+    Match? selectedMatch,
+    MatchLoadStatus? createStatus,
+    String? createError,
+  }) =>
+      MatchState(
+        listStatus: listStatus ?? this.listStatus,
+        matches: matches ?? this.matches,
+        listError: listError ?? this.listError,
+        selectedMatch: selectedMatch ?? this.selectedMatch,
+        createStatus: createStatus ?? this.createStatus,
+        createError: createError ?? this.createError,
+      );
+}
 
-  // — Criação
-  MatchViewState _createState = MatchViewState.idle;
-  MatchViewState get createState => _createState;
-  String? _createError;
-  String? get createError => _createError;
+final matchViewModelProvider =
+    NotifierProvider<MatchViewModel, MatchState>(MatchViewModel.new);
+
+class MatchViewModel extends Notifier<MatchState> {
+  @override
+  MatchState build() => const MatchState.initial();
+
+  MatchRepository get _repo => ref.read(matchRepositoryProvider);
 
   Future<void> loadMatches() async {
-    _listState = MatchViewState.loading;
-    _listError = null;
-    notifyListeners();
-
+    state = state.copyWith(listStatus: MatchLoadStatus.loading, listError: null);
     try {
-      _matches = await repository.getMatches();
-      _listState = MatchViewState.success;
-    } catch (e) {
-      _listError = 'Não foi possível carregar as partidas.';
-      _listState = MatchViewState.error;
+      final matches = await _repo.getMatches();
+      state = state.copyWith(
+          listStatus: MatchLoadStatus.success, matches: matches);
+    } catch (_) {
+      state = state.copyWith(
+          listStatus: MatchLoadStatus.error,
+          listError: 'Não foi possível carregar as partidas.');
     }
-    notifyListeners();
   }
 
   Future<void> loadMatchDetail(String matchId) async {
     try {
-      _selectedMatch = await repository.getMatchById(matchId);
-      notifyListeners();
-    } catch (e) {
-      _selectedMatch = null;
+      final match = await _repo.getMatchById(matchId);
+      state = state.copyWith(selectedMatch: match);
+    } catch (_) {
+      state = state.copyWith(selectedMatch: null);
     }
   }
 
@@ -67,45 +100,33 @@ class MatchViewModel extends ChangeNotifier {
     String? fieldName,
     String? fieldAddress,
   }) async {
-    _createState = MatchViewState.loading;
-    _createError = null;
-    notifyListeners();
-
+    state = state.copyWith(
+        createStatus: MatchLoadStatus.loading, createError: null);
     try {
-      const teamAId = 'team-001';
-      const teamAName = 'Meu Time';
-
-      // monta snapshots conforme db-game-service.md
-      final teamASnapshot = TeamSnapshot(
-        teamId: teamAId,
-        name: teamAName,
-        city: 'Curitiba',
-      );
-
-      final teamBSnapshot = TeamSnapshot(
-        teamId: teamBId,
-        name: teamBName,
-        city: teamBCity,
-      );
-
-      // snapshot do campo se informado
-      final fieldSnapshot = fieldId != null
-          ? FieldSnapshot(
-              fieldId: fieldId,
-              name: fieldName ?? 'Campo',
-              address: fieldAddress,
-            )
-          : null;
+      final authState = ref.read(authViewModelProvider);
+      final teamAId = authState.currentTeamId;
+      final teamAName = authState.currentUser?.displayName ?? 'Meu Time';
 
       final newMatch = Match(
         id: const Uuid().v4(),
         proposalId: const Uuid().v4(),
         teamAId: teamAId,
         teamBId: teamBId,
-        teamASnapshot: teamASnapshot,
-        teamBSnapshot: teamBSnapshot,
+        teamASnapshot: TeamSnapshot(
+          teamId: teamAId,
+          name: teamAName,
+          city: authState.currentUser?.city ?? 'Curitiba',
+        ),
+        teamBSnapshot:
+            TeamSnapshot(teamId: teamBId, name: teamBName, city: teamBCity),
         fieldId: fieldId,
-        fieldSnapshot: fieldSnapshot,
+        fieldSnapshot: fieldId != null
+            ? FieldSnapshot(
+                fieldId: fieldId,
+                name: fieldName ?? 'Campo',
+                address: fieldAddress,
+              )
+            : null,
         scheduledDate: scheduledDate,
         scheduledTimeStart: timeStart,
         scheduledTimeEnd: timeEnd,
@@ -114,22 +135,15 @@ class MatchViewModel extends ChangeNotifier {
         updatedAt: DateTime.now(),
       );
 
-      await repository.createMatch(newMatch);
+      await _repo.createMatch(newMatch);
       await loadMatches();
-      _createState = MatchViewState.success;
-      notifyListeners();
+      state = state.copyWith(createStatus: MatchLoadStatus.success);
       return true;
-    } catch (e) {
-      _createError = 'Não foi possível criar a partida.';
-      _createState = MatchViewState.error;
-      notifyListeners();
+    } catch (_) {
+      state = state.copyWith(
+          createStatus: MatchLoadStatus.error,
+          createError: 'Não foi possível criar a partida.');
       return false;
     }
   }
-
-  List<Match> get scheduledMatches =>
-      _matches.where((m) => m.status == MatchStatus.scheduled).toList();
-
-  List<Match> get completedMatches =>
-      _matches.where((m) => m.status == MatchStatus.completed).toList();
 }
