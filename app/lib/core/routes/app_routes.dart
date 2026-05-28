@@ -1,22 +1,22 @@
 // lib/core/routes/app_routes.dart
 
 import 'package:flutter/material.dart';
-import '../../features/auth/presentation/pages/splash_page.dart';
-import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/auth/presentation/pages/register_page.dart';
-import '../../features/home/presentation/pages/home_page.dart';
-import '../../features/field/presentation/pages/field_catalog_page.dart';
-import '../../features/field/presentation/pages/field_detail_page.dart';
-import '../../features/search/presentation/pages/search_page.dart';
-import '../../features/match/presentation/pages/match_list_page.dart';
-import '../../features/match/presentation/pages/match_detail_page.dart';
-import '../../features/match/presentation/pages/create_match_page.dart';
-import '../../features/match/presentation/pages/register_result_page.dart';
-import '../../features/team/presentation/pages/team_manage_page.dart';
-import '../../features/team/presentation/pages/create_team_page.dart';
-import '../../features/ranking/presentation/pages/ranking_page.dart';
-import '../../features/profile/presentation/pages/profile_page.dart';
-import '../../features/team/presentation/pages/team_search_page.dart';
+import '../../features/auth/presentation/views/splash_page.dart';
+import '../../features/auth/presentation/views/login_page.dart';
+import '../../features/auth/presentation/views/register_page.dart';
+import '../../features/home/presentation/views/home_page.dart';
+import '../../features/field/presentation/views/field_catalog_page.dart';
+import '../../features/field/presentation/views/field_detail_page.dart';
+import '../../features/search/presentation/views/search_page.dart';
+import '../../features/match/presentation/views/match_list_page.dart';
+import '../../features/match/presentation/views/match_detail_page.dart';
+import '../../features/match/presentation/views/create_match_page.dart';
+import '../../features/match/presentation/views/register_result_page.dart';
+import '../../features/team/presentation/views/team_manage_page.dart';
+import '../../features/team/presentation/views/create_team_page.dart';
+import '../../features/ranking/presentation/views/ranking_page.dart';
+import '../../features/profile/presentation/views/profile_page.dart';
+import '../../features/team/presentation/views/team_search_page.dart';
 
 abstract class AppRoutes {
   static const String splash = '/';

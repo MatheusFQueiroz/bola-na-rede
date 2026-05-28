@@ -2,22 +2,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:bola_na_rede/features/auth/presentation/pages/login_page.dart';
-import 'package:bola_na_rede/features/auth/presentation/pages/register_page.dart';
-import 'package:bola_na_rede/features/auth/presentation/pages/splash_page.dart';
-import 'package:bola_na_rede/features/field/presentation/pages/field_catalog_page.dart';
-import 'package:bola_na_rede/features/field/presentation/pages/field_detail_page.dart';
-import 'package:bola_na_rede/features/home/presentation/pages/home_page.dart';
-import 'package:bola_na_rede/features/match/presentation/pages/create_match_page.dart';
-import 'package:bola_na_rede/features/match/presentation/pages/match_detail_page.dart';
-import 'package:bola_na_rede/features/match/presentation/pages/match_list_page.dart';
-import 'package:bola_na_rede/features/match/presentation/pages/register_result_page.dart';
-import 'package:bola_na_rede/features/profile/presentation/pages/profile_page.dart';
-import 'package:bola_na_rede/features/ranking/presentation/pages/ranking_page.dart';
-import 'package:bola_na_rede/features/search/presentation/pages/search_page.dart';
-import 'package:bola_na_rede/features/team/presentation/pages/create_team_page.dart';
-import 'package:bola_na_rede/features/team/presentation/pages/team_manage_page.dart';
-import 'package:bola_na_rede/features/team/presentation/pages/team_search_page.dart';
+import 'package:bola_na_rede/features/auth/presentation/views/login_page.dart';
+import 'package:bola_na_rede/features/auth/presentation/views/register_page.dart';
+import 'package:bola_na_rede/features/auth/presentation/views/splash_page.dart';
+import 'package:bola_na_rede/features/field/presentation/views/field_catalog_page.dart';
+import 'package:bola_na_rede/features/field/presentation/views/field_detail_page.dart';
+import 'package:bola_na_rede/features/home/presentation/views/home_page.dart';
+import 'package:bola_na_rede/features/match/presentation/views/create_match_page.dart';
+import 'package:bola_na_rede/features/match/presentation/views/match_detail_page.dart';
+import 'package:bola_na_rede/features/match/presentation/views/match_list_page.dart';
+import 'package:bola_na_rede/features/match/presentation/views/register_result_page.dart';
+import 'package:bola_na_rede/features/profile/presentation/views/profile_page.dart';
+import 'package:bola_na_rede/features/ranking/presentation/views/ranking_page.dart';
+import 'package:bola_na_rede/features/search/presentation/views/search_page.dart';
+import 'package:bola_na_rede/features/team/presentation/views/create_team_page.dart';
+import 'package:bola_na_rede/features/team/presentation/views/team_manage_page.dart';
+import 'package:bola_na_rede/features/team/presentation/views/team_search_page.dart';
 import 'package:bola_na_rede/shared/widgets/app_shell.dart';
 
 abstract class AppRoutes {
