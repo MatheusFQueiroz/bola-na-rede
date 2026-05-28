@@ -1,4 +1,4 @@
-import '../entities/field.dart';
+import 'package:bola_na_rede/features/field/domain/entities/field.dart';
 
 abstract class FieldRepository {
   Future<List<Field>> getFields();

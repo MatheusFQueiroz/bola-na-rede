@@ -1,4 +1,4 @@
-import '../entities/ranking.dart';
+import 'package:bola_na_rede/features/ranking/domain/entities/ranking.dart';
 
 abstract class RankingRepository {
   Future<List<TeamRanking>> getTeamRankings();

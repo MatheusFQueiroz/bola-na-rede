@@ -1,6 +1,6 @@
-import '../../../auth/domain/entities/user.dart';
-import '../../domain/repositories/profile_repository.dart';
-import '../datasources/profile_mock_datasource.dart';
+import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
+import 'package:bola_na_rede/features/profile/domain/repositories/profile_repository.dart';
+import 'package:bola_na_rede/features/profile/data/datasources/profile_mock_datasource.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileDataSource dataSource;

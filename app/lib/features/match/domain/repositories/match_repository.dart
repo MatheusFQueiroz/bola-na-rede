@@ -1,6 +1,6 @@
-import '../entities/match.dart';
-import '../entities/match_request.dart';
-import '../entities/match_result.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match_request.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match_result.dart';
 
 abstract class MatchRepository {
   Future<List<Match>> getMatches();

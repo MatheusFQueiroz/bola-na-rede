@@ -1,4 +1,4 @@
-import '../../domain/entities/user.dart';
+import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
 
 abstract class AuthDataSource {

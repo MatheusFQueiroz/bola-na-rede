@@ -1,4 +1,4 @@
-import '../entities/user.dart';
+import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 
 abstract class AuthRepository {
   Future<PlayerProfile> login(String email, String password);

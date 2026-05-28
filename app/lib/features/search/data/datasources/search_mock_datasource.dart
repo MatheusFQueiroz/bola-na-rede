@@ -1,5 +1,5 @@
-import '../../../match/domain/entities/match.dart';
-import '../../../team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/shared/snapshots.dart';
 
