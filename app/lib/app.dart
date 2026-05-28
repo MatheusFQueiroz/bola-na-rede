@@ -10,10 +10,6 @@ import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmo
 import 'package:bola_na_rede/features/profile/data/datasources/profile_mock_datasource.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
-import 'package:bola_na_rede/features/team/data/datasources/team_mock_datasource.dart';
-import 'package:bola_na_rede/features/team/data/repositories/team_repository_impl.dart';
-import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
-
 class BolaNaRedeApp extends ConsumerWidget {
   const BolaNaRedeApp({super.key});
 
@@ -26,11 +22,6 @@ class BolaNaRedeApp extends ConsumerWidget {
         ChangeNotifierProvider(
           create: (_) => FieldViewModel(
             repository: FieldRepositoryImpl(dataSource: FieldMockDataSource()),
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => TeamViewModel(
-            repository: TeamRepositoryImpl(dataSource: TeamMockDataSource()),
           ),
         ),
         ChangeNotifierProvider(

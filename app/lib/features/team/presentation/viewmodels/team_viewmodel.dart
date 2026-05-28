@@ -1,34 +1,53 @@
-import 'package:flutter/material.dart';
-import '../../domain/entities/team.dart';
-import '../../domain/repositories/team_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum TeamViewState { idle, loading, success, error }
+import 'package:bola_na_rede/features/team/data/repositories/team_repository_provider.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/team/domain/repositories/team_repository.dart';
 
-class TeamViewModel extends ChangeNotifier {
-  final TeamRepository repository;
+enum TeamStatus { idle, loading, success, error }
 
-  TeamViewModel({required this.repository});
+class TeamState {
+  final TeamStatus status;
+  final List<Team> teams;
+  final String? error;
 
-  TeamViewState _state = TeamViewState.idle;
-  List<Team> _teams = [];
-  String? _error;
+  const TeamState({required this.status, required this.teams, this.error});
 
-  TeamViewState get state => _state;
-  List<Team> get teams => _teams;
-  String? get error => _error;
+  const TeamState.initial()
+      : status = TeamStatus.idle,
+        teams = const [],
+        error = null;
+
+  TeamState copyWith({
+    TeamStatus? status,
+    List<Team>? teams,
+    String? error,
+  }) =>
+      TeamState(
+        status: status ?? this.status,
+        teams: teams ?? this.teams,
+        error: error ?? this.error,
+      );
+}
+
+final teamViewModelProvider =
+    NotifierProvider<TeamViewModel, TeamState>(TeamViewModel.new);
+
+class TeamViewModel extends Notifier<TeamState> {
+  @override
+  TeamState build() => const TeamState.initial();
+
+  TeamRepository get _repo => ref.read(teamRepositoryProvider);
 
   Future<void> loadTeams() async {
-    _state = TeamViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(status: TeamStatus.loading, error: null);
     try {
-      _teams = await repository.getTeams();
-      _state = TeamViewState.success;
-    } catch (e) {
-      _error = 'Não foi possível carregar os times.';
-      _state = TeamViewState.error;
+      final teams = await _repo.getTeams();
+      state = state.copyWith(status: TeamStatus.success, teams: teams);
+    } catch (_) {
+      state = state.copyWith(
+          status: TeamStatus.error,
+          error: 'Não foi possível carregar os times.');
     }
-    notifyListeners();
   }
 }

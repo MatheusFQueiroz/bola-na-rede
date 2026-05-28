@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
-import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/team_viewmodel.dart';
 
-class TeamSearchPage extends StatefulWidget {
+class TeamSearchPage extends ConsumerStatefulWidget {
   const TeamSearchPage({super.key});
 
   @override
-  State<TeamSearchPage> createState() => _TeamSearchPageState();
+  ConsumerState<TeamSearchPage> createState() => _TeamSearchPageState();
 }
 
-class _TeamSearchPageState extends State<TeamSearchPage> {
+class _TeamSearchPageState extends ConsumerState<TeamSearchPage> {
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -23,7 +22,7 @@ class _TeamSearchPageState extends State<TeamSearchPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TeamViewModel>().loadTeams();
+      ref.read(teamViewModelProvider.notifier).loadTeams();
     });
   }
 
@@ -100,83 +99,78 @@ class _TeamSearchPageState extends State<TeamSearchPage> {
   }
 
   Widget _buildBody() {
-    return Consumer<TeamViewModel>(
-      builder: (_, vm, __) {
-        if (vm.state == TeamViewState.loading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (vm.state == TeamViewState.error) {
-          return Center(
-            child: Text(vm.error ?? 'Erro',
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textSecondary)),
-          );
-        }
+    final vm = ref.watch(teamViewModelProvider);
 
-        // filtra time do usuário (team-001) e aplica busca
-        final teams = vm.teams
-            .where((t) => t.id != 'team-001')
-            .where((t) =>
-                _query.isEmpty ||
-                t.name.toLowerCase().contains(_query) ||
-                t.city.toLowerCase().contains(_query))
-            .toList();
+    if (vm.status == TeamStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (vm.status == TeamStatus.error) {
+      return Center(
+        child: Text(vm.error ?? 'Erro',
+            style: AppTextStyles.bodyMedium
+                .copyWith(color: AppColors.textSecondary)),
+      );
+    }
 
-        if (teams.isEmpty) {
-          return Center(
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(PhosphorIcons.users(),
-                  size: 48, color: AppColors.textDisabled),
-              const SizedBox(height: AppSpacing.md),
-              const Text('Nenhum time encontrado',
-                  style: AppTextStyles.titleMedium),
-              const SizedBox(height: AppSpacing.sm),
-              Text('Tente outro nome',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textSecondary)),
-            ]),
-          );
-        }
+    final teams = vm.teams
+        .where((t) => t.id != 'team-001')
+        .where((t) =>
+            _query.isEmpty ||
+            t.name.toLowerCase().contains(_query) ||
+            t.city.toLowerCase().contains(_query))
+        .toList();
 
-        final colors = [
-          AppColors.avatarGreen,
-          AppColors.avatarBlue,
-          AppColors.avatarRed,
-          AppColors.avatarOrange,
-          AppColors.avatarPurple,
-          AppColors.avatarTeal,
-        ];
+    if (teams.isEmpty) {
+      return Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(PhosphorIcons.users(), size: 48, color: AppColors.textDisabled),
+          const SizedBox(height: AppSpacing.md),
+          const Text('Nenhum time encontrado',
+              style: AppTextStyles.titleMedium),
+          const SizedBox(height: AppSpacing.sm),
+          Text('Tente outro nome',
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppColors.textSecondary)),
+        ]),
+      );
+    }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          itemCount: teams.length,
-          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (_, i) {
-            final team = teams[i];
-            final initials = team.name.substring(0, 2).toUpperCase();
-            final color = colors[i % colors.length];
+    final colors = [
+      AppColors.avatarGreen,
+      AppColors.avatarBlue,
+      AppColors.avatarRed,
+      AppColors.avatarOrange,
+      AppColors.avatarPurple,
+      AppColors.avatarTeal,
+    ];
 
-            return AppCard(
-              onTap: () => context.pop(team),
-              child: Row(children: [
-                AppTeamAvatar(
-                    initials: initials, color: color, size: 48, fontSize: 15),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(team.name, style: AppTextStyles.titleSmall),
-                        Text(team.city,
-                            style: AppTextStyles.bodySmall
-                                .copyWith(color: AppColors.textSecondary)),
-                      ]),
-                ),
-                Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
-              ]),
-            );
-          },
+    return ListView.separated(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      itemCount: teams.length,
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+      itemBuilder: (_, i) {
+        final team = teams[i];
+        final initials = team.name.substring(0, 2).toUpperCase();
+        final color = colors[i % colors.length];
+
+        return AppCard(
+          onTap: () => context.pop(team),
+          child: Row(children: [
+            AppTeamAvatar(
+                initials: initials, color: color, size: 48, fontSize: 15),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(team.name, style: AppTextStyles.titleSmall),
+                    Text(team.city,
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.textSecondary)),
+                  ]),
+            ),
+            Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
+          ]),
         );
       },
     );
