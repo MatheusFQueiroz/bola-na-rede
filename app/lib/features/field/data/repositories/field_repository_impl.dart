@@ -1,6 +1,6 @@
+import 'package:bola_na_rede/features/field/data/datasources/field_mock_datasource.dart';
 import 'package:bola_na_rede/features/field/domain/entities/field.dart';
 import 'package:bola_na_rede/features/field/domain/repositories/field_repository.dart';
-import 'package:bola_na_rede/features/field/data/datasources/field_mock_datasource.dart';
 
 class FieldRepositoryImpl implements FieldRepository {
   final FieldDataSource dataSource;

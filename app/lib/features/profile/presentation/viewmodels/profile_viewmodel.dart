@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_provider.dart';
 import 'package:bola_na_rede/features/profile/domain/repositories/profile_repository.dart';
 
@@ -56,7 +57,8 @@ class ProfileViewModel extends Notifier<ProfileState> {
   Future<void> loadProfile() async {
     state = state.copyWith(status: ProfileStatus.loading, error: null);
     try {
-      const userId = 'user-001';
+      final authState = ref.read(authViewModelProvider);
+      final userId = authState.currentUser?.userId ?? 'user-001';
       final results = await Future.wait([
         _repo.getProfile(userId),
         _repo.getRecentMatches(userId),

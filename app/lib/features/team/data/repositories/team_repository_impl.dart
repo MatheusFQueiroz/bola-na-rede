@@ -1,6 +1,6 @@
+import 'package:bola_na_rede/features/team/data/datasources/team_mock_datasource.dart';
 import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import 'package:bola_na_rede/features/team/domain/repositories/team_repository.dart';
-import 'package:bola_na_rede/features/team/data/datasources/team_mock_datasource.dart';
 
 class TeamRepositoryImpl implements TeamRepository {
   final TeamDataSource dataSource;

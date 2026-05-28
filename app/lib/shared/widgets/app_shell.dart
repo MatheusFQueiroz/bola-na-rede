@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
+
 import 'package:bola_na_rede/shared/widgets/app_nav_bar.dart';
 
 class AppShell extends StatelessWidget {

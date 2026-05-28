@@ -1,6 +1,6 @@
+import 'package:bola_na_rede/features/match/data/datasources/match_mock_datasource.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/match/domain/repositories/match_repository.dart';
-import 'package:bola_na_rede/features/match/data/datasources/match_mock_datasource.dart';
 
 class MatchRepositoryImpl implements MatchRepository {
   final MatchDataSource dataSource;

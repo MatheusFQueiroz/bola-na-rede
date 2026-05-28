@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:bola_na_rede/shared/widgets/app_nav_bar.dart';
 
 void main() {

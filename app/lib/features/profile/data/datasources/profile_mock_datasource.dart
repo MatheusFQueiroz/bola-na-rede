@@ -1,5 +1,5 @@
-import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
+import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 
 abstract class ProfileDataSource {
   Future<PlayerProfile> getProfile(String userId);

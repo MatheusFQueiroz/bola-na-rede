@@ -1,6 +1,6 @@
+import 'package:bola_na_rede/features/auth/data/datasources/auth_mock_datasource.dart';
 import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import 'package:bola_na_rede/features/auth/domain/repositories/auth_repository.dart';
-import 'package:bola_na_rede/features/auth/data/datasources/auth_mock_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthDataSource dataSource;

@@ -1,5 +1,5 @@
-import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 
 abstract class TeamDataSource {
   Future<List<Team>> getTeams();

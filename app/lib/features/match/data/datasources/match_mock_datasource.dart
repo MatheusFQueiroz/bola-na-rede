@@ -1,8 +1,8 @@
+import 'package:bola_na_rede/core/shared/enums.dart';
+import 'package:bola_na_rede/core/shared/snapshots.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match_request.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match_result.dart';
-import 'package:bola_na_rede/core/shared/enums.dart';
-import 'package:bola_na_rede/core/shared/snapshots.dart';
 
 abstract class MatchDataSource {
   Future<List<Match>> getMatches();
