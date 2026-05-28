@@ -1,49 +1,76 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
-import '../../domain/repositories/profile_repository.dart';
+import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_provider.dart';
+import 'package:bola_na_rede/features/profile/domain/repositories/profile_repository.dart';
 
-enum ProfileViewState { idle, loading, success, error }
+enum ProfileStatus { idle, loading, success, error }
 
-class ProfileViewModel extends ChangeNotifier {
-  final ProfileRepository repository;
+class ProfileState {
+  final ProfileStatus status;
+  final PlayerProfile? profile;
+  final List<Map<String, dynamic>> recentMatches;
+  final String? error;
 
-  ProfileViewModel({required this.repository});
+  const ProfileState({
+    required this.status,
+    this.profile,
+    required this.recentMatches,
+    this.error,
+  });
 
-  ProfileViewState _state = ProfileViewState.idle;
-  PlayerProfile? _profile;
-  List<Map<String, dynamic>> _recentMatches = [];
-  String? _error;
+  const ProfileState.initial()
+      : status = ProfileStatus.idle,
+        profile = null,
+        recentMatches = const [],
+        error = null;
 
-  ProfileViewState get state => _state;
-  PlayerProfile? get profile => _profile;
-  List<Map<String, dynamic>> get recentMatches => _recentMatches;
-  String? get error => _error;
+  ProfileState copyWith({
+    ProfileStatus? status,
+    PlayerProfile? profile,
+    List<Map<String, dynamic>>? recentMatches,
+    String? error,
+  }) =>
+      ProfileState(
+        status: status ?? this.status,
+        profile: profile ?? this.profile,
+        recentMatches: recentMatches ?? this.recentMatches,
+        error: error ?? this.error,
+      );
 
-  // stats fixos por enquanto — virão da API
   int get totalMatches => 42;
   int get totalGoals => 28;
   int get totalWins => 28;
   String get winRate => '67%';
+}
+
+final profileViewModelProvider =
+    NotifierProvider<ProfileViewModel, ProfileState>(ProfileViewModel.new);
+
+class ProfileViewModel extends Notifier<ProfileState> {
+  @override
+  ProfileState build() => const ProfileState.initial();
+
+  ProfileRepository get _repo => ref.read(profileRepositoryProvider);
 
   Future<void> loadProfile() async {
-    _state = ProfileViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(status: ProfileStatus.loading, error: null);
     try {
       const userId = 'user-001';
       final results = await Future.wait([
-        repository.getProfile(userId),
-        repository.getRecentMatches(userId),
+        _repo.getProfile(userId),
+        _repo.getRecentMatches(userId),
       ]);
-      _profile = results[0] as PlayerProfile;
-      _recentMatches = results[1] as List<Map<String, dynamic>>;
-      _state = ProfileViewState.success;
-    } catch (e) {
-      _error = 'Não foi possível carregar o perfil.';
-      _state = ProfileViewState.error;
+      state = state.copyWith(
+        status: ProfileStatus.success,
+        profile: results[0] as PlayerProfile,
+        recentMatches: results[1] as List<Map<String, dynamic>>,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        status: ProfileStatus.error,
+        error: 'Não foi possível carregar o perfil.',
+      );
     }
-    notifyListeners();
   }
 }

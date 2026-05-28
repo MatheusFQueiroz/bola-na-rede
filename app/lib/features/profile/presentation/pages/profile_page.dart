@@ -1,71 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/profile_viewmodel.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileViewModel>().loadProfile();
+      ref.read(profileViewModelProvider.notifier).loadProfile();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final vm = ref.watch(profileViewModelProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Consumer<ProfileViewModel>(
-        builder: (_, vm, __) {
-          if (vm.state == ProfileViewState.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (vm.state == ProfileViewState.error) {
-            return Center(child: Text(vm.error ?? 'Erro'));
-          }
+      body: () {
+        if (vm.status == ProfileStatus.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (vm.status == ProfileStatus.error) {
+          return Center(child: Text(vm.error ?? 'Erro'));
+        }
 
-          final profile = vm.profile;
-          final initials =
-              profile?.displayName.substring(0, 2).toUpperCase() ?? 'CS';
-          final name = profile?.displayName ?? 'Carlos Souza';
-          final city = profile?.city ?? 'Curitiba';
-          final position = _positionLabel(profile?.position);
+        final profile = vm.profile;
+        final initials =
+            profile?.displayName.substring(0, 2).toUpperCase() ?? 'CS';
+        final name = profile?.displayName ?? 'Carlos Souza';
+        final city = profile?.city ?? 'Curitiba';
+        final position = _positionLabel(profile?.position);
 
-          return CustomScrollView(slivers: [
-            SliverToBoxAdapter(
-                child: _buildHeader(initials, name, city, position)),
-            SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                _buildStatsGrid(vm),
-                const SizedBox(height: AppSpacing.md),
-                _buildMyTeams(context),
-                const SizedBox(height: AppSpacing.md),
-                _buildRecentMatches(vm),
-                const SizedBox(height: AppSpacing.md),
-                const SizedBox(height: AppSpacing.md),
-                _buildSettings(context),
-                const SizedBox(height: AppSpacing.lg),
-              ])),
-            ),
-          ]);
-        },
-      ),
+        return CustomScrollView(slivers: [
+          SliverToBoxAdapter(
+              child: _buildHeader(initials, name, city, position)),
+          SliverPadding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            sliver: SliverList(
+                delegate: SliverChildListDelegate([
+              _buildStatsGrid(vm),
+              const SizedBox(height: AppSpacing.md),
+              _buildMyTeams(context),
+              const SizedBox(height: AppSpacing.md),
+              _buildRecentMatches(vm),
+              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.md),
+              _buildSettings(context),
+              const SizedBox(height: AppSpacing.lg),
+            ])),
+          ),
+        ]);
+      }(),
     );
   }
 
@@ -145,7 +145,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildStatsGrid(ProfileViewModel vm) {
+  Widget _buildStatsGrid(ProfileState vm) {
     final stats = [
       (PhosphorIcons.calendar(), 'Partidas', '${vm.totalMatches}'),
       (PhosphorIcons.soccerBall(), 'Gols', '${vm.totalGoals}'),
@@ -228,7 +228,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildRecentMatches(ProfileViewModel vm) {
+  Widget _buildRecentMatches(ProfileState vm) {
     return AppCard(
       child: Column(children: [
         Row(children: [
@@ -282,7 +282,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Sair',
           true,
           () async {
-            await context.read<AuthViewModel>().logout();
+            await ref.read(authViewModelProvider.notifier).logout();
             if (!context.mounted) return;
             context.go(AppRoutes.splash);
           },
