@@ -313,8 +313,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildRanking(BuildContext context, HomeViewModel vm) {
-    final rankings =
-        context.read<RankingViewModel>().teamRankings.take(3).toList();
+    final rankings = ProviderScope.containerOf(context)
+        .read(rankingViewModelProvider)
+        .teamRankings
+        .take(3)
+        .toList();
     final colors = [
       AppColors.avatarBlue,
       AppColors.avatarRed,

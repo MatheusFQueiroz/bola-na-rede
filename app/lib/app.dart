@@ -16,9 +16,6 @@ import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmo
 import 'package:bola_na_rede/features/profile/data/datasources/profile_mock_datasource.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
-import 'package:bola_na_rede/features/ranking/data/datasources/ranking_mock_datasource.dart';
-import 'package:bola_na_rede/features/ranking/data/repositories/ranking_repository_impl.dart';
-import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/features/search/data/datasources/search_mock_datasource.dart';
 import 'package:bola_na_rede/features/search/data/repositories/search_repository_impl.dart';
 import 'package:bola_na_rede/features/search/presentation/viewmodels/search_viewmodel.dart';
@@ -33,21 +30,17 @@ class BolaNaRedeApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
-    final rankingViewModel = RankingViewModel(
-      repository: RankingRepositoryImpl(dataSource: RankingMockDataSource()),
-    );
-
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: rankingViewModel),
         ChangeNotifierProvider(
           create: (_) => FieldViewModel(
             repository: FieldRepositoryImpl(dataSource: FieldMockDataSource()),
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) =>
-              MatchViewModel(repository: MatchRepositoryImpl(dataSource: MatchMockDataSource())),
+          create: (_) => MatchViewModel(
+            repository: MatchRepositoryImpl(dataSource: MatchMockDataSource()),
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => TeamViewModel(
@@ -64,7 +57,6 @@ class BolaNaRedeApp extends ConsumerWidget {
         ChangeNotifierProvider(
           create: (_) => HomeViewModel(
             repository: HomeRepositoryImpl(dataSource: HomeMockDataSource()),
-            rankingViewModel: rankingViewModel,
           ),
         ),
         ChangeNotifierProvider(

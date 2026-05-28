@@ -1,41 +1,70 @@
-import 'package:flutter/material.dart';
-import '../../domain/entities/ranking.dart';
-import '../../domain/repositories/ranking_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum RankingViewState { idle, loading, success, error }
+import 'package:bola_na_rede/features/ranking/data/repositories/ranking_repository_provider.dart';
+import 'package:bola_na_rede/features/ranking/domain/entities/ranking.dart';
+import 'package:bola_na_rede/features/ranking/domain/repositories/ranking_repository.dart';
 
-class RankingViewModel extends ChangeNotifier {
-  final RankingRepository repository;
+enum RankingStatus { idle, loading, success, error }
 
-  RankingViewModel({required this.repository});
+class RankingState {
+  final RankingStatus status;
+  final List<TeamRanking> teamRankings;
+  final List<PlayerRanking> playerRankings;
+  final String? error;
 
-  RankingViewState _state = RankingViewState.idle;
-  List<TeamRanking> _teamRankings = [];
-  List<PlayerRanking> _playerRankings = [];
-  String? _error;
+  const RankingState({
+    required this.status,
+    required this.teamRankings,
+    required this.playerRankings,
+    this.error,
+  });
 
-  RankingViewState get state => _state;
-  List<TeamRanking> get teamRankings => _teamRankings;
-  List<PlayerRanking> get playerRankings => _playerRankings;
-  String? get error => _error;
+  const RankingState.initial()
+      : status = RankingStatus.idle,
+        teamRankings = const [],
+        playerRankings = const [],
+        error = null;
+
+  RankingState copyWith({
+    RankingStatus? status,
+    List<TeamRanking>? teamRankings,
+    List<PlayerRanking>? playerRankings,
+    String? error,
+  }) =>
+      RankingState(
+        status: status ?? this.status,
+        teamRankings: teamRankings ?? this.teamRankings,
+        playerRankings: playerRankings ?? this.playerRankings,
+        error: error ?? this.error,
+      );
+}
+
+final rankingViewModelProvider =
+    NotifierProvider<RankingViewModel, RankingState>(RankingViewModel.new);
+
+class RankingViewModel extends Notifier<RankingState> {
+  @override
+  RankingState build() => const RankingState.initial();
+
+  RankingRepository get _repo => ref.read(rankingRepositoryProvider);
 
   Future<void> loadRankings() async {
-    _state = RankingViewState.loading;
-    _error = null;
-    notifyListeners();
-
+    state = state.copyWith(status: RankingStatus.loading, error: null);
     try {
       final results = await Future.wait([
-        repository.getTeamRankings(),
-        repository.getPlayerRankings(),
+        _repo.getTeamRankings(),
+        _repo.getPlayerRankings(),
       ]);
-      _teamRankings = results[0] as List<TeamRanking>;
-      _playerRankings = results[1] as List<PlayerRanking>;
-      _state = RankingViewState.success;
-    } catch (e) {
-      _error = 'Não foi possível carregar o ranking.';
-      _state = RankingViewState.error;
+      state = state.copyWith(
+        status: RankingStatus.success,
+        teamRankings: results[0] as List<TeamRanking>,
+        playerRankings: results[1] as List<PlayerRanking>,
+      );
+    } catch (_) {
+      state = state.copyWith(
+        status: RankingStatus.error,
+        error: 'Não foi possível carregar o ranking.',
+      );
     }
-    notifyListeners();
   }
 }

@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
-import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/features/team/domain/entities/team.dart';
-import '../../domain/repositories/home_repository.dart';
+import 'package:bola_na_rede/features/home/domain/repositories/home_repository.dart';
 
 enum HomeViewState { idle, loading, success, error }
 
 class HomeViewModel extends ChangeNotifier {
   final HomeRepository repository;
-  final RankingViewModel rankingViewModel;
 
-  HomeViewModel({
-    required this.repository,
-    required this.rankingViewModel,
-  });
+  HomeViewModel({required this.repository});
 
   HomeViewState _state = HomeViewState.idle;
   Match? _nextMatch;
@@ -28,7 +23,6 @@ class HomeViewModel extends ChangeNotifier {
   Team? get myTeam => _myTeam;
   String? get error => _error;
 
-  // stats fixos por enquanto
   int get myRank => 3;
   int get playerCount => 6;
   int get winStreak => 8;
@@ -50,11 +44,6 @@ class HomeViewModel extends ChangeNotifier {
       _nextMatch = results[0] as Match?;
       _pendingRequest = results[1] as Match?;
       _myTeam = results[2] as Team?;
-
-      // carrega rankings se ainda não carregou
-      if (rankingViewModel.state == RankingViewState.idle) {
-        await rankingViewModel.loadRankings();
-      }
 
       _state = HomeViewState.success;
     } catch (e) {

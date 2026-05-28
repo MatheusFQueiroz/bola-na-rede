@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:provider/provider.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/ranking/domain/entities/ranking.dart';
+import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
-import '../viewmodels/ranking_viewmodel.dart';
-import '../../domain/entities/ranking.dart';
 
-class RankingPage extends StatefulWidget {
+class RankingPage extends ConsumerStatefulWidget {
   const RankingPage({super.key});
   @override
-  State<RankingPage> createState() => _RankingPageState();
+  ConsumerState<RankingPage> createState() => _RankingPageState();
 }
 
-class _RankingPageState extends State<RankingPage> {
+class _RankingPageState extends ConsumerState<RankingPage> {
   int _tab = 0;
   String _filter = 'Geral';
   final _filters = ['Geral', 'Curitiba', 'Esta semana', 'Este mes'];
@@ -33,7 +33,7 @@ class _RankingPageState extends State<RankingPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RankingViewModel>().loadRankings();
+      ref.read(rankingViewModelProvider.notifier).loadRankings();
     });
   }
 
@@ -64,33 +64,31 @@ class _RankingPageState extends State<RankingPage> {
   }
 
   Widget _buildBody() {
-    return Consumer<RankingViewModel>(
-      builder: (_, vm, __) {
-        if (vm.state == RankingViewState.loading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (vm.state == RankingViewState.error) {
-          return Center(child: Text(vm.error ?? 'Erro'));
-        }
+    final vm = ref.watch(rankingViewModelProvider);
 
-        final teams = vm.teamRankings;
-        final players = vm.playerRankings;
-        final top3 =
-            _tab == 0 ? teams.take(3).toList() : players.take(3).toList();
-        final rest =
-            _tab == 0 ? teams.skip(3).toList() : players.skip(3).toList();
+    if (vm.status == RankingStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (vm.status == RankingStatus.error) {
+      return Center(child: Text(vm.error ?? 'Erro'));
+    }
 
-        return ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            _buildPodium(top3),
-            const SizedBox(height: AppSpacing.md),
-            _buildList(rest),
-            const SizedBox(height: AppSpacing.md),
-            _buildMyCard(vm),
-          ],
-        );
-      },
+    final teams = vm.teamRankings;
+    final players = vm.playerRankings;
+    final top3 =
+        _tab == 0 ? teams.take(3).toList() : players.take(3).toList();
+    final rest =
+        _tab == 0 ? teams.skip(3).toList() : players.skip(3).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        _buildPodium(top3),
+        const SizedBox(height: AppSpacing.md),
+        _buildList(rest),
+        const SizedBox(height: AppSpacing.md),
+        _buildMyCard(vm),
+      ],
     );
   }
 
@@ -309,7 +307,7 @@ class _RankingPageState extends State<RankingPage> {
     );
   }
 
-  Widget _buildMyCard(RankingViewModel vm) {
+  Widget _buildMyCard(RankingState vm) {
     if (_tab == 0) {
       final myTeam =
           vm.teamRankings.where((t) => t.id == 'team-001').firstOrNull;
