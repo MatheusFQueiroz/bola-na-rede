@@ -63,4 +63,17 @@ export class FieldService {
     const courts = await this.fieldRepo.findCourts(fieldExternalId);
     return courts.map((c) => FieldCourtDto.from(c));
   }
+
+  async setAvailability(
+    ownerUserId: string,
+    fieldExternalId: string,
+    courtExternalId: string,
+    slots: Array<{ dayOfWeek: number; startTime: string; endTime: string; isAvailable: boolean }>,
+  ): Promise<void> {
+    const field = await this.fieldRepo.findById(fieldExternalId);
+    if (!field) throw new NotFoundException(`Field ${fieldExternalId} not found`);
+    if (field.ownerUserId !== ownerUserId) throw new ForbiddenException('Only field owner can set availability');
+
+    await this.fieldRepo.setAvailabilitySlots(courtExternalId, slots);
+  }
 }
