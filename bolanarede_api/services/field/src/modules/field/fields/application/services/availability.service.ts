@@ -30,8 +30,8 @@ export class AvailabilityService {
 
       const slotDtos: TimeSlotDto[] = [];
       for (const slot of daySlots) {
-        const slotStart = new Date(`${dateStr}T${slot.startTime}:00`);
-        const slotEnd = new Date(`${dateStr}T${slot.endTime}:00`);
+        const slotStart = new Date(`${dateStr}T${slot.startTime}:00Z`);
+        const slotEnd = new Date(`${dateStr}T${slot.endTime}:00Z`);
 
         const overlapping = await this.reservationRepo.findOverlapping(
           court.id,

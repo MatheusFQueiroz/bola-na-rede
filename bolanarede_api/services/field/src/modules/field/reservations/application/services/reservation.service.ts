@@ -29,7 +29,7 @@ export class ReservationService {
     const reservation = await this.reservationRepo.create({
       courtExternalId: dto.courtId,
       fieldExternalId,
-      channel: dto.channel as any,
+      channel: dto.channel,
       startsAt,
       endsAt,
       notes: dto.notes,
