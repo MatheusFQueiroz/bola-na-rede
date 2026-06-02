@@ -79,7 +79,7 @@ export class DrizzleFieldRepository implements FieldRepositoryInterface {
       )
       .limit(50);
 
-    return rows.map(this.toField);
+    return rows.map((r) => this.toField(r));
   }
 
   async addCourt(data: CreateCourtData): Promise<FieldCourt> {
@@ -163,7 +163,7 @@ export class DrizzleFieldRepository implements FieldRepositoryInterface {
       .select()
       .from(availabilitySlots)
       .where(eq(availabilitySlots.courtId, court.id));
-    return rows.map(this.toSlot);
+    return rows.map((r) => this.toSlot(r));
   }
 
   private toField(row: FieldRow): Field {

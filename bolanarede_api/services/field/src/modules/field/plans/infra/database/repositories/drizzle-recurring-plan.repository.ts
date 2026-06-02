@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, gte, lte } from 'drizzle-orm';
 import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   CreateRecurringPlanData,
@@ -103,7 +103,9 @@ export class DrizzleRecurringPlanRepository implements RecurringPlanRepositoryIn
       .where(eq(fields.id, plan.fieldId))
       .limit(1);
 
-    return this.toSlot(row, planExternalId, fieldRow?.externalId ?? '');
+    if (!fieldRow) throw new NotFoundException(`Field for plan ${planExternalId} not found`);
+
+    return this.toSlot(row, planExternalId, fieldRow.externalId);
   }
 
   async findSlot(slotExternalId: string): Promise<RecurringPlanSlot | null> {
@@ -141,6 +143,11 @@ export class DrizzleRecurringPlanRepository implements RecurringPlanRepositoryIn
       .limit(1);
     if (!field) return [];
 
+    const dayStart = new Date(date);
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setUTCHours(23, 59, 59, 999);
+
     const rows = await this.drizzle.db
       .select({
         slot: recurringPlanSlots,
@@ -154,6 +161,8 @@ export class DrizzleRecurringPlanRepository implements RecurringPlanRepositoryIn
         and(
           eq(recurringPlanSlots.fieldId, field.id),
           eq(recurringPlanSlots.status, 'active'),
+          gte(recurringPlanSlots.slotDate, dayStart),
+          lte(recurringPlanSlots.slotDate, dayEnd),
         ),
       );
 
