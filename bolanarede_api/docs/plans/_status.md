@@ -5,7 +5,7 @@
 |--------------|----------|------------|------------------------------|
 | shared       | ✅ DONE  | 29/29      | —                            |
 | identity     | ✅ DONE  | 37/37      | —                            |
-| team         | ⏳ TODO  | 0/?        | —                            |
+| team         | ✅ DONE  | 29/29      | —                            |
 | field        | ⏳ TODO  | 0/?        | —                            |
 | open-game    | ⏳ TODO  | 0/?        | —                            |
 | social       | ⏳ TODO  | 0/?        | —                            |
@@ -19,3 +19,4 @@
 
 - `docs/plans/2026-05-26-shared-module.md` — 29 tasks
 - `docs/plans/2026-05-26-identity-service.md` — 37 tasks
+- `docs/plans/2026-05-27-team-service.md` — 29 tasks
