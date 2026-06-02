@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsInt, IsString, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsString, Max, Min, ValidateNested } from 'class-validator';
 
 export class AvailabilitySlotDto {
   @ApiProperty({ description: '0=Dom, 1=Seg, ..., 6=Sáb' })
   @IsInt() @Min(0) @Max(6) dayOfWeek!: number;
-  @ApiProperty({ example: '08:00' }) @IsString() startTime!: string;
-  @ApiProperty({ example: '09:00' }) @IsString() endTime!: string;
+  @ApiProperty({ example: '08:00' }) @IsString() @IsNotEmpty() startTime!: string;
+  @ApiProperty({ example: '09:00' }) @IsString() @IsNotEmpty() endTime!: string;
   @ApiProperty() @IsBoolean() isAvailable!: boolean;
 }
 

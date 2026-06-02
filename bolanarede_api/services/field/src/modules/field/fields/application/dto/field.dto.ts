@@ -4,7 +4,7 @@ import type { Field } from '../../domain/models/field.entity';
 export class FieldDto {
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
-  @ApiPropertyOptional() description!: string | null;
+  @ApiPropertyOptional({ nullable: true }) description!: string | null;
   @ApiProperty() city!: string;
   @ApiProperty() address!: string;
   @ApiProperty() lat!: number;
