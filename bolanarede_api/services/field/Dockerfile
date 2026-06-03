@@ -37,10 +37,10 @@ RUN npm ci --only=production
 COPY --from=builder /app/services/field/drizzle ./drizzle
 
 # Copy migration script
-COPY services/field/scripts ./scripts
+COPY --from=builder /app/services/field/scripts ./scripts
 
 # Copy and make entrypoint executable
-COPY services/field/docker-entrypoint.sh ./
+COPY --from=builder /app/services/field/docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 4003
