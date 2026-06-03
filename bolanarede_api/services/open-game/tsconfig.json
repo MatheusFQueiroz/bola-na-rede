@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@shared/*": ["../../shared/src/*"],
+      "@nestjs/*": ["./node_modules/@nestjs/*"],
+      "@golevelup/*": ["./node_modules/@golevelup/*"],
+      "class-validator": ["./node_modules/class-validator"],
+      "class-transformer": ["./node_modules/class-transformer"],
+      "rxjs": ["./node_modules/rxjs"],
+      "rxjs/*": ["./node_modules/rxjs/*"],
+      "drizzle-orm": ["./node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["./node_modules/drizzle-orm/*"],
+      "ioredis": ["./node_modules/ioredis"],
+      "ioredis/*": ["./node_modules/ioredis/*"],
+      "pg": ["./node_modules/@types/pg"],
+      "reflect-metadata": ["./node_modules/reflect-metadata"],
+      "@types/*": ["./node_modules/@types/*"]
+    },
+    "incremental": true,
+    "isolatedModules": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "drizzle"]
+}
