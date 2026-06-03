@@ -1,5 +1,5 @@
 # BolaNaRede — Status de Desenvolvimento
-Última atualização: 2026-06-02 (open-game plan added)
+Última atualização: 2026-06-03 (open-game DONE)
 
 | Serviço      | Status   | Concluídas | Próxima task pendente        |
 |--------------|----------|------------|------------------------------|
@@ -7,7 +7,7 @@
 | identity     | ✅ DONE  | 37/37      | —                            |
 | team         | ✅ DONE  | 29/29      | —                            |
 | field        | ✅ DONE  | 34/34      | —                            |
-| open-game    | 📋 PLAN  | 0/29       | Task 1 — .env.example        |
+| open-game    | ✅ DONE  | 29/29      | —                            |
 | social       | ⏳ TODO  | 0/?        | —                            |
 | gamification | ⏳ TODO  | 0/?        | —                            |
 | matchmaking  | ⏳ TODO  | 0/?        | —                            |
