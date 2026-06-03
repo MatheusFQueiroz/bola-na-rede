@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '../../../../../infra/cache/redis.service';
-import type { OpenGame } from '../../domain/models/open-game.entity';
+import type { OpenGameDto } from '../../application/dto/open-game.dto';
 
 const UPCOMING_KEY = 'games:upcoming';
 const UPCOMING_TTL = 30; // seconds
@@ -9,12 +9,12 @@ const UPCOMING_TTL = 30; // seconds
 export class GameCacheService {
   constructor(private readonly redis: RedisService) {}
 
-  async getUpcoming(): Promise<OpenGame[] | null> {
+  async getUpcoming(): Promise<OpenGameDto[] | null> {
     const cached = await this.redis.client.get(UPCOMING_KEY);
-    return cached ? (JSON.parse(cached) as OpenGame[]) : null;
+    return cached ? (JSON.parse(cached) as OpenGameDto[]) : null;
   }
 
-  async setUpcoming(games: OpenGame[]): Promise<void> {
+  async setUpcoming(games: OpenGameDto[]): Promise<void> {
     await this.redis.client.set(UPCOMING_KEY, JSON.stringify(games), 'EX', UPCOMING_TTL);
   }
 
@@ -27,9 +27,9 @@ export class GameCacheService {
     const result = await this.redis.client.set(
       `lock:join:game:${gameId}`,
       '1',
-      'NX',
       'PX',
       3000,
+      'NX',
     );
     return result === 'OK';
   }

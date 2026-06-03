@@ -4,10 +4,10 @@ import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   StatsRepositoryInterface,
   UpsertStatsData,
-} from '../../domain/repositories/stats-repository.interface';
-import type { PlayerStats } from '../../domain/models/player-stats.entity';
-import { playerStats, type PlayerStatsRow } from '../database/schemas/player-stats.schema';
-import { openGames } from '../../../games/infra/database/schemas/open-game.schema';
+} from '../../../domain/repositories/stats-repository.interface';
+import type { PlayerStats } from '../../../domain/models/player-stats.entity';
+import { playerStats, type PlayerStatsRow } from '../schemas/player-stats.schema';
+import { openGames } from '../../../../games/infra/database/schemas/open-game.schema';
 
 @Injectable()
 export class DrizzleStatsRepository implements StatsRepositoryInterface {

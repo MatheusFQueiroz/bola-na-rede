@@ -6,9 +6,9 @@ import type {
   ListOpenGamesFilter,
   OpenGameRepositoryInterface,
   UpdateOpenGameData,
-} from '../../domain/repositories/open-game-repository.interface';
-import type { OpenGame, GameStatus } from '../../domain/models/open-game.entity';
-import type { GameParticipant } from '../../domain/models/game-participant.entity';
+} from '../../../domain/repositories/open-game-repository.interface';
+import type { OpenGame, GameStatus } from '../../../domain/models/open-game.entity';
+import type { GameParticipant } from '../../../domain/models/game-participant.entity';
 import { openGames, type OpenGameRow } from '../schemas/open-game.schema';
 import { gameParticipants, type GameParticipantRow } from '../schemas/game-participant.schema';
 

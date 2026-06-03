@@ -7,7 +7,7 @@ import {
   timestamp,
   unique,
 } from 'drizzle-orm/pg-core';
-import { openGames } from '../../../games/infra/database/schemas/open-game.schema';
+import { openGames } from '../../../../games/infra/database/schemas/open-game.schema';
 
 export const playerStats = pgTable(
   'player_stats',
