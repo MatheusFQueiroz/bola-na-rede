@@ -50,6 +50,23 @@ services:
       timeout: 5s
       retries: 10
 
+  postgres-field:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bolanarededb_field
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_field_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bolanarededb_field"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   # ── Services ─────────────────────────────────────────────────────────────────
 
   identity:
@@ -88,6 +105,25 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  field:
+    build:
+      context: .
+      dockerfile: services/field/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 4003
+      JWT_SECRET: bolanarededb-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres-field:5432/bolanarededb_field
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4003:4003"
+    depends_on:
+      postgres-field:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   postgres_identity_data:
   postgres_team_data:
+  postgres_field_data:
