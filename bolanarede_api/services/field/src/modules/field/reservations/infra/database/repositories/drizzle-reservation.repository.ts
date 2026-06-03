@@ -4,11 +4,11 @@ import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   CreateReservationData,
   ReservationRepositoryInterface,
-} from '../../domain/repositories/reservation-repository.interface';
-import type { Reservation, ReservationChannel, ReservationStatus } from '../../domain/models/reservation.entity';
+} from '../../../domain/repositories/reservation-repository.interface';
+import type { Reservation, ReservationChannel, ReservationStatus } from '../../../domain/models/reservation.entity';
 import { reservations, type ReservationRow } from '../schemas/reservation.schema';
-import { fieldCourts } from '../../../fields/infra/database/schemas/field-court.schema';
-import { fields } from '../../../fields/infra/database/schemas/field.schema';
+import { fieldCourts } from '../../../../fields/infra/database/schemas/field-court.schema';
+import { fields } from '../../../../fields/infra/database/schemas/field.schema';
 
 @Injectable()
 export class DrizzleReservationRepository implements ReservationRepositoryInterface {

@@ -13,7 +13,7 @@ import { createRabbitMQConfig } from './infra/messaging/rabbitmq.service';
   imports: [
     ConfigModule,
     JwtModule.register({}),
-    RabbitMQModule.forRootAsync({
+    RabbitMQModule.forRootAsync(RabbitMQModule, {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: createRabbitMQConfig,

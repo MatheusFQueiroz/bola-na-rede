@@ -4,13 +4,13 @@ import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   CreateRecurringPlanData,
   RecurringPlanRepositoryInterface,
-} from '../../domain/repositories/recurring-plan-repository.interface';
-import type { RecurringPlan } from '../../domain/models/recurring-plan.entity';
-import type { RecurringPlanSlot, SlotStatus } from '../../domain/models/recurring-plan-slot.entity';
+} from '../../../domain/repositories/recurring-plan-repository.interface';
+import type { RecurringPlan } from '../../../domain/models/recurring-plan.entity';
+import type { RecurringPlanSlot, SlotStatus } from '../../../domain/models/recurring-plan-slot.entity';
 import { recurringPlans, type RecurringPlanRow } from '../schemas/recurring-plan.schema';
 import { recurringPlanSlots, type RecurringPlanSlotRow } from '../schemas/recurring-plan-slot.schema';
-import { fieldCourts } from '../../../fields/infra/database/schemas/field-court.schema';
-import { fields } from '../../../fields/infra/database/schemas/field.schema';
+import { fieldCourts } from '../../../../fields/infra/database/schemas/field-court.schema';
+import { fields } from '../../../../fields/infra/database/schemas/field.schema';
 
 @Injectable()
 export class DrizzleRecurringPlanRepository implements RecurringPlanRepositoryInterface {

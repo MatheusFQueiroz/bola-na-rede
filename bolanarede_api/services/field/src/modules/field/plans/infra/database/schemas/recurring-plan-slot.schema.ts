@@ -8,7 +8,7 @@ import {
   index,
 } from 'drizzle-orm/pg-core';
 import { recurringPlans } from './recurring-plan.schema';
-import { fields } from '../../../fields/infra/database/schemas/field.schema';
+import { fields } from '../../../../fields/infra/database/schemas/field.schema';
 
 export const recurringPlanSlots = pgTable(
   'recurring_plan_slots',

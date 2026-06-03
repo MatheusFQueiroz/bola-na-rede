@@ -9,8 +9,8 @@ import {
   timestamp,
   index,
 } from 'drizzle-orm/pg-core';
-import { fieldCourts } from '../../../fields/infra/database/schemas/field-court.schema';
-import { fields } from '../../../fields/infra/database/schemas/field.schema';
+import { fieldCourts } from '../../../../fields/infra/database/schemas/field-court.schema';
+import { fields } from '../../../../fields/infra/database/schemas/field.schema';
 
 export const recurringPlans = pgTable(
   'recurring_plans',

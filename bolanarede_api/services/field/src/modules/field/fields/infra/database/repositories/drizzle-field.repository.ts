@@ -7,10 +7,10 @@ import type {
   AvailabilitySlotData,
   SearchFieldsParams,
   FieldRepositoryInterface,
-} from '../../domain/repositories/field-repository.interface';
-import type { Field } from '../../domain/models/field.entity';
-import type { FieldCourt, CourtType } from '../../domain/models/field-court.entity';
-import type { AvailabilitySlot } from '../../domain/models/availability-slot.entity';
+} from '../../../domain/repositories/field-repository.interface';
+import type { Field } from '../../../domain/models/field.entity';
+import type { FieldCourt, CourtType } from '../../../domain/models/field-court.entity';
+import type { AvailabilitySlot } from '../../../domain/models/availability-slot.entity';
 import { fields, type FieldRow } from '../schemas/field.schema';
 import { fieldCourts, type FieldCourtRow } from '../schemas/field-court.schema';
 import { availabilitySlots, type AvailabilitySlotRow } from '../schemas/availability-slot.schema';

@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { IS_PUBLIC_KEY } from '../../../decorators/public.decorator';
+import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
 import type { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 
 @Injectable()
