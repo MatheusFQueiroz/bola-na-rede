@@ -33,6 +33,23 @@ services:
       timeout: 10s
       retries: 10
 
+  postgres-team:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bolanarededb_team
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_team_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bolanarededb_team"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   # ── Services ─────────────────────────────────────────────────────────────────
 
   identity:
@@ -53,5 +70,24 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  team:
+    build:
+      context: .
+      dockerfile: services/team/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 4002
+      JWT_SECRET: bolanarededb-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres-team:5432/bolanarededb_team
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4002:4002"
+    depends_on:
+      postgres-team:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   postgres_identity_data:
+  postgres_team_data:
