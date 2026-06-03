@@ -135,6 +135,7 @@ describe('OpenGameService', () => {
 
       expect(mockRepo.deactivate).toHaveBeenCalledWith('game-uuid-1');
       expect(mockCache.invalidate).toHaveBeenCalled();
+      expect(mockMessaging.publishCancelled).toHaveBeenCalledWith(mockGame);
     });
   });
 
