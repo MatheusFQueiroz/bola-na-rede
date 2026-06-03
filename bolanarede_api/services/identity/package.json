@@ -52,6 +52,7 @@
     "moduleNameMapper": {
       "^@shared/(.*)$": "<rootDir>/../../../shared/src/$1"
     },
+    "modulePaths": ["<rootDir>/../node_modules"],
     "testEnvironment": "node"
   }
 }
