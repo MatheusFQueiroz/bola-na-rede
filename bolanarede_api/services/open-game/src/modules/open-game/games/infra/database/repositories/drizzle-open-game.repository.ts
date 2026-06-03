@@ -75,7 +75,7 @@ export class DrizzleOpenGameRepository implements OpenGameRepositoryInterface {
       .where(and(...conditions))
       .orderBy(openGames.scheduledAt);
 
-    return rows.map(this.toGame);
+    return rows.map((row) => this.toGame(row));
   }
 
   async update(externalId: string, data: UpdateOpenGameData): Promise<OpenGame> {
