@@ -4,11 +4,8 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 
 part 'match_request.g.dart';
 
-// ---------------------------------------------------------------------------
-// MatchRequest
 // Tabela: matchmaking-service → match_requests
 // Regras: RN05 — máx 3 requests PENDING por time; expira em 48h
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class MatchRequest {
@@ -68,11 +65,8 @@ class MatchRequest {
   Map<String, dynamic> toJson() => _$MatchRequestToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// MatchProposal
 // Tabela: matchmaking-service → match_proposals
 // Expira em 48h (RN05)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class MatchProposal {

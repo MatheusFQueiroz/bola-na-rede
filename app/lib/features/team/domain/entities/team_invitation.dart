@@ -4,11 +4,8 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 
 part 'team_invitation.g.dart';
 
-// ---------------------------------------------------------------------------
-// TeamInvitation
 // Tabela: team-service → team_invitations
 // Somente o CAPTAIN pode enviar convites (RN03)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class TeamInvitation {
@@ -55,11 +52,8 @@ class TeamInvitation {
   Map<String, dynamic> toJson() => _$TeamInvitationToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// CaptaincyTransfer
 // Tabela: team-service → captaincy_transfers
 // Audit trail — RN10
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class CaptaincyTransfer {

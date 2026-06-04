@@ -1,5 +1,3 @@
-// lib/core/routes/app_router.dart
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -64,28 +62,49 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.register,
         builder: (_, __) => const RegisterPage(),
       ),
-      ShellRoute(
-        builder: (context, state, child) => AppShell(child: child),
-        routes: [
-          GoRoute(
-            path: AppRoutes.home,
-            builder: (_, __) => const HomePage(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (_, __) => const HomePage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.search,
-            builder: (_, __) => const SearchPage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.search,
+                builder: (_, __) => const SearchPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.matchList,
-            builder: (_, __) => const MatchListPage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.matchList,
+                builder: (_, __) => const MatchListPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.ranking,
-            builder: (_, __) => const RankingPage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.ranking,
+                builder: (_, __) => const RankingPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: AppRoutes.profile,
-            builder: (_, __) => const ProfilePage(),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (_, __) => const ProfilePage(),
+              ),
+            ],
           ),
         ],
       ),

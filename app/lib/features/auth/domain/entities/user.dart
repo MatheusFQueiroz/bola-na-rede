@@ -4,10 +4,7 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 
 part 'user.g.dart';
 
-// ---------------------------------------------------------------------------
-// User
 // Tabela: identity-service → users
-// ---------------------------------------------------------------------------
 
 enum UserStatus {
   @JsonValue('ACTIVE')
@@ -45,11 +42,8 @@ class User {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// PlayerProfile
 // Tabela: identity-service → player_profiles
 // Nota: player_score NÃO vive aqui — fica no social-service
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class PlayerProfile {
@@ -98,10 +92,7 @@ class PlayerProfile {
   Map<String, dynamic> toJson() => _$PlayerProfileToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// DeviceToken
 // Tabela: identity-service → device_tokens
-// ---------------------------------------------------------------------------
 
 enum DevicePlatform {
   @JsonValue('ios')

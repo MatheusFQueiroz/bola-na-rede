@@ -1,9 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
-// ---------------------------------------------------------------------------
 // Enums compartilhados entre múltiplos serviços
 // Usar estes em vez de redefinir localmente para garantir consistência
-// ---------------------------------------------------------------------------
 
 /// Status genérico de reserva — field-service
 enum ReservationStatus {

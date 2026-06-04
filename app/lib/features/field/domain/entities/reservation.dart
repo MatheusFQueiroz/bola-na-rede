@@ -5,11 +5,9 @@ import 'package:bola_na_rede/core/shared/snapshots.dart';
 
 part 'reservation.g.dart';
 
-// ---------------------------------------------------------------------------
 // Reservation ⭐ Central
 // Tabela: field-service → reservations
 // TODAS as reservas, independentemente do canal de origem
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class Reservation {

@@ -5,11 +5,8 @@ import 'package:bola_na_rede/core/shared/snapshots.dart';
 
 part 'match.g.dart';
 
-// ---------------------------------------------------------------------------
-// Match
 // Tabela: game-service → matches
 // Criado quando um MatchProposal é aceito (evento MatchAccepted)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class Match {

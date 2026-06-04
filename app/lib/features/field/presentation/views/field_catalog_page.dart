@@ -22,7 +22,6 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(children: [
-        // Header gradiente
         Container(
           decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
           child: SafeArea(
@@ -80,7 +79,6 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
             ]),
           ),
         ),
-        // Filtros
         SizedBox(
           height: 48,
           child: ListView.separated(
@@ -98,7 +96,6 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
             ),
           ),
         ),
-        // Lista
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -155,7 +152,6 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
     return AppCard(
       onTap: () => context.push(AppRoutes.fieldDetail),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Foto placeholder
         Stack(children: [
           Container(
             height: 160,

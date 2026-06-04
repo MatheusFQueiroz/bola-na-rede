@@ -1,31 +1,21 @@
 import 'package:flutter/material.dart';
 
-// =============================================================================
-// SCRUM-16 — Tokens de Design: BolaNaRede
-// Importados do Figma via análise do Design System
-// =============================================================================
-
-/// Paleta de cores do BolaNaRede
 abstract class AppColors {
-  // --- Cores Primárias (Verde) ---
   static const Color primary        = Color(0xFF2E7D32); // Verde escuro – AppBar, botão primário
   static const Color primaryMedium  = Color(0xFF388E3C); // Verde médio – gradiente
   static const Color primaryLight   = Color(0xFF43A047); // Verde claro – hover, destaques
   static const Color primarySurface = Color(0xFFE8F5E9); // Verde superfície – chip selecionado
   static const Color primaryBorder  = Color(0xFFA5D6A7); // Verde borda – outline do chip
 
-  // --- Cores de Texto ---
   static const Color textPrimary   = Color(0xFF1B1B1B); // Texto principal
   static const Color textSecondary = Color(0xFF757575); // Texto secundário / placeholder
   static const Color textDisabled  = Color(0xFFBDBDBD); // Texto desabilitado
   static const Color textOnPrimary = Color(0xFFFFFFFF); // Texto sobre fundo verde
 
-  // --- Background ---
   static const Color background    = Color(0xFFF5F5F5); // Fundo geral
   static const Color surface       = Color(0xFFFFFFFF); // Cards e modais
   static const Color surfaceVariant = Color(0xFFF8F8F8);
 
-  // --- Semânticas ---
   static const Color success        = Color(0xFF4CAF50); // Confirmado / Aberta
   static const Color warning        = Color(0xFFFFF8E1); // Fundo de alerta
   static const Color warningIcon    = Color(0xFFF9A825); // Ícone de alerta
@@ -34,11 +24,9 @@ abstract class AppColors {
   static const Color pending        = Color(0xFF616161); // Badge "Pendente"
   static const Color pendingSurface = Color(0xFF9E9E9E);
 
-  // --- Borda / Divisor ---
   static const Color border  = Color(0xFFE0E0E0);
   static const Color divider = Color(0xFFEEEEEE);
 
-  // --- Avatares de times ---
   static const Color avatarGreen  = Color(0xFF43A047);
   static const Color avatarBlue   = Color(0xFF1565C0);
   static const Color avatarRed    = Color(0xFFC62828);
@@ -47,7 +35,6 @@ abstract class AppColors {
   static const Color avatarTeal   = Color(0xFF00695C);
 }
 
-/// Gradientes
 abstract class AppGradients {
   static const LinearGradient primaryVertical = LinearGradient(
     begin: Alignment.topCenter,
@@ -62,7 +49,6 @@ abstract class AppGradients {
   );
 }
 
-/// Tipografia
 abstract class AppTextStyles {
   static const TextStyle displayLarge = TextStyle(
     fontSize: 28, fontWeight: FontWeight.w700,
@@ -150,7 +136,6 @@ abstract class AppRadius {
   static BorderRadius get chipRadius   => BorderRadius.circular(full);
 }
 
-/// Sombras
 abstract class AppShadows {
   static List<BoxShadow> get card => [
     BoxShadow(

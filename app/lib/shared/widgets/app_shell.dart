@@ -5,31 +5,21 @@ import 'package:go_router/go_router.dart';
 import 'package:bola_na_rede/shared/widgets/app_nav_bar.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.child});
+  const AppShell({required this.navigationShell, super.key});
 
-  final Widget child;
-
-  static const _tabRoutes = [
-    '/home',
-    '/search',
-    '/match',
-    '/ranking',
-    '/profile',
-  ];
-
-  int _locationToIndex(String location) {
-    final idx = _tabRoutes.indexWhere(location.startsWith);
-    return idx < 0 ? 0 : idx;
-  }
+  final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
     return Scaffold(
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: AppNavBar(
-        currentIndex: _locationToIndex(location),
-        onTap: (i) => context.go(_tabRoutes[i]),
+        currentIndex: navigationShell.currentIndex,
+        onTap: (index) => navigationShell.goBranch(
+          index,
+          // Re-tapping the active tab pops it back to the branch root.
+          initialLocation: index == navigationShell.currentIndex,
+        ),
       ),
     );
   }

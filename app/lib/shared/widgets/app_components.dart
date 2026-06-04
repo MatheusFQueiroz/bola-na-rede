@@ -5,16 +5,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 
-// =============================================================================
-// SCRUM-15 — Componentes Base: AppButton, AppInput, AppCard,
-//             AppBar customizada e BottomNavigationBar
-// =============================================================================
-
-// -----------------------------------------------------------------------------
-// AppButton
-// Variantes: primary (verde sólido), outline (borda verde), danger (vermelho)
-// -----------------------------------------------------------------------------
-
 enum AppButtonVariant { primary, outline, danger }
 
 class AppButton extends StatelessWidget {
@@ -37,7 +27,6 @@ class AppButton extends StatelessWidget {
     this.height = AppSizes.buttonHeight,
   });
 
-  /// Botão primário verde (ex: "Entrar", "Criar Partida", "Registrar resultado")
   const AppButton.primary({
     super.key,
     required this.label,
@@ -48,7 +37,6 @@ class AppButton extends StatelessWidget {
     this.height = AppSizes.buttonHeight,
   }) : variant = AppButtonVariant.primary;
 
-  /// Botão outline verde (ex: "Convidar Jogador", "Entrar" na lista)
   const AppButton.outline({
     super.key,
     required this.label,
@@ -59,7 +47,6 @@ class AppButton extends StatelessWidget {
     this.height = AppSizes.buttonHeight,
   }) : variant = AppButtonVariant.outline;
 
-  /// Botão de ação destrutiva (ex: "Cancelar partida", "Sair da conta")
   const AppButton.danger({
     super.key,
     required this.label,
@@ -141,11 +128,6 @@ class AppButton extends StatelessWidget {
   }
 }
 
-// -----------------------------------------------------------------------------
-// AppButtonSmall
-// Botão compacto usado em listas (ex: "Desafiar", "Entrar", "Solicitar vaga")
-// -----------------------------------------------------------------------------
-
 class AppButtonSmall extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -183,11 +165,6 @@ class AppButtonSmall extends StatelessWidget {
     );
   }
 }
-
-// -----------------------------------------------------------------------------
-// AppInput
-// Campo de texto com ícone, label e suporte a senha
-// -----------------------------------------------------------------------------
 
 class AppInput extends StatefulWidget {
   final String label;
@@ -271,11 +248,6 @@ class _AppInputState extends State<AppInput> {
   }
 }
 
-// -----------------------------------------------------------------------------
-// AppCard
-// Card genérico com sombra sutil e border-radius padrão
-// -----------------------------------------------------------------------------
-
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -310,11 +282,6 @@ class AppCard extends StatelessWidget {
   }
 }
 
-// -----------------------------------------------------------------------------
-// AppStatCard
-// Card de estatística (Jogos / Vitórias / Gols) usado no perfil e time
-// -----------------------------------------------------------------------------
-
 class AppStatCard extends StatelessWidget {
   final String value;
   final String label;
@@ -334,11 +301,6 @@ class AppStatCard extends StatelessWidget {
     );
   }
 }
-
-// -----------------------------------------------------------------------------
-// AppTeamAvatar
-// Avatar circular com iniciais do time (ex: FU, UN, DR)
-// -----------------------------------------------------------------------------
 
 class AppTeamAvatar extends StatelessWidget {
   final String initials;
@@ -375,11 +337,6 @@ class AppTeamAvatar extends StatelessWidget {
     );
   }
 }
-
-// -----------------------------------------------------------------------------
-// AppBadge
-// Badge de status: Aberta, Fechada, Pendente, Confirmada, Aguardando
-// -----------------------------------------------------------------------------
 
 enum AppBadgeType { open, closed, pending, confirmed, waiting }
 
@@ -443,11 +400,6 @@ class AppBadge extends StatelessWidget {
   }
 }
 
-// -----------------------------------------------------------------------------
-// AppFilterChip
-// Chip de filtro (ex: "Hoje", "Futebol 7", "Society")
-// -----------------------------------------------------------------------------
-
 class AppFilterChip extends StatelessWidget {
   final String label;
   final bool selected;
@@ -490,11 +442,6 @@ class AppFilterChip extends StatelessWidget {
   }
 }
 
-// -----------------------------------------------------------------------------
-// AppGradientAppBar
-// AppBar com gradiente verde (tela de login, home, busca)
-// -----------------------------------------------------------------------------
-
 class AppGradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
@@ -535,11 +482,6 @@ class AppGradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(AppSizes.appBarHeight);
 }
-
-// -----------------------------------------------------------------------------
-// AppWarningBanner
-// Banner de aviso amarelo (ex: "Cancelamento tardio registrará penalidade")
-// -----------------------------------------------------------------------------
 
 class AppWarningBanner extends StatelessWidget {
   final String message;

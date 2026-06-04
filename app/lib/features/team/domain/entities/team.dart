@@ -4,11 +4,8 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 
 part 'team.g.dart';
 
-// ---------------------------------------------------------------------------
-// Team
 // Tabela: team-service → teams
 // Nota: status INVALID quando membros ativos < 5 (RN04)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class Team {
@@ -44,12 +41,9 @@ class Team {
   Map<String, dynamic> toJson() => _$TeamToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// TeamMember
 // Tabela: team-service → team_members
 // Regras: RN02 (máx 3 times por jogador), RN04 (mín 5 membros ativos)
 // Membros ativos: left_at == null
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class TeamMember {
@@ -86,11 +80,8 @@ class TeamMember {
   Map<String, dynamic> toJson() => _$TeamMemberToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// TeamSummary
 // Tabela: matchmaking-service → team_summaries (PROJEÇÃO LOCAL)
 // Sincronizado via eventos: TeamCreated, PlayerJoined/Left, RankingRecalculated
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class TeamSummary {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'app_tokens.dart';
+import 'package:bola_na_rede/core/themes/app_tokens.dart';
 
 // =============================================================================
 // SCRUM-16 — AppTheme: configura o ThemeData global com os tokens do Design System
@@ -20,6 +20,17 @@ abstract class AppTheme {
           error: AppColors.error,
         ),
         scaffoldBackgroundColor: AppColors.background,
+
+        // --- Page transitions ---
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+          },
+        ),
 
         // --- AppBar ---
         appBarTheme: const AppBarTheme(

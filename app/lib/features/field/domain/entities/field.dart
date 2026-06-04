@@ -2,11 +2,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'field.g.dart';
 
-// ---------------------------------------------------------------------------
-// Field
 // Tabela: field-service → fields
 // Nota: plano BASIC não aparece no catálogo BolaNaRede (regra de negócio)
-// ---------------------------------------------------------------------------
 
 enum FieldStatus {
   @JsonValue('ACTIVE')
@@ -111,11 +108,8 @@ class Field {
   Map<String, dynamic> toJson() => _$FieldToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// FieldCourt
 // Tabela: field-service → field_courts
 // Representa cada quadra/espaço físico dentro de um campo
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class FieldCourt {
@@ -150,10 +144,7 @@ class FieldCourt {
   Map<String, dynamic> toJson() => _$FieldCourtToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// PricingRule
 // Tabela: field-service → pricing_rules
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class PricingRule {

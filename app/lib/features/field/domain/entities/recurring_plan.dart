@@ -4,11 +4,9 @@ import 'package:bola_na_rede/core/shared/snapshots.dart';
 
 part 'recurring_plan.g.dart';
 
-// ---------------------------------------------------------------------------
 // RecurringPlan ⭐ Diferencial
 // Tabela: field-service → recurring_plans
 // Planos de horário fixo semanal — vinculados a grupo de pelada ou time
-// ---------------------------------------------------------------------------
 
 enum RecurringPlanStatus {
   @JsonValue('ACTIVE')
@@ -114,11 +112,8 @@ class RecurringPlan {
   Map<String, dynamic> toJson() => _$RecurringPlanToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// RecurringPlanSlot
 // Tabela: field-service → recurring_plan_slots
 // Instância semanal de um plano recorrente
-// ---------------------------------------------------------------------------
 
 enum PlanSlotStatus {
   @JsonValue('PRE_RESERVED')

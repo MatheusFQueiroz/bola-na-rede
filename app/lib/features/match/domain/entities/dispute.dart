@@ -4,12 +4,9 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 
 part 'dispute.g.dart';
 
-// ---------------------------------------------------------------------------
-// Dispute
 // Tabela: game-service → disputes
 // Aberta quando um time rejeita o resultado registrado pelo adversário
 // RN12: somente uma disputa aberta por resultado
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class Dispute {

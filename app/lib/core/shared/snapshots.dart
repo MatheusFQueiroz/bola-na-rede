@@ -2,12 +2,9 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'snapshots.g.dart';
 
-// ---------------------------------------------------------------------------
-// FieldSnapshot
 // Usado em: open_games.field_snapshot, matches.field_snapshot,
 //           reservations (via booker_snapshot indireto)
 // Origem: field-service (snapshottado na criação do evento)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class FieldSnapshot {
@@ -42,11 +39,8 @@ class FieldSnapshot {
   Map<String, dynamic> toJson() => _$FieldSnapshotToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// OrganizerSnapshot
 // Usado em: open_games.organizer_snapshot
 // Origem: identity-service (via JWT no momento da criação)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class OrganizerSnapshot {
@@ -71,11 +65,8 @@ class OrganizerSnapshot {
   Map<String, dynamic> toJson() => _$OrganizerSnapshotToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// TeamSnapshot
 // Usado em: matches.team_a_snapshot, matches.team_b_snapshot
 // Origem: team-service (snapshottado na aceitação do matchmaking)
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class TeamSnapshot {
@@ -101,12 +92,9 @@ class TeamSnapshot {
   Map<String, dynamic> toJson() => _$TeamSnapshotToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// BookerSnapshot
 // Usado em: reservations.booker_snapshot
 // Origem: identity-service / team-service / open-game-service
 // Representa quem fez a reserva (jogador individual, time ou grupo)
-// ---------------------------------------------------------------------------
 
 enum BookerType {
   @JsonValue('player')

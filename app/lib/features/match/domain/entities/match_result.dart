@@ -4,13 +4,10 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 
 part 'match_result.g.dart';
 
-// ---------------------------------------------------------------------------
-// MatchResult
 // Tabela: game-service → match_results
 // Regras:
 //   RN06 — confirmação bilateral obrigatória
 //   RN06 — auto-aceito após 24h sem resposta do adversário
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class MatchResult {
@@ -62,11 +59,8 @@ class MatchResult {
   Map<String, dynamic> toJson() => _$MatchResultToJson(this);
 }
 
-// ---------------------------------------------------------------------------
-// ResultConfirmation
 // Tabela: game-service → result_confirmations
 // RN06: precisam de 2 confirmações positivas para status = CONFIRMED
-// ---------------------------------------------------------------------------
 
 @JsonSerializable()
 class ResultConfirmation {

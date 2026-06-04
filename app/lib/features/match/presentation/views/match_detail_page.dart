@@ -17,7 +17,6 @@ class MatchDetailPage extends ConsumerWidget {
     final vm = ref.watch(matchViewModelProvider);
     final match = vm.selectedMatch;
 
-    // dados reais se disponíveis, fallback nos hardcoded originais
     final teamA = match?.teamASnapshot?.name ?? 'Furacao FC';
     final teamB = match?.teamBSnapshot?.name ?? 'Uniao Vila';
     final initialsA = teamA.substring(0, 2).toUpperCase();
@@ -113,7 +112,6 @@ class MatchDetailPage extends ConsumerWidget {
     );
   }
 
-  // os widgets abaixo são idênticos ao original
   Widget _buildPlayersCard() {
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

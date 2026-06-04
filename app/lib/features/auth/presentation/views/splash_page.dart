@@ -17,7 +17,6 @@ class SplashPage extends StatelessWidget {
         decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
         child: Stack(
           children: [
-            // Campo de futebol no fundo
             Center(
               child: Opacity(
                 opacity: 0.08,
@@ -33,7 +32,6 @@ class SplashPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Spacer(),
-                    // Logo
                     Container(
                       width: 96,
                       height: 96,
@@ -55,7 +53,6 @@ class SplashPage extends StatelessWidget {
                           color: AppColors.textOnPrimary.withOpacity(0.8)),
                     ),
                     const Spacer(),
-                    // Botão Entrar (branco sólido)
                     SizedBox(
                       width: double.infinity,
                       height: AppSizes.buttonHeight,
@@ -79,7 +76,6 @@ class SplashPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    // Botão Criar conta (outline branco)
                     SizedBox(
                       width: double.infinity,
                       height: AppSizes.buttonHeight,

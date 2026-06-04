@@ -30,7 +30,6 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
     {'name': 'Marcos', 'initials': 'MA', 'goals': 0, 'assists': 0},
   ];
 
-  // total de gols individuais por time
   int get _totalGoalsA =>
       _playersA.fold(0, (sum, p) => sum + (p['goals'] as int));
   int get _totalGoalsB =>
@@ -70,7 +69,6 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
           child: Column(children: [
             _buildScoreCard(),
             const SizedBox(height: AppSpacing.md),
-            // aviso se gols individuais não batem
             if ((_totalGoalsA > 0 || _totalGoalsB > 0) && !_goalsMatchScore)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -169,7 +167,6 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
             style: AppTextStyles.bodySmall
                 .copyWith(color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.md),
-        // resumo dos gols individuais
         Row(children: [
           _goalSummaryBadge('Furacao FC', _totalGoalsA, _scoreA),
           const SizedBox(width: AppSpacing.sm),
@@ -241,7 +238,6 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
         const SizedBox(height: AppSpacing.xs),
         Row(children: [
           const SizedBox(width: 44), // alinha com o avatar
-          // Gols
           Text('Gols:',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
@@ -263,7 +259,6 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
             setState(() => list[index]['goals']++);
           }, true),
           const SizedBox(width: AppSpacing.lg),
-          // Assistências
           Text('Assist.:',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),

@@ -37,7 +37,6 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
             padding: const EdgeInsets.all(AppSpacing.xxl),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // Upload logo
               Center(
                 child: Column(children: [
                   GestureDetector(

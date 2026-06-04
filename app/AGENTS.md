@@ -220,6 +220,17 @@ The analyzer is strict — read the file before fighting it. Highlights:
 - `public_member_api_docs` is **off intentionally** — do not add empty
   doc comments to satisfy a lint that is not running.
 
+**Comments — default to none.** The starting point for any code is **zero
+comments**; each one must earn its place. A comment is justified *only* when it
+records a non-obvious *why* that the code itself cannot convey — a workaround, a
+business rule, a deliberate deviation, or a genuine gotcha a competent reader
+would otherwise get wrong. Everything else is forbidden: no restating what the
+code does, no narration (`// loop over items`), no labels for self-evident
+config (`// detail screen`), no commented-out code, no TODO dumps. Doc comments
+(`///`) only when a public API's contract is non-obvious — never to repeat the
+type or name. Prefer fixing unclear code (better names, smaller methods) over
+explaining it. If you have to ask whether a comment is needed, it is not.
+
 **Imports are always absolute** — use `package:bola_na_rede/...` for every
 intra-project import. Relative imports (`../foo/bar.dart`, `./baz.dart`) are
 forbidden, even between sibling files in the same folder. This keeps moves

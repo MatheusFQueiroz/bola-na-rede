@@ -21,7 +21,6 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
       backgroundColor: AppColors.background,
       body: Stack(children: [
         CustomScrollView(slivers: [
-          // Hero foto
           SliverToBoxAdapter(child: _buildHero(context)),
           SliverPadding(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -43,7 +42,6 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
             ),
           ),
         ]),
-        // Footer fixo
         Positioned(
           bottom: 0, left: 0, right: 0,
           child: _buildFooter(context),
@@ -61,14 +59,12 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
           child: Icon(Icons.sports_soccer, size: 80, color: AppColors.primaryBorder),
         ),
       ),
-      // Dots
       Positioned(
         bottom: AppSpacing.md, left: 0, right: 0,
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           _dot(true), _dot(false), _dot(false),
         ]),
       ),
-      // Botões topo
       Positioned(
         top: MediaQuery.of(context).padding.top + AppSpacing.sm,
         left: AppSpacing.sm,
@@ -82,7 +78,6 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         right: AppSpacing.sm,
         child: _circleButton(Icons.favorite_border, () {}),
       ),
-      // Badge disponivel
       Positioned(
         bottom: AppSpacing.xl,
         left: AppSpacing.md,
@@ -181,7 +176,6 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         ]),
         const SizedBox(height: AppSpacing.md),
-        // Chips dias
         SizedBox(
           height: 36,
           child: ListView.separated(
