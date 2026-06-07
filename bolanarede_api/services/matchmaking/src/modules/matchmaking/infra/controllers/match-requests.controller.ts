@@ -1,0 +1,52 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@shared/infra/auth/guards/jwt-auth.guard';
+import { MatchmakingService } from '../../application/services/matchmaking.service';
+import { CreateMatchRequestDto } from '../../application/dto/create-match-request.dto';
+import { MatchRequestDto } from '../../application/dto/match-request.dto';
+
+@ApiTags('Match Requests')
+@UseGuards(JwtAuthGuard)
+@Controller('match-requests')
+export class MatchRequestsController {
+  constructor(private readonly matchmakingService: MatchmakingService) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new matchmaking request' })
+  async createRequest(
+    @Request() req: any,
+    @Body() dto: CreateMatchRequestDto,
+  ): Promise<MatchRequestDto> {
+    const userId: string = req.user.sub;
+    const displayName: string = req.user.displayName ?? '';
+    const request = await this.matchmakingService.createRequest(userId, displayName, dto.sport);
+    return MatchRequestDto.from(request);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get match request status' })
+  async getRequest(@Request() req: any, @Param('id') id: string): Promise<MatchRequestDto> {
+    const userId: string = req.user.sub;
+    const request = await this.matchmakingService.getRequest(userId, id);
+    return MatchRequestDto.from(request);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Cancel a match request' })
+  async cancelRequest(@Request() req: any, @Param('id') id: string): Promise<void> {
+    const userId: string = req.user.sub;
+    await this.matchmakingService.cancelRequest(userId, id);
+  }
+}
