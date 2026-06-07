@@ -1,5 +1,5 @@
 # BolaNaRede — Status de Desenvolvimento
-Última atualização: 2026-06-07 (gamification DONE)
+Última atualização: 2026-06-07 (matchmaking plano escrito)
 
 | Serviço      | Status      | Concluídas | Próxima task pendente        |
 |--------------|-------------|------------|------------------------------|
@@ -10,7 +10,7 @@
 | open-game    | ✅ DONE     | 29/29      | —                            |
 | social       | ✅ DONE     | 23/23      | —                            |
 | gamification | ✅ DONE     | 23/23      | —                            |
-| matchmaking  | ⏳ TODO  | 0/?        | —                            |
+| matchmaking  | 📋 PLANNED  | 0/24       | Task 1 (.env.example)        |
 | game         | ⏳ TODO  | 0/?        | —                            |
 | ranking      | ⏳ TODO  | 0/?        | —                            |
 | notification | ⏳ TODO  | 0/?        | —                            |
@@ -24,3 +24,4 @@
 - `docs/plans/2026-06-02-open-game-service.md` — 29 tasks
 - `docs/plans/2026-06-03-social-service.md` — 23 tasks
 - `docs/plans/2026-06-03-gamification-service.md` — 23 tasks
+- `docs/plans/2026-06-07-matchmaking-service.md` — 24 tasks
