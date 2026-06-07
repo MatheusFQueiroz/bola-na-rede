@@ -207,9 +207,45 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  postgres-gamification:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bolanarededb_gamification
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_gamification_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gamification:
+    build:
+      context: .
+      dockerfile: services/gamification/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 4006
+      JWT_SECRET: bolanarededb-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres-gamification:5432/bolanarededb_gamification
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4006:4006"
+    depends_on:
+      postgres-gamification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   postgres_identity_data:
   postgres_team_data:
   postgres_field_data:
   postgres_open_game_data:
   postgres_social_data:
+  postgres_gamification_data:
