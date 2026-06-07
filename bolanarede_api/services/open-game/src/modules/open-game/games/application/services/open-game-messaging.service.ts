@@ -58,9 +58,14 @@ export class OpenGameMessagingService {
     });
   }
 
-  async publishStatsRecorded(game: OpenGame): Promise<void> {
+  async publishStatsRecorded(
+    game: OpenGame,
+    players: Array<{ playerUserId: string; goals: number; assists: number }>,
+  ): Promise<void> {
     await this.messaging.publish(OpenGameEvents.STATS_RECORDED, {
       gameId: game.id,
+      sport: game.sport,
+      players,
     });
   }
 }

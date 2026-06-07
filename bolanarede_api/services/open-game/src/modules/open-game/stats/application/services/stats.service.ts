@@ -39,7 +39,14 @@ export class StatsService {
     );
 
     try {
-      await this.messaging.publishStatsRecorded(game);
+      await this.messaging.publishStatsRecorded(
+        game,
+        stats.map((s) => ({
+          playerUserId: s.playerUserId,
+          goals: s.goals,
+          assists: s.assists,
+        })),
+      );
     } catch {
       // advisory
     }
