@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   PROFILE_REPOSITORY,
   ProfileRepositoryInterface,
@@ -27,6 +27,8 @@ export interface OpenGameStatsPayload {
 
 @Injectable()
 export class XpService {
+  private readonly logger = new Logger(XpService.name);
+
   constructor(
     @Inject(PROFILE_REPOSITORY)
     private readonly profileRepo: ProfileRepositoryInterface,
@@ -81,7 +83,7 @@ export class XpService {
     await this.profileRepo.upsertProfile(playerUserId, displayName);
 
     let totalXpToAdd = 0;
-    let isFirstGame = false;
+    let isNewParticipationRecorded = false;
     let earnedGoal = false;
 
     // Participation XP (idempotency gate)
@@ -95,7 +97,7 @@ export class XpService {
 
     if (participationEntry) {
       totalXpToAdd += 10;
-      isFirstGame = true;
+      isNewParticipationRecorded = true;
     } else {
       // Already processed — skip to avoid double XP
       return;
@@ -137,15 +139,12 @@ export class XpService {
     // Collect badges to check
     const badgesToCheck: BadgeCode[] = [];
 
-    if (isFirstGame) {
+    if (isNewParticipationRecorded) {
       badgesToCheck.push('first-game');
     }
 
     if (earnedGoal) {
-      const hasGoalNow = await this.xpLedgerRepo.hasGoal(playerUserId);
-      if (hasGoalNow) {
-        badgesToCheck.push('goal-scorer');
-      }
+      badgesToCheck.push('goal-scorer');
     }
 
     if (updatedProfile.level >= 5) {
@@ -164,8 +163,9 @@ export class XpService {
           await this.messaging.publishBadgeAwarded(badge);
         }
       }
-    } catch {
-      // advisory
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Badge grant failed for player ${playerUserId}: ${message}`);
     }
   }
 }
