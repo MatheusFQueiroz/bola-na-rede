@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
@@ -6,6 +6,7 @@ import type {
   CreatePendingMatchData,
 } from '../../../domain/repositories/pending-match-repository.interface';
 import type { PendingMatch, PendingMatchStatus } from '../../../domain/models/pending-match.entity';
+import type { SportType } from '../../../domain/models/match-request.entity';
 import { pendingMatches, type PendingMatchRow } from '../schemas/pending-match.schema';
 
 @Injectable()
@@ -46,6 +47,7 @@ export class DrizzlePendingMatchRepository implements PendingMatchRepositoryInte
       .set({ [role === 'A' ? 'acceptedByA' : 'acceptedByB']: true, updatedAt: new Date() })
       .where(eq(pendingMatches.externalId, externalId))
       .returning();
+    if (!row) throw new NotFoundException(`Pending match ${externalId} not found`);
     return this.toEntity(row);
   }
 
@@ -64,7 +66,7 @@ export class DrizzlePendingMatchRepository implements PendingMatchRepositoryInte
       requestBExternalId: row.requestBExternalId,
       userAId: row.userAId,
       userBId: row.userBId,
-      sport: row.sport,
+      sport: row.sport as SportType,
       status: row.status as PendingMatch['status'],
       acceptedByA: row.acceptedByA,
       acceptedByB: row.acceptedByB,

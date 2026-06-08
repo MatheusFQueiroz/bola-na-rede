@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   MatchRequestRepositoryInterface,
@@ -45,7 +45,11 @@ export class DrizzleMatchRequestRepository implements MatchRequestRepositoryInte
       .limit(1);
 
     if (!row) return null;
-    if (row.status === 'pending' || row.status === 'matched') return this.toEntity(row);
+    if (row.status === 'pending' || row.status === 'matched') {
+      // Lazy expiry: treat expired requests as inactive so user can create a new one
+      if (row.expiresAt < new Date()) return null;
+      return this.toEntity(row);
+    }
     return null;
   }
 
@@ -60,7 +64,12 @@ export class DrizzleMatchRequestRepository implements MatchRequestRepositoryInte
     await this.drizzle.db
       .update(matchRequests)
       .set({ displayName, updatedAt: new Date() })
-      .where(eq(matchRequests.requesterUserId, userId));
+      .where(
+        and(
+          eq(matchRequests.requesterUserId, userId),
+          inArray(matchRequests.status, ['pending', 'matched']),
+        ),
+      );
   }
 
   private toEntity(row: MatchRequestRow): MatchRequest {

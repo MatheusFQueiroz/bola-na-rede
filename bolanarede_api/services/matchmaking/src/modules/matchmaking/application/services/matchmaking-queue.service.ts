@@ -21,19 +21,19 @@ export class MatchmakingQueueService {
     );
   }
 
-  /** Remove request da fila (cancelamento ou match encontrado). */
+  /** Remove request da fila (cancelamento). */
   async dequeue(sport: SportType, externalId: string): Promise<void> {
     await this.redis.client.zrem(this.queueKey(sport), externalId);
   }
 
   /**
-   * Busca o candidato mais antigo na fila (excluindo a própria request).
-   * Remove entradas expiradas da fila durante a busca.
-   * Retorna o externalId do candidato ou null se nenhum encontrado.
+   * Busca e reivindica atomicamente o candidato mais antigo na fila.
+   * Usa ZREM para garantir que apenas um worker processe cada candidato.
+   * Remove entradas expiradas durante a busca.
+   * Retorna o externalId do candidato ou null se nenhum disponível.
    */
-  async findCandidate(
+  async findAndClaimCandidate(
     sport: SportType,
-    excludeUserId: string,
     excludeExternalId: string,
   ): Promise<string | null> {
     const now = Date.now();
@@ -52,10 +52,12 @@ export class MatchmakingQueueService {
       20,
     );
 
-    // Retorna o primeiro que não é a própria request
     for (const candidateId of candidates) {
       if (candidateId !== excludeExternalId) {
-        return candidateId;
+        // Reivindicação atômica: apenas um worker remove com sucesso
+        const removed = await this.redis.client.zrem(this.queueKey(sport), candidateId);
+        if (removed === 1) return candidateId;
+        // Outro worker já reivindicou — tentar próximo
       }
     }
 

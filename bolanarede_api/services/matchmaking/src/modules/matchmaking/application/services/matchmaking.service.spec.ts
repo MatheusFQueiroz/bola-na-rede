@@ -62,7 +62,7 @@ describe('MatchmakingService', () => {
     queueService = {
       enqueue: jest.fn(),
       dequeue: jest.fn(),
-      findCandidate: jest.fn(),
+      findAndClaimCandidate: jest.fn(),
     };
     messaging = {
       publishMatchRequested: jest.fn(),
@@ -87,13 +87,13 @@ describe('MatchmakingService', () => {
     it('creates pending request and enqueues when no opponent found', async () => {
       requestRepo.findActivByUserId.mockResolvedValue(null);
       requestRepo.create.mockResolvedValue(makeRequest());
-      queueService.findCandidate.mockResolvedValue(null);
+      queueService.findAndClaimCandidate.mockResolvedValue(null);
       queueService.enqueue.mockResolvedValue(undefined);
 
       const result = await service.createRequest('user-1', 'Alice', 'futsal');
 
       expect(requestRepo.create).toHaveBeenCalled();
-      expect(queueService.findCandidate).toHaveBeenCalled();
+      expect(queueService.findAndClaimCandidate).toHaveBeenCalled();
       expect(queueService.enqueue).toHaveBeenCalled();
       expect(result.status).toBe('pending');
     });
@@ -110,7 +110,7 @@ describe('MatchmakingService', () => {
       requestRepo.findActivByUserId.mockResolvedValue(null);
       const ownRequest = makeRequest({ externalId: 'req-1', requesterUserId: 'user-1' });
       requestRepo.create.mockResolvedValue(ownRequest);
-      queueService.findCandidate.mockResolvedValue('req-2');
+      queueService.findAndClaimCandidate.mockResolvedValue('req-2');
       const opponentRequest = makeRequest({
         externalId: 'req-2',
         requesterUserId: 'user-2',

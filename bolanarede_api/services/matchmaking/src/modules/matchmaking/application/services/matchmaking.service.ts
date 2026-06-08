@@ -56,8 +56,8 @@ export class MatchmakingService {
       expiresAt: new Date(now.getTime() + REQUEST_TTL_MS),
     });
 
-    // Search for opponent in queue
-    const candidateId = await this.queueService.findCandidate(sport, userId, request.externalId);
+    // Buscar e reivindicar oponente na fila (atômico via ZREM)
+    const candidateId = await this.queueService.findAndClaimCandidate(sport, request.externalId);
 
     if (candidateId) {
       const opponent = await this.requestRepo.findByExternalId(candidateId);
@@ -157,7 +157,8 @@ export class MatchmakingService {
 
     await this.requestRepo.updateStatus(requestA.externalId, 'matched');
     await this.requestRepo.updateStatus(requestB.externalId, 'matched');
-    await this.queueService.dequeue(requestB.sport, requestB.externalId);
+    // requestB was already removed from Redis atomically by findAndClaimCandidate.
+    // requestA was never enqueued (enqueue only happens when no candidate is found).
 
     try {
       await this.messaging.publishMatchRequested(match);
