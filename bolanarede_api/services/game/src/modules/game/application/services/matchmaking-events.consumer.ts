@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { Inject } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { MatchmakingEvents } from '@shared/contracts/events/matchmaking-events.enum';
 import {

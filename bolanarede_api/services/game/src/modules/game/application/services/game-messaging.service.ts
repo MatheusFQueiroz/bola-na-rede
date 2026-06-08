@@ -27,6 +27,7 @@ export class GameMessagingService {
       gameId: game.externalId,
       matchId: game.matchId,
       sport: game.sport,
+      winnerId: game.winnerId,
       players,
     });
   }

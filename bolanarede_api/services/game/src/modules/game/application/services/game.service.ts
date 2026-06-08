@@ -78,7 +78,7 @@ export class GameService {
       throw new ConflictException(`Cannot dispute a game with status ${game.status}`);
     }
 
-    if (game.submittedByUserId === userId) {
+    if (game.submittedByUserId !== null && game.submittedByUserId === userId) {
       throw new ForbiddenException('Cannot dispute your own submission');
     }
 
