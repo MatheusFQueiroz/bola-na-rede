@@ -1,20 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { GameEvents } from '@shared/contracts/events/game-events.enum';
-import { RankingService } from './ranking.service';
-
-interface MatchCompletedPayload {
-  gameId: string;
-  matchId: string;
-  sport: string;
-  winnerId: string | null;
-  players: Array<{
-    playerUserId: string;
-    goals: number;
-    assists: number;
-    won: boolean;
-  }>;
-}
+import { RankingService, MatchCompletedPayload } from './ranking.service';
 
 @Injectable()
 export class GameEventsConsumer {

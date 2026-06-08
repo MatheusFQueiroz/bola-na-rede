@@ -1,7 +1,7 @@
 import {
+  BadRequestException,
   Controller,
   Get,
-  NotFoundException,
   Param,
   Query,
 } from '@nestjs/common';
@@ -23,8 +23,8 @@ export class RankingsController {
     @Query('sport') sport: string,
     @Query('limit') limit?: string,
   ): Promise<LeaderboardEntryDto[]> {
-    if (!sport) throw new NotFoundException('sport query parameter is required');
-    const parsedLimit = Math.min(parseInt(limit ?? '10', 10) || 10, 100);
+    if (!sport) throw new BadRequestException('sport query parameter is required');
+    const parsedLimit = Math.min(Math.max(1, parseInt(limit ?? '10', 10) || 10), 100);
     return this.rankingService.getLeaderboard(sport, parsedLimit);
   }
 
@@ -35,7 +35,7 @@ export class RankingsController {
     @Param('userId') userId: string,
     @Query('sport') sport: string,
   ): Promise<RankingDto> {
-    if (!sport) throw new NotFoundException('sport query parameter is required');
+    if (!sport) throw new BadRequestException('sport query parameter is required');
     return this.rankingService.getPlayerRanking(userId, sport);
   }
 }

@@ -12,7 +12,7 @@ import { RankingMessagingService } from './ranking-messaging.service';
 import { RankingDto } from '../dto/ranking.dto';
 import { LeaderboardEntryDto } from '../dto/leaderboard-entry.dto';
 
-interface MatchCompletedPayload {
+export interface MatchCompletedPayload {
   gameId: string;
   matchId: string;
   sport: string;
@@ -43,7 +43,7 @@ export class RankingService {
     }
 
     for (const player of payload.players) {
-      const isWin = payload.winnerId === player.playerUserId;
+      const isWin = player.won;
       const isDraw = payload.winnerId === null;
 
       const ranking = await this.rankingRepo.upsertRanking({

@@ -23,10 +23,10 @@ export class DrizzleRankingRepository implements RankingRepositoryInterface {
   }
 
   async upsertRanking(data: UpsertRankingData): Promise<PlayerRanking> {
-    const wins = data.isWin ? 1 : 0;
+    const wins = data.isWin && !data.isDraw ? 1 : 0;
     const losses = !data.isWin && !data.isDraw ? 1 : 0;
-    const draws = data.isDraw ? 1 : 0;
-    const points = data.isWin ? 3 : data.isDraw ? 1 : 0;
+    const draws = data.isDraw && !data.isWin ? 1 : 0;
+    const points = data.isWin && !data.isDraw ? 3 : data.isDraw ? 1 : 0;
 
     const [row] = await this.drizzle.db
       .insert(playerRankings)
