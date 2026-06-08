@@ -242,6 +242,44 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  postgres-matchmaking:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bolanarededb_matchmaking
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres_matchmaking_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  matchmaking:
+    build:
+      context: .
+      dockerfile: services/matchmaking/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 4007
+      JWT_SECRET: bolanarededb-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres-matchmaking:5432/bolanarededb_matchmaking
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4007:4007"
+    depends_on:
+      postgres-matchmaking:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_identity_data:
   postgres_team_data:
@@ -249,3 +287,4 @@ volumes:
   postgres_open_game_data:
   postgres_social_data:
   postgres_gamification_data:
+  postgres_matchmaking_data:
