@@ -332,6 +332,21 @@ services:
       timeout: 5s
       retries: 5
 
+  mongodb:
+    image: mongo:7.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: bolanarededb_notification
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
   ranking:
     build:
       context: .
@@ -350,6 +365,27 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  notification:
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 4010
+      JWT_SECRET: bolanarededb-secret
+      MONGODB_URL: mongodb://mongodb:27017/bolanarededb_notification
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "4010:4010"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_identity_data:
   postgres_team_data:
@@ -360,3 +396,4 @@ volumes:
   postgres_matchmaking_data:
   postgres_game_data:
   postgres_ranking_data:
+  mongodb_data:

@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist/services/notification",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "types": ["jest", "node"],
+    "paths": {
+      "@shared/*": ["../../shared/src/*"],
+      "@nestjs/*": ["./node_modules/@nestjs/*"],
+      "@golevelup/*": ["./node_modules/@golevelup/*"],
+      "class-validator": ["./node_modules/class-validator"],
+      "class-transformer": ["./node_modules/class-transformer"],
+      "rxjs": ["./node_modules/rxjs"],
+      "rxjs/*": ["./node_modules/rxjs/*"],
+      "mongoose": ["./node_modules/mongoose"],
+      "ioredis": ["./node_modules/ioredis"],
+      "reflect-metadata": ["./node_modules/reflect-metadata"],
+      "@types/*": ["./node_modules/@types/*"]
+    },
+    "isolatedModules": true
+  },
+  "include": ["src/**/*", "../../shared/src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
