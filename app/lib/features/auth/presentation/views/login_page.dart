@@ -16,6 +16,7 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -26,7 +27,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
+  String? _validateEmail(String? value) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) return 'Informe seu e-mail';
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      return 'E-mail inválido';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if ((value ?? '').length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+    return null;
+  }
+
   Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
     final success = await ref.read(authViewModelProvider.notifier).login(
           _emailController.text.trim(),
           _passwordController.text,
@@ -37,10 +54,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (success) {
       context.go(AppRoutes.home);
     } else {
+      final error = ref.read(authViewModelProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(ref.read(authViewModelProvider).error ?? 'Erro ao entrar'),
+          content: Text(
+              error?.toString().replaceAll('Exception: ', '') ?? 'Erro ao entrar'),
         ),
       );
     }
@@ -48,8 +66,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        ref.watch(authViewModelProvider).status == AuthStatus.loading;
+    final isLoading = ref.watch(authViewModelProvider).isLoading;
 
     return Scaffold(
       body: Column(children: [
@@ -83,14 +100,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xxl),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child:
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               AppInput(
                 label: 'E-mail',
                 hint: 'seu@email.com',
                 prefixIcon: PhosphorIcons.envelope(),
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
+                validator: _validateEmail,
               ),
               const SizedBox(height: AppSpacing.lg),
               AppInput(
@@ -99,12 +120,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 prefixIcon: PhosphorIcons.lock(),
                 isPassword: true,
                 controller: _passwordController,
+                validator: _validatePassword,
               ),
               const SizedBox(height: AppSpacing.sm),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () => showComingSoon(context),
                   child: const Text('Esqueci minha senha'),
                 ),
               ),
@@ -130,7 +152,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 width: double.infinity,
                 height: AppSizes.buttonHeight,
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => showComingSoon(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.textPrimary,
                     side: const BorderSide(color: AppColors.border),
@@ -155,6 +177,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ]),
             ]),
+            ),
           ),
         ),
       ]),

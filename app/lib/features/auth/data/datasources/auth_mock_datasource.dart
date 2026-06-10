@@ -4,9 +4,23 @@ import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 abstract class AuthDataSource {
   Future<PlayerProfile> login(String email, String password);
   Future<PlayerProfile> register(String name, String email, String password);
+  Future<PlayerProfile> restoreSession(String token);
 }
 
 class AuthMockDataSource implements AuthDataSource {
+  PlayerProfile _fixedProfile(String displayName) => PlayerProfile(
+        userId: 'user-001',
+        displayName: displayName,
+        photoUrl: null,
+        bio: null,
+        city: 'Curitiba',
+        position: PlayerPosition.forward,
+        skillLevel: SkillLevel.intermediate,
+        isPublic: true,
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime.now(),
+      );
+
   @override
   Future<PlayerProfile> login(String email, String password) async {
     await Future.delayed(const Duration(milliseconds: 800));
@@ -16,18 +30,18 @@ class AuthMockDataSource implements AuthDataSource {
     }
 
     // qualquer email/senha válida loga com usuário fixo
-    return PlayerProfile(
-      userId: 'user-001',
-      displayName: email.split('@').first,
-      photoUrl: null,
-      bio: null,
-      city: 'Curitiba',
-      position: PlayerPosition.forward,
-      skillLevel: SkillLevel.intermediate,
-      isPublic: true,
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime.now(),
-    );
+    return _fixedProfile(email.split('@').first);
+  }
+
+  @override
+  Future<PlayerProfile> restoreSession(String token) async {
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    if (!token.startsWith('mock-token-')) {
+      throw Exception('Sessão inválida');
+    }
+
+    return _fixedProfile('Jogador');
   }
 
   @override

@@ -25,6 +25,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<PlayerProfile> restoreSession(String token) async {
+    _currentUser = await dataSource.restoreSession(token);
+    return _currentUser!;
+  }
+
+  @override
   Future<void> logout() async {
     _currentUser = null;
   }

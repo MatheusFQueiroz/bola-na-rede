@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class SplashPage extends StatelessWidget {
+class SplashPage extends ConsumerWidget {
   const SplashPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(authViewModelProvider, (previous, next) {
+      final user = next.value;
+      if (user != null && context.mounted && GoRouterState.of(context).matchedLocation == AppRoutes.splash) {
+        context.go(AppRoutes.home);
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
@@ -50,7 +59,7 @@ class SplashPage extends StatelessWidget {
                     Text(
                       'Organize suas partidas de futebol',
                       style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textOnPrimary.withOpacity(0.8)),
+                          color: AppColors.textOnPrimary.withValues(alpha: 0.8)),
                     ),
                     const Spacer(),
                     SizedBox(
@@ -58,7 +67,7 @@ class SplashPage extends StatelessWidget {
                       height: AppSizes.buttonHeight,
                       child: ElevatedButton(
                         onPressed: () =>
-                            context.push(AppRoutes.login),
+                            context.go(AppRoutes.login),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.surface,
                           foregroundColor: AppColors.primary,
@@ -81,7 +90,7 @@ class SplashPage extends StatelessWidget {
                       height: AppSizes.buttonHeight,
                       child: OutlinedButton(
                         onPressed: () =>
-                            context.push(AppRoutes.register),
+                            context.go(AppRoutes.register),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.textOnPrimary,
                           side: const BorderSide(
@@ -95,11 +104,11 @@ class SplashPage extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xl),
                     TextButton(
                       onPressed: () =>
-                          context.push(AppRoutes.home),
+                          context.go(AppRoutes.home),
                       child: Text(
                         'Continuar sem conta',
                         style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textOnPrimary.withOpacity(0.7)),
+                            color: AppColors.textOnPrimary.withValues(alpha: 0.7)),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xxl),

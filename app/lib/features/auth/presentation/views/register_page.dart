@@ -16,6 +16,7 @@ class RegisterPage extends ConsumerStatefulWidget {
 }
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
+  final _formKey = GlobalKey<FormState>();
   String _selectedPosition = 'Qualquer';
   final _positions = [
     'Goleiro',
@@ -40,13 +41,32 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (_passwordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('As senhas não coincidem')),
-      );
-      return;
+  String? _validateName(String? value) {
+    if ((value ?? '').trim().isEmpty) return 'Informe seu nome';
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) return 'Informe seu e-mail';
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      return 'E-mail inválido';
     }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if ((value ?? '').length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value != _passwordController.text) return 'As senhas não coincidem';
+    return null;
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final success = await ref.read(authViewModelProvider.notifier).register(
           _nameController.text.trim(),
@@ -59,10 +79,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     if (success) {
       context.go(AppRoutes.home);
     } else {
+      final error = ref.read(authViewModelProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              ref.read(authViewModelProvider).error ?? 'Erro ao criar conta'),
+          content: Text(error?.toString().replaceAll('Exception: ', '') ??
+              'Erro ao criar conta'),
         ),
       );
     }
@@ -70,8 +91,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        ref.watch(authViewModelProvider).status == AuthStatus.loading;
+    final isLoading = ref.watch(authViewModelProvider).isLoading;
 
     return Scaffold(
       body: Column(children: [
@@ -106,13 +126,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xxl),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child:
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               AppInput(
                 label: 'Nome completo',
                 hint: 'Joao Silva',
                 prefixIcon: PhosphorIcons.user(),
                 controller: _nameController,
+                validator: _validateName,
               ),
               const SizedBox(height: AppSpacing.lg),
               AppInput(
@@ -121,6 +145,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 prefixIcon: PhosphorIcons.envelope(),
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
+                validator: _validateEmail,
               ),
               const SizedBox(height: AppSpacing.lg),
               AppInput(
@@ -129,6 +154,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 prefixIcon: PhosphorIcons.lock(),
                 isPassword: true,
                 controller: _passwordController,
+                validator: _validatePassword,
               ),
               const SizedBox(height: AppSpacing.lg),
               AppInput(
@@ -137,6 +163,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 prefixIcon: PhosphorIcons.lock(),
                 isPassword: true,
                 controller: _confirmController,
+                validator: _validateConfirmPassword,
               ),
               const SizedBox(height: AppSpacing.xl),
               Text('Posicao preferida', style: AppTextStyles.labelMedium),
@@ -170,6 +197,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 ),
               ]),
             ]),
+            ),
           ),
         ),
       ]),

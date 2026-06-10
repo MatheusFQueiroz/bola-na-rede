@@ -22,6 +22,10 @@ class FakeAuthRepository implements AuthRepository {
       fakeProfile(name: name);
 
   @override
+  Future<PlayerProfile> restoreSession(String token) async =>
+      fakeProfile(name: 'Restored');
+
+  @override
   Future<void> logout() async {}
 
   @override
