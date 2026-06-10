@@ -13,29 +13,21 @@ class FakeTeamRepository implements TeamRepository {
   Future<Team> getTeamById(String id) async => throw UnimplementedError();
 }
 
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        teamRepositoryProvider.overrideWithValue(FakeTeamRepository()),
+      ],
+    );
+
 void main() {
-  ProviderContainer makeContainer() => ProviderContainer(
-        overrides: [
-          teamRepositoryProvider.overrideWithValue(FakeTeamRepository()),
-        ],
-      );
-
-  group('TeamViewModel', () {
-    test('initial state is idle with empty list', () {
+  group('teamListProvider', () {
+    test('starts loading then resolves to empty list', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      expect(c.read(teamViewModelProvider).status, TeamStatus.idle);
-      expect(c.read(teamViewModelProvider).teams, isEmpty);
-    });
-
-    test('loadTeams sets status to success', () async {
-      final c = makeContainer();
-      addTearDown(c.dispose);
-
-      await c.read(teamViewModelProvider.notifier).loadTeams();
-
-      expect(c.read(teamViewModelProvider).status, TeamStatus.success);
+      expect(c.read(teamListProvider), isA<AsyncLoading<List<Team>>>());
+      final teams = await c.read(teamListProvider.future);
+      expect(teams, isEmpty);
     });
   });
 }

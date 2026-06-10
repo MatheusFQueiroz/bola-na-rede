@@ -9,6 +9,8 @@ import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/search/presentation/viewmodels/search_viewmodel.dart';
 import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/shared/utils/date_utils.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
@@ -32,14 +34,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     AppColors.avatarPurple,
     AppColors.avatarTeal,
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(searchViewModelProvider.notifier).search('');
-    });
-  }
 
   @override
   void dispose() {
@@ -70,11 +64,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
             child: Row(children: [
-              IconButton(
-                icon: Icon(PhosphorIcons.arrowLeft(),
-                    color: AppColors.textOnPrimary),
-                onPressed: () => context.pop(),
-              ),
+              if (context.canPop())
+                IconButton(
+                  icon: Icon(PhosphorIcons.arrowLeft(),
+                      color: AppColors.textOnPrimary),
+                  onPressed: () => context.pop(),
+                )
+              else
+                const SizedBox(width: 48),
               const Expanded(
                 child: Text('Buscar',
                     textAlign: TextAlign.center,
@@ -98,7 +95,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (v) =>
-                    ref.read(searchViewModelProvider.notifier).search(v),
+                    ref.read(searchProvider.notifier).search(v),
                 decoration: InputDecoration(
                   hintText: 'Buscar partidas ou times...',
                   prefixIcon: Icon(PhosphorIcons.magnifyingGlass(),
@@ -109,19 +106,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                               color: AppColors.textSecondary, size: 16),
                           onPressed: () {
                             _searchController.clear();
-                            ref
-                                .read(searchViewModelProvider.notifier)
-                                .clear();
-                            ref
-                                .read(searchViewModelProvider.notifier)
-                                .search('');
+                            ref.read(searchProvider.notifier).clear();
                           },
                         )
                       : null,
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
@@ -142,8 +135,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     child: GestureDetector(
                       onTap: () => setState(() => _tabIndex = i),
                       child: Container(
-                        padding:
-                            const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.md),
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
@@ -193,17 +186,20 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildBody() {
-    final vm = ref.watch(searchViewModelProvider);
-
-    if (vm.status == SearchStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (vm.status == SearchStatus.error) {
-      return Center(child: Text(vm.error ?? 'Erro'));
-    }
-
-    if (_tabIndex == 0) return _buildMatchList(vm.matches);
-    return _buildTeamList(vm.teams);
+    return ref.watch(searchProvider).when(
+          data: (result) {
+            if (_tabIndex == 0) return _buildMatchList(result.matches);
+            return _buildTeamList(result.teams);
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Text(
+              'Não foi possível realizar a busca.',
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+        );
   }
 
   Widget _buildMatchList(List<Match> matches) {
@@ -219,11 +215,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   Widget _matchCard(Match match) {
     final teamA = match.teamASnapshot?.name ?? 'Time';
-    final initialsA = teamA.substring(0, 2).toUpperCase();
+    final initialsA = initials(teamA);
     final field = match.fieldSnapshot?.name ?? 'Local a definir';
     final address = match.fieldSnapshot?.address ?? '';
-    final date =
-        '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}';
+    final date = formatDate(match.scheduledDate);
 
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -269,7 +264,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         AppButton.outline(
           label: 'Propor horario',
           height: AppSizes.buttonHeightSmall,
-          onPressed: () => context.push(AppRoutes.matchDetail),
+          onPressed: () => context.push(AppRoutes.matchDetailOf(match.id)),
         ),
       ]),
     );
@@ -287,12 +282,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _teamCard(Team team, int index) {
-    final initials = team.name.substring(0, 2).toUpperCase();
     final color = _colors[index % _colors.length];
 
     return AppCard(
       child: Row(children: [
-        AppTeamAvatar(initials: initials, color: color, size: 48),
+        AppTeamAvatar(initials: initials(team.name), color: color, size: 48),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child:
@@ -306,7 +300,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         AppButtonSmall(
           label: 'Ver time',
           filled: false,
-          onPressed: () {},
+          onPressed: () => showComingSoon(context),
         ),
       ]),
     );

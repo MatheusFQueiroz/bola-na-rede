@@ -3,10 +3,6 @@ import 'package:flutter/services.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 
-// =============================================================================
-// SCRUM-16 — AppTheme: configura o ThemeData global com os tokens do Design System
-// =============================================================================
-
 abstract class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,
@@ -20,8 +16,6 @@ abstract class AppTheme {
           error: AppColors.error,
         ),
         scaffoldBackgroundColor: AppColors.background,
-
-        // --- Page transitions ---
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -31,8 +25,6 @@ abstract class AppTheme {
             TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
           },
         ),
-
-        // --- AppBar ---
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textOnPrimary,
@@ -49,8 +41,6 @@ abstract class AppTheme {
           ),
           iconTheme: IconThemeData(color: AppColors.textOnPrimary),
         ),
-
-        // --- BottomNavigationBar ---
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: AppColors.surface,
           selectedItemColor: AppColors.primary,
@@ -63,8 +53,6 @@ abstract class AppTheme {
           type: BottomNavigationBarType.fixed,
           elevation: 8,
         ),
-
-        // --- ElevatedButton ---
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
@@ -75,8 +63,6 @@ abstract class AppTheme {
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
-
-        // --- OutlinedButton ---
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
@@ -87,16 +73,12 @@ abstract class AppTheme {
                 AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
           ),
         ),
-
-        // --- TextButton ---
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
             textStyle: AppTextStyles.link,
           ),
         ),
-
-        // --- InputDecoration ---
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.surface,
@@ -125,16 +107,12 @@ abstract class AppTheme {
           prefixIconColor: AppColors.textSecondary,
           suffixIconColor: AppColors.textSecondary,
         ),
-
-        // --- Card ---
         cardTheme: CardThemeData(
           color: AppColors.surface,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.cardRadius),
           margin: EdgeInsets.zero,
         ),
-
-        // --- Chip ---
         chipTheme: ChipThemeData(
           backgroundColor: AppColors.surface,
           selectedColor: AppColors.primary,
@@ -147,15 +125,11 @@ abstract class AppTheme {
           padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md, vertical: AppSpacing.xs),
         ),
-
-        // --- Divider ---
         dividerTheme: const DividerThemeData(
           color: AppColors.divider,
           thickness: 1,
           space: 0,
         ),
-
-        // --- ProgressIndicator ---
         progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: AppColors.primary,
           linearTrackColor: AppColors.primarySurface,

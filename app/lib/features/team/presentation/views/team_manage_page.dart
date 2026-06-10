@@ -1,28 +1,47 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class TeamManagePage extends StatelessWidget {
+class TeamManagePage extends ConsumerWidget {
   const TeamManagePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = GoRouterState.of(context).pathParameters['id']!;
+    return ref.watch(teamDetailProvider(id)).when(
+          data: (team) => _buildPage(context, team),
+          loading: () => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => Scaffold(
+            appBar: AppGradientAppBar(title: 'Time', showBackButton: true),
+            body: const Center(
+                child: Text('Não foi possível carregar o time.')),
+          ),
+        );
+  }
+
+  Widget _buildPage(BuildContext context, Team team) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(slivers: [
-        SliverToBoxAdapter(child: _buildHeader(context)),
+        SliverToBoxAdapter(child: _buildHeader(context, team)),
         SliverPadding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           sliver: SliverList(delegate: SliverChildListDelegate([
-            _buildMembersCard(),
+            _buildMembersCard(context),
             const SizedBox(height: AppSpacing.md),
-            _buildPendingCard(),
+            _buildPendingCard(context),
             const SizedBox(height: AppSpacing.md),
-            _buildRecentMatchesCard(),
+            _buildRecentMatchesCard(context),
             const SizedBox(height: AppSpacing.md),
             _buildDangerCard(),
             const SizedBox(height: AppSpacing.lg),
@@ -32,7 +51,7 @@ class TeamManagePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, Team team) {
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
       child: SafeArea(
@@ -45,28 +64,28 @@ class TeamManagePage extends StatelessWidget {
                 icon: Icon(PhosphorIcons.arrowLeft(), color: AppColors.textOnPrimary),
                 onPressed: () => context.pop(),
               ),
-              const Expanded(
-                child: Text('Furacao FC', textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textOnPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
+              Expanded(
+                child: Text(team.name, textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
               ),
               IconButton(
                 icon: Icon(PhosphorIcons.pencil(), color: AppColors.textOnPrimary),
-                onPressed: () {},
+                onPressed: () => showComingSoon(context),
               ),
             ]),
           ),
           const SizedBox(height: AppSpacing.md),
-          const AppTeamAvatar(initials: 'FU', color: AppColors.primaryLight, size: 72, fontSize: 24),
+          AppTeamAvatar(initials: initials(team.name), color: AppColors.primaryLight, size: 72, fontSize: 24),
           const SizedBox(height: AppSpacing.sm),
-          const Text('Furacao FC',
-              style: TextStyle(color: AppColors.textOnPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
-          Text('Sao Paulo, SP',
-              style: TextStyle(color: AppColors.textOnPrimary.withOpacity(0.7), fontSize: 13)),
+          Text(team.name,
+              style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
+          Text(team.city,
+              style: TextStyle(color: AppColors.textOnPrimary.withValues(alpha: 0.7), fontSize: 13)),
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppRadius.full),
             ),
             child: const Text('Capitao',
@@ -93,20 +112,20 @@ class TeamManagePage extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.12),
+          color: Colors.white.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Column(children: [
           Text(value, style: const TextStyle(
               color: AppColors.textOnPrimary, fontWeight: FontWeight.w700, fontSize: 16)),
           Text(label, style: TextStyle(
-              color: AppColors.textOnPrimary.withOpacity(0.6), fontSize: 11)),
+              color: AppColors.textOnPrimary.withValues(alpha: 0.6), fontSize: 11)),
         ]),
       ),
     );
   }
 
-  Widget _buildMembersCard() {
+  Widget _buildMembersCard(BuildContext context) {
     final members = [
       ('Carlos Souza', 'Atacante', true),
       ('Joao Silva', 'Goleiro', false),
@@ -120,7 +139,7 @@ class TeamManagePage extends StatelessWidget {
         Row(children: [
           const Text('Membros (6/8)', style: AppTextStyles.titleSmall),
           const Spacer(),
-          TextButton(onPressed: () {}, child: const Text('Convidar')),
+          TextButton(onPressed: () => showComingSoon(context), child: const Text('Convidar')),
         ]),
         ...members.map((m) => Column(children: [
           const Divider(),
@@ -128,7 +147,7 @@ class TeamManagePage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: Row(children: [
               AppTeamAvatar(
-                initials: m.$1.substring(0, 2).toUpperCase(),
+                initials: initials(m.$1),
                 color: AppColors.avatarGreen,
                 size: 40, fontSize: 13,
               ),
@@ -148,7 +167,7 @@ class TeamManagePage extends StatelessWidget {
                       style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
                 )
               else
-                IconButton(icon: Icon(PhosphorIcons.dotsThreeVertical(), color: AppColors.textDisabled), onPressed: () {}),
+                IconButton(icon: Icon(PhosphorIcons.dotsThreeVertical(), color: AppColors.textDisabled), onPressed: () => showComingSoon(context)),
             ]),
           ),
         ])),
@@ -156,7 +175,7 @@ class TeamManagePage extends StatelessWidget {
     );
   }
 
-  Widget _buildPendingCard() {
+  Widget _buildPendingCard(BuildContext context) {
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Convites enviados (1)', style: AppTextStyles.titleSmall),
@@ -175,7 +194,7 @@ class TeamManagePage extends StatelessWidget {
               Text('Enviado ha 2 dias', style: AppTextStyles.bodySmall),
             ])),
             TextButton(
-              onPressed: () {},
+              onPressed: () => showComingSoon(context),
               child: const Text('Cancelar', style: TextStyle(color: AppColors.error, fontSize: 12)),
             ),
           ]),
@@ -184,7 +203,7 @@ class TeamManagePage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentMatchesCard() {
+  Widget _buildRecentMatchesCard(BuildContext context) {
     final matches = [
       ('FU 3 x 1 UN', AppBadgeType.confirmed, '10/03'),
       ('FU 2 x 2 D2', AppBadgeType.waiting, '05/03'),
@@ -195,7 +214,7 @@ class TeamManagePage extends StatelessWidget {
         Row(children: [
           const Text('Partidas recentes', style: AppTextStyles.titleSmall),
           const Spacer(),
-          TextButton(onPressed: () {}, child: const Text('Ver todas')),
+          TextButton(onPressed: () => showComingSoon(context), child: const Text('Ver todas')),
         ]),
         ...matches.map((m) => Column(children: [
           const Divider(),

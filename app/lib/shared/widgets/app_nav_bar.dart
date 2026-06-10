@@ -17,7 +17,7 @@ class AppNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = Theme.of(context).colorScheme.primary;
-    final inactive = Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+    final inactive = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
 
     return Container(
       height: 64,

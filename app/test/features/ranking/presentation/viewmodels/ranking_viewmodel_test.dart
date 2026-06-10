@@ -28,32 +28,28 @@ class FakeRankingRepository implements RankingRepository {
   Future<List<PlayerRanking>> getPlayerRankings() async => [];
 }
 
-void main() {
-  group('RankingViewModel', () {
-    ProviderContainer makeContainer() => ProviderContainer(
-          overrides: [
-            rankingRepositoryProvider.overrideWithValue(FakeRankingRepository()),
-          ],
-        );
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        rankingRepositoryProvider.overrideWithValue(FakeRankingRepository()),
+      ],
+    );
 
-    test('initial state is idle with empty lists', () {
+void main() {
+  group('rankingProvider', () {
+    test('starts loading', () {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      final state = c.read(rankingViewModelProvider);
-
-      expect(state.status, RankingStatus.idle);
-      expect(state.teamRankings, isEmpty);
+      expect(c.read(rankingProvider), isA<AsyncLoading<RankingData>>());
     });
 
-    test('loadRankings populates teamRankings', () async {
+    test('resolves and populates teamRankings', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      await c.read(rankingViewModelProvider.notifier).loadRankings();
-
-      expect(c.read(rankingViewModelProvider).status, RankingStatus.success);
-      expect(c.read(rankingViewModelProvider).teamRankings, hasLength(1));
+      final data = await c.read(rankingProvider.future);
+      expect(data.teamRankings, hasLength(1));
+      expect(data.playerRankings, isEmpty);
     });
   });
 }

@@ -9,19 +9,28 @@ import 'package:bola_na_rede/shared/widgets/app_shell.dart';
 
 void main() {
   group('AppShell', () {
-    GoRouter _router({String initial = '/home'}) => GoRouter(
+    GoRouter buildRouter({String initial = '/home'}) => GoRouter(
           initialLocation: initial,
           routes: [
-            ShellRoute(
-              builder: (_, __, child) => AppShell(child: child),
-              routes: [
-                GoRoute(
-                  path: '/home',
-                  builder: (_, __) => const Text('home body'),
+            StatefulShellRoute.indexedStack(
+              builder: (context, state, navigationShell) =>
+                  AppShell(navigationShell: navigationShell),
+              branches: [
+                StatefulShellBranch(
+                  routes: [
+                    GoRoute(
+                      path: '/home',
+                      builder: (_, __) => const Text('home body'),
+                    ),
+                  ],
                 ),
-                GoRoute(
-                  path: '/search',
-                  builder: (_, __) => const Text('search body'),
+                StatefulShellBranch(
+                  routes: [
+                    GoRoute(
+                      path: '/search',
+                      builder: (_, __) => const Text('search body'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -31,7 +40,7 @@ void main() {
     testWidgets('renders child and AppNavBar', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
-          child: MaterialApp.router(routerConfig: _router()),
+          child: MaterialApp.router(routerConfig: buildRouter()),
         ),
       );
       await tester.pump();
@@ -42,7 +51,9 @@ void main() {
     testWidgets('highlights tab matching current location', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
-          child: MaterialApp.router(routerConfig: _router(initial: '/search')),
+          child: MaterialApp.router(
+            routerConfig: buildRouter(initial: '/search'),
+          ),
         ),
       );
       await tester.pump();

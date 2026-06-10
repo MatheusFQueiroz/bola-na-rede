@@ -12,37 +12,27 @@ class FakeFieldRepository implements FieldRepository {
   @override
   Future<Field> getFieldById(String id) async => throw UnimplementedError();
   @override
-  Future<List<FieldCourt>> getCourtsByField(String fieldId) async =>
-      throw UnimplementedError();
+  Future<List<FieldCourt>> getCourtsByField(String fieldId) async => [];
   @override
-  Future<List<PricingRule>> getPricingRules(String fieldId) async =>
-      throw UnimplementedError();
+  Future<List<PricingRule>> getPricingRules(String fieldId) async => [];
 }
 
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        fieldRepositoryProvider.overrideWithValue(FakeFieldRepository()),
+      ],
+    );
+
 void main() {
-  ProviderContainer makeContainer() => ProviderContainer(
-        overrides: [
-          fieldRepositoryProvider.overrideWithValue(FakeFieldRepository()),
-        ],
-      );
-
-  group('FieldViewModel', () {
-    test('initial state is idle with empty lists', () {
+  group('fieldListProvider', () {
+    test('starts loading then resolves to empty list', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      expect(c.read(fieldViewModelProvider).listStatus, FieldLoadStatus.idle);
-      expect(c.read(fieldViewModelProvider).fields, isEmpty);
-    });
-
-    test('loadFields sets listStatus to success', () async {
-      final c = makeContainer();
-      addTearDown(c.dispose);
-
-      await c.read(fieldViewModelProvider.notifier).loadFields();
-
-      expect(
-          c.read(fieldViewModelProvider).listStatus, FieldLoadStatus.success);
+      expect(c.read(fieldListProvider), isA<AsyncLoading<List<Field>>>());
+      final fields = await c.read(fieldListProvider.future);
+      expect(fields, isEmpty);
+      expect(c.read(fieldListProvider), isA<AsyncData<List<Field>>>());
     });
   });
 }

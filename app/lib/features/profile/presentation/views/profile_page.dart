@@ -9,65 +9,56 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class ProfilePage extends ConsumerStatefulWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
-  @override
-  ConsumerState<ProfilePage> createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends ConsumerState<ProfilePage> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileViewModelProvider.notifier).loadProfile();
-    });
-  }
 
   @override
-  Widget build(BuildContext context) {
-    final vm = ref.watch(profileViewModelProvider);
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: () {
-        if (vm.status == ProfileStatus.loading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (vm.status == ProfileStatus.error) {
-          return Center(child: Text(vm.error ?? 'Erro'));
-        }
-
-        final profile = vm.profile;
-        final initials =
-            profile?.displayName.substring(0, 2).toUpperCase() ?? 'CS';
-        final name = profile?.displayName ?? 'Carlos Souza';
-        final city = profile?.city ?? 'Curitiba';
-        final position = _positionLabel(profile?.position);
-
-        return CustomScrollView(slivers: [
-          SliverToBoxAdapter(
-              child: _buildHeader(initials, name, city, position)),
-          SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            sliver: SliverList(
-                delegate: SliverChildListDelegate([
-              _buildStatsGrid(vm),
-              const SizedBox(height: AppSpacing.md),
-              _buildMyTeams(context),
-              const SizedBox(height: AppSpacing.md),
-              _buildRecentMatches(vm),
-              const SizedBox(height: AppSpacing.md),
-              const SizedBox(height: AppSpacing.md),
-              _buildSettings(context),
-              const SizedBox(height: AppSpacing.lg),
-            ])),
+      body: ref.watch(profileProvider).when(
+            data: (data) => _buildContent(context, ref, data),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(
+              child: Text(
+                'Não foi possível carregar o perfil.',
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: AppColors.textSecondary),
+              ),
+            ),
           ),
-        ]);
-      }(),
     );
+  }
+
+  Widget _buildContent(
+      BuildContext context, WidgetRef ref, ProfileData data) {
+    final profile = data.profile;
+    final avatarInitials = initials(profile.displayName);
+    final name = profile.displayName;
+    final city = profile.city ?? 'Curitiba';
+    final position = _positionLabel(profile.position);
+
+    return CustomScrollView(slivers: [
+      SliverToBoxAdapter(
+          child: _buildHeader(context, ref, avatarInitials, name, city, position)),
+      SliverPadding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        sliver: SliverList(
+            delegate: SliverChildListDelegate([
+          _buildStatsGrid(data),
+          const SizedBox(height: AppSpacing.md),
+          _buildMyTeams(context),
+          const SizedBox(height: AppSpacing.md),
+          _buildRecentMatches(context, data),
+          const SizedBox(height: AppSpacing.md),
+          _buildSettings(context, ref),
+          const SizedBox(height: AppSpacing.lg),
+        ])),
+      ),
+    ]);
   }
 
   String _positionLabel(PlayerPosition? position) {
@@ -85,8 +76,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
-  Widget _buildHeader(
-      String initials, String name, String city, String position) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, String avatarInitials,
+      String name, String city, String position) {
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
       child: SafeArea(
@@ -100,7 +91,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               IconButton(
                 icon:
                     Icon(PhosphorIcons.gear(), color: AppColors.textOnPrimary),
-                onPressed: () {},
+                onPressed: () => showComingSoon(context),
               ),
             ]),
           ),
@@ -113,7 +104,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               border: Border.all(color: AppColors.textOnPrimary, width: 3),
             ),
             alignment: Alignment.center,
-            child: Text(initials,
+            child: Text(avatarInitials,
                 style: const TextStyle(
                     color: AppColors.textOnPrimary,
                     fontWeight: FontWeight.w700,
@@ -127,14 +118,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   fontSize: 20)),
           Text('$position  $city',
               style: TextStyle(
-                  color: AppColors.textOnPrimary.withOpacity(0.7),
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.7),
                   fontSize: 13)),
           const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppRadius.full),
             ),
             child: const Text('Capitao',
@@ -146,12 +137,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildStatsGrid(ProfileState vm) {
+  Widget _buildStatsGrid(ProfileData data) {
     final stats = [
-      (PhosphorIcons.calendar(), 'Partidas', '${vm.totalMatches}'),
-      (PhosphorIcons.soccerBall(), 'Gols', '${vm.totalGoals}'),
-      (PhosphorIcons.trophy(), 'Vitorias', '${vm.totalWins}'),
-      (PhosphorIcons.chartBar(), '% Vitorias', vm.winRate),
+      (PhosphorIcons.calendar(), 'Partidas', '${data.totalMatches}'),
+      (PhosphorIcons.soccerBall(), 'Gols', '${data.totalGoals}'),
+      (PhosphorIcons.trophy(), 'Vitorias', '${data.totalWins}'),
+      (PhosphorIcons.chartBar(), '% Vitorias', data.winRate),
     ];
     return GridView.count(
       crossAxisCount: 2,
@@ -189,21 +180,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
         ]),
         const Divider(),
-        _teamRow('FU', AppColors.avatarGreen, 'Furacao FC', 'Capitao',
-            'Curitiba', context),
+        _teamRow('team-001', 'FU', AppColors.avatarGreen, 'Furacao FC',
+            'Capitao', 'Curitiba', context),
         const Divider(),
-        _teamRow('LS', AppColors.avatarBlue, 'Los Sharkis', 'Membro',
-            'Curitiba', context),
+        _teamRow('team-002', 'LS', AppColors.avatarBlue, 'Los Sharkis',
+            'Membro', 'Curitiba', context),
       ]),
     );
   }
 
-  Widget _teamRow(String initials, Color color, String name, String role,
-      String city, BuildContext context) {
+  Widget _teamRow(String teamId, String avatarInitials, Color color,
+      String name, String role, String city, BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: AppTeamAvatar(
-          initials: initials, color: color, size: 40, fontSize: 13),
+          initials: avatarInitials, color: color, size: 40, fontSize: 13),
       title: Text(name,
           style:
               AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
@@ -225,19 +216,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
         Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
       ]),
-      onTap: () => context.push(AppRoutes.teamManage),
+      onTap: () => context.push(AppRoutes.teamManageOf(teamId)),
     );
   }
 
-  Widget _buildRecentMatches(ProfileState vm) {
+  Widget _buildRecentMatches(BuildContext context, ProfileData data) {
     return AppCard(
       child: Column(children: [
         Row(children: [
           const Text('Ultimas partidas', style: AppTextStyles.titleSmall),
           const Spacer(),
-          TextButton(onPressed: () {}, child: const Text('Ver todas')),
+          TextButton(onPressed: () => showComingSoon(context), child: const Text('Ver todas')),
         ]),
-        ...vm.recentMatches.map((m) {
+        ...data.recentMatches.map((m) {
           final badgeType = m['result'] == 'win'
               ? AppBadgeType.confirmed
               : m['result'] == 'draw'
@@ -269,14 +260,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildSettings(BuildContext context) {
+  Widget _buildSettings(BuildContext context, WidgetRef ref) {
     return AppCard(
       child: Column(children: [
-        _settingRow(PhosphorIcons.user(), 'Editar perfil', false, () {}),
+        _settingRow(PhosphorIcons.user(), 'Editar perfil', false, () => showComingSoon(context)),
         const Divider(),
-        _settingRow(PhosphorIcons.bell(), 'Notificacoes', false, () {}),
+        _settingRow(PhosphorIcons.bell(), 'Notificacoes', false, () => showComingSoon(context)),
         const Divider(),
-        _settingRow(PhosphorIcons.shield(), 'Privacidade', false, () {}),
+        _settingRow(PhosphorIcons.shield(), 'Privacidade', false, () => showComingSoon(context)),
         const Divider(),
         _settingRow(
           PhosphorIcons.signOut(),
@@ -305,7 +296,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           )),
       trailing: isDanger
           ? null
-          : const Icon(Icons.chevron_right, color: AppColors.textDisabled),
+          : Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
       onTap: onTap,
     );
   }

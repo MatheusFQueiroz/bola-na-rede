@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/ranking/domain/entities/ranking.dart';
 import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class RankingPage extends ConsumerStatefulWidget {
@@ -31,14 +32,6 @@ class _RankingPageState extends ConsumerState<RankingPage> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(rankingViewModelProvider.notifier).loadRankings();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -59,23 +52,27 @@ class _RankingPageState extends ConsumerState<RankingPage> {
             ),
           ),
         ),
-        Expanded(child: _buildBody()),
+        Expanded(
+          child: ref.watch(rankingProvider).when(
+                data: (data) => _buildBody(data),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Text(
+                    'Não foi possível carregar o ranking.',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.textSecondary),
+                  ),
+                ),
+              ),
+        ),
       ]),
     );
   }
 
-  Widget _buildBody() {
-    final vm = ref.watch(rankingViewModelProvider);
-
-    if (vm.status == RankingStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (vm.status == RankingStatus.error) {
-      return Center(child: Text(vm.error ?? 'Erro'));
-    }
-
-    final teams = vm.teamRankings;
-    final players = vm.playerRankings;
+  Widget _buildBody(RankingData data) {
+    final teams = data.teamRankings;
+    final players = data.playerRankings;
     final top3 =
         _tab == 0 ? teams.take(3).toList() : players.take(3).toList();
     final rest =
@@ -88,7 +85,7 @@ class _RankingPageState extends ConsumerState<RankingPage> {
         const SizedBox(height: AppSpacing.md),
         _buildList(rest),
         const SizedBox(height: AppSpacing.md),
-        _buildMyCard(vm),
+        _buildMyCard(data),
       ],
     );
   }
@@ -121,7 +118,7 @@ class _RankingPageState extends ConsumerState<RankingPage> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Row(
@@ -134,9 +131,11 @@ class _RankingPageState extends ConsumerState<RankingPage> {
                           padding: const EdgeInsets.symmetric(
                               vertical: AppSpacing.sm),
                           decoration: BoxDecoration(
-                            color:
-                                active ? AppColors.surface : Colors.transparent,
-                            borderRadius: BorderRadius.circular(AppRadius.full),
+                            color: active
+                                ? AppColors.surface
+                                : Colors.transparent,
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.full),
                           ),
                           child: Text(e.value,
                               textAlign: TextAlign.center,
@@ -144,8 +143,9 @@ class _RankingPageState extends ConsumerState<RankingPage> {
                                 color: active
                                     ? AppColors.primary
                                     : AppColors.textOnPrimary,
-                                fontWeight:
-                                    active ? FontWeight.w700 : FontWeight.w400,
+                                fontWeight: active
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
                                 fontSize: 14,
                               )),
                         ),
@@ -197,7 +197,6 @@ class _RankingPageState extends ConsumerState<RankingPage> {
     final rank = getRank(item);
     final name = getName(item);
     final value = getValue(item);
-    final initials = name.substring(0, 2).toUpperCase();
     final color = _colors[(rank - 1) % _colors.length];
 
     return Column(mainAxisSize: MainAxisSize.min, children: [
@@ -205,7 +204,7 @@ class _RankingPageState extends ConsumerState<RankingPage> {
         Icon(PhosphorIcons.crown(PhosphorIconsStyle.fill),
             color: AppColors.warningIcon, size: 18),
       AppTeamAvatar(
-          initials: initials,
+          initials: initials(name),
           color: color,
           size: size,
           fontSize: size > 60 ? 20 : 14),
@@ -238,19 +237,21 @@ class _RankingPageState extends ConsumerState<RankingPage> {
     String getName(dynamic item) =>
         _tab == 0 ? (item as TeamRanking).name : (item as PlayerRanking).name;
 
-    String getSub(dynamic item) => _tab == 0
-        ? '${(item as TeamRanking).matchesPlayed} jogos'
-        : '${(item as PlayerRanking).teamName} · ${(item as PlayerRanking).position}';
+    String getSub(dynamic item) {
+      if (_tab == 0) return '${(item as TeamRanking).matchesPlayed} jogos';
+      final p = item as PlayerRanking;
+      return '${p.teamName} · ${p.position}';
+    }
 
     String getValue(dynamic item) => _tab == 0
         ? '${(item as TeamRanking).points} pts'
         : '${(item as PlayerRanking).goals} gols';
 
-    String getExtra(dynamic item) => _tab == 0
-        ? (item as TeamRanking).goalDifference >= 0
-            ? '+${(item as TeamRanking).goalDifference}'
-            : '${(item as TeamRanking).goalDifference}'
-        : '${(item as PlayerRanking).matchesPlayed} jogos';
+    String getExtra(dynamic item) {
+      if (_tab != 0) return '${(item as PlayerRanking).matchesPlayed} jogos';
+      final t = item as TeamRanking;
+      return t.goalDifference >= 0 ? '+${t.goalDifference}' : '${t.goalDifference}';
+    }
 
     int getRank(dynamic item) =>
         _tab == 0 ? (item as TeamRanking).rank : (item as PlayerRanking).rank;
@@ -267,7 +268,6 @@ class _RankingPageState extends ConsumerState<RankingPage> {
         ...items.map((item) {
           final rank = getRank(item);
           final name = getName(item);
-          final initials = name.substring(0, 2).toUpperCase();
           final color = _colors[(rank - 1) % _colors.length];
 
           return Column(children: [
@@ -281,7 +281,10 @@ class _RankingPageState extends ConsumerState<RankingPage> {
                         style: AppTextStyles.bodySmall
                             .copyWith(fontWeight: FontWeight.w700))),
                 AppTeamAvatar(
-                    initials: initials, color: color, size: 32, fontSize: 11),
+                    initials: initials(name),
+                    color: color,
+                    size: 32,
+                    fontSize: 11),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                     child: Column(
@@ -308,10 +311,10 @@ class _RankingPageState extends ConsumerState<RankingPage> {
     );
   }
 
-  Widget _buildMyCard(RankingState vm) {
+  Widget _buildMyCard(RankingData data) {
     if (_tab == 0) {
       final myTeam =
-          vm.teamRankings.where((t) => t.id == 'team-001').firstOrNull;
+          data.teamRankings.where((t) => t.id == 'team-001').firstOrNull;
       if (myTeam == null) return const SizedBox();
 
       return AppCard(
@@ -334,7 +337,7 @@ class _RankingPageState extends ConsumerState<RankingPage> {
       );
     } else {
       final myPlayer =
-          vm.playerRankings.where((p) => p.id == 'user-001').firstOrNull;
+          data.playerRankings.where((p) => p.id == 'user-001').firstOrNull;
       if (myPlayer == null) return const SizedBox();
 
       return AppCard(

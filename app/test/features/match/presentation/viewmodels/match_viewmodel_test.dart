@@ -17,32 +17,23 @@ class FakeMatchRepository implements MatchRepository {
   Future<void> createMatch(Match match) async {}
 }
 
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        matchRepositoryProvider.overrideWithValue(FakeMatchRepository()),
+      ],
+    );
+
 void main() {
-  ProviderContainer makeContainer() => ProviderContainer(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
-          matchRepositoryProvider.overrideWithValue(FakeMatchRepository()),
-        ],
-      );
-
-  group('MatchViewModel', () {
-    test('initial listStatus is idle with empty list', () {
+  group('matchListProvider', () {
+    test('starts loading then resolves to empty list', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      final s = c.read(matchViewModelProvider);
-
-      expect(s.listStatus, MatchLoadStatus.idle);
-      expect(s.matches, isEmpty);
-    });
-
-    test('loadMatches sets listStatus to success', () async {
-      final c = makeContainer();
-      addTearDown(c.dispose);
-
-      await c.read(matchViewModelProvider.notifier).loadMatches();
-
-      expect(c.read(matchViewModelProvider).listStatus, MatchLoadStatus.success);
+      expect(c.read(matchListProvider), isA<AsyncLoading<List<Match>>>());
+      final matches = await c.read(matchListProvider.future);
+      expect(matches, isEmpty);
+      expect(c.read(matchListProvider), isA<AsyncData<List<Match>>>());
     });
   });
 }

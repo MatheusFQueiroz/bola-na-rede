@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class TeamSearchPage extends ConsumerStatefulWidget {
@@ -18,14 +19,6 @@ class TeamSearchPage extends ConsumerStatefulWidget {
 class _TeamSearchPageState extends ConsumerState<TeamSearchPage> {
   final _searchController = TextEditingController();
   String _query = '';
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(teamViewModelProvider.notifier).loadTeams();
-    });
-  }
 
   @override
   void dispose() {
@@ -89,7 +82,8 @@ class _TeamSearchPageState extends ConsumerState<TeamSearchPage> {
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
@@ -100,80 +94,87 @@ class _TeamSearchPageState extends ConsumerState<TeamSearchPage> {
   }
 
   Widget _buildBody() {
-    final vm = ref.watch(teamViewModelProvider);
+    return ref.watch(teamListProvider).when(
+          data: (teams) {
+            final filtered = teams
+                .where((t) => t.id != 'team-001')
+                .where((t) =>
+                    _query.isEmpty ||
+                    t.name.toLowerCase().contains(_query) ||
+                    t.city.toLowerCase().contains(_query))
+                .toList();
 
-    if (vm.status == TeamStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (vm.status == TeamStatus.error) {
-      return Center(
-        child: Text(vm.error ?? 'Erro',
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.textSecondary)),
-      );
-    }
+            if (filtered.isEmpty) {
+              return Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(PhosphorIcons.users(),
+                          size: 48, color: AppColors.textDisabled),
+                      const SizedBox(height: AppSpacing.md),
+                      const Text('Nenhum time encontrado',
+                          style: AppTextStyles.titleMedium),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text('Tente outro nome',
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: AppColors.textSecondary)),
+                    ]),
+              );
+            }
 
-    final teams = vm.teams
-        .where((t) => t.id != 'team-001')
-        .where((t) =>
-            _query.isEmpty ||
-            t.name.toLowerCase().contains(_query) ||
-            t.city.toLowerCase().contains(_query))
-        .toList();
+            final colors = [
+              AppColors.avatarGreen,
+              AppColors.avatarBlue,
+              AppColors.avatarRed,
+              AppColors.avatarOrange,
+              AppColors.avatarPurple,
+              AppColors.avatarTeal,
+            ];
 
-    if (teams.isEmpty) {
-      return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(PhosphorIcons.users(), size: 48, color: AppColors.textDisabled),
-          const SizedBox(height: AppSpacing.md),
-          const Text('Nenhum time encontrado',
-              style: AppTextStyles.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          Text('Tente outro nome',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
-        ]),
-      );
-    }
+            return ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: filtered.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, i) {
+                final team = filtered[i];
+                final color = colors[i % colors.length];
 
-    final colors = [
-      AppColors.avatarGreen,
-      AppColors.avatarBlue,
-      AppColors.avatarRed,
-      AppColors.avatarOrange,
-      AppColors.avatarPurple,
-      AppColors.avatarTeal,
-    ];
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: teams.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (_, i) {
-        final team = teams[i];
-        final initials = team.name.substring(0, 2).toUpperCase();
-        final color = colors[i % colors.length];
-
-        return AppCard(
-          onTap: () => context.pop(team),
-          child: Row(children: [
-            AppTeamAvatar(
-                initials: initials, color: color, size: 48, fontSize: 15),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(team.name, style: AppTextStyles.titleSmall),
-                    Text(team.city,
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: AppColors.textSecondary)),
+                return AppCard(
+                  onTap: () => context.pop(team),
+                  child: Row(children: [
+                    AppTeamAvatar(
+                        initials: initials(team.name),
+                        color: color,
+                        size: 48,
+                        fontSize: 15),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(team.name, style: AppTextStyles.titleSmall),
+                            Text(team.city,
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(
+                                        color: AppColors.textSecondary)),
+                          ]),
+                    ),
+                    Icon(PhosphorIcons.caretRight(),
+                        color: AppColors.textDisabled),
                   ]),
+                );
+              },
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Text(
+              'Não foi possível carregar os times.',
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
             ),
-            Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
-          ]),
+          ),
         );
-      },
-    );
   }
 }

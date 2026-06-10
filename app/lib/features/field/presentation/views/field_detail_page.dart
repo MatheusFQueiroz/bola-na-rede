@@ -1,22 +1,45 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class FieldDetailPage extends StatefulWidget {
+class FieldDetailPage extends ConsumerStatefulWidget {
   const FieldDetailPage({super.key});
   @override
-  State<FieldDetailPage> createState() => _FieldDetailPageState();
+  ConsumerState<FieldDetailPage> createState() => _FieldDetailPageState();
 }
 
-class _FieldDetailPageState extends State<FieldDetailPage> {
+class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
   int _selectedDay = 0;
   final _days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
   @override
   Widget build(BuildContext context) {
+    final id = GoRouterState.of(context).pathParameters['id']!;
+    return ref.watch(fieldDetailProvider(id)).when(
+          data: (detail) => _buildPage(context, detail),
+          loading: () => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => Scaffold(
+            appBar: AppGradientAppBar(title: 'Campo', showBackButton: true),
+            body: const Center(
+                child: Text('Não foi possível carregar o campo.')),
+          ),
+        );
+  }
+
+  Widget _buildPage(BuildContext context, FieldDetail detail) {
+    final field = detail.field;
+    final address = field.street != null
+        ? '${field.street}, ${field.city} — ${field.state}'
+        : '${field.city} — ${field.state}';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(children: [
@@ -26,7 +49,7 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildInfoCard(),
+                _buildInfoCard(field.name, address),
                 const SizedBox(height: AppSpacing.md),
                 _buildScheduleCard(),
                 const SizedBox(height: AppSpacing.md),
@@ -55,8 +78,8 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
       Container(
         height: 260,
         color: AppColors.primarySurface,
-        child: const Center(
-          child: Icon(Icons.sports_soccer, size: 80, color: AppColors.primaryBorder),
+        child: Center(
+          child: Icon(PhosphorIcons.soccerBall(), size: 80, color: AppColors.primaryBorder),
         ),
       ),
       Positioned(
@@ -69,14 +92,14 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         top: MediaQuery.of(context).padding.top + AppSpacing.sm,
         left: AppSpacing.sm,
         child: _circleButton(
-          Icons.arrow_back,
+          PhosphorIcons.arrowLeft(),
           () => context.pop(),
         ),
       ),
       Positioned(
         top: MediaQuery.of(context).padding.top + AppSpacing.sm,
         right: AppSpacing.sm,
-        child: _circleButton(Icons.favorite_border, () {}),
+        child: _circleButton(PhosphorIcons.heart(), () => showComingSoon(context)),
       ),
       Positioned(
         bottom: AppSpacing.xl,
@@ -113,34 +136,34 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         child: Container(
           width: 36, height: 36,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.85),
+            color: Colors.white.withValues(alpha: 0.85),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: AppColors.primary, size: AppSizes.iconMd),
         ),
       );
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(String name, String address) {
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Arena Society Xaxim', style: AppTextStyles.titleLarge),
+        Text(name, style: AppTextStyles.titleLarge),
         const SizedBox(height: AppSpacing.xs),
         Row(children: [
-          const Icon(Icons.star, color: AppColors.warningIcon, size: 16),
+          Icon(PhosphorIcons.star(PhosphorIconsStyle.fill), color: AppColors.warningIcon, size: 16),
           Text(' 4.7  38 reservas',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         ]),
         const SizedBox(height: AppSpacing.sm),
         Row(children: [
-          const Icon(Icons.location_on_outlined, size: 16, color: AppColors.primary),
+          Icon(PhosphorIcons.mapPin(), size: 16, color: AppColors.primary),
           Expanded(
-            child: Text(' Rua das Araucarias, 450 — Xaxim, Curitiba',
+            child: Text(' $address',
                 style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
           ),
         ]),
         const SizedBox(height: AppSpacing.xs),
         Row(children: [
-          const Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
+          Icon(PhosphorIcons.phone(), size: 16, color: AppColors.primary),
           Text(' (41) 99999-1234',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         ]),
@@ -152,13 +175,13 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         ),
         const SizedBox(height: AppSpacing.sm),
         Row(children: [
-          const Icon(Icons.people_outline, size: 16, color: AppColors.primary),
+          Icon(PhosphorIcons.users(), size: 16, color: AppColors.primary),
           Text(' Ate 14 jogadores por time',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         ]),
         const SizedBox(height: AppSpacing.xs),
         Row(children: [
-          const Icon(Icons.grass_outlined, size: 16, color: AppColors.primary),
+          Icon(PhosphorIcons.leaf(), size: 16, color: AppColors.primary),
           Text(' Grama sintetica',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         ]),
@@ -263,12 +286,12 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         Row(children: [
           const Text('Avaliacoes', style: AppTextStyles.titleSmall),
           const Spacer(),
-          TextButton(onPressed: () {}, child: const Text('Ver todas')),
+          TextButton(onPressed: () => showComingSoon(context), child: const Text('Ver todas')),
         ]),
         const SizedBox(height: AppSpacing.sm),
         const Text('4.7', style: TextStyle(fontSize: 48, fontWeight: FontWeight.w700, color: AppColors.primary)),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(5, (i) =>
-            const Icon(Icons.star, color: AppColors.warningIcon, size: 20))),
+            Icon(PhosphorIcons.star(PhosphorIconsStyle.fill), color: AppColors.warningIcon, size: 20))),
         Text('Baseado em 38 avaliacoes',
             style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.md),
@@ -294,7 +317,9 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
             Text(name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
             Row(children: [
               ...List.generate(5, (i) => Icon(
-                i < stars ? Icons.star : Icons.star_border,
+                i < stars
+                    ? PhosphorIcons.star(PhosphorIconsStyle.fill)
+                    : PhosphorIcons.star(),
                 size: 12, color: AppColors.warningIcon)),
               Text('  $date', style: AppTextStyles.bodySmall),
             ]),
@@ -325,7 +350,7 @@ class _FieldDetailPageState extends State<FieldDetailPage> {
         Expanded(
           child: AppButton.primary(
             label: 'Reservar horario',
-            onPressed: () {},
+            onPressed: () => showComingSoon(context),
           ),
         ),
       ]),

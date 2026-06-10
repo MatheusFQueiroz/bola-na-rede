@@ -45,7 +45,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
                             fontWeight: FontWeight.w600)),
                   ),
                   TextButton.icon(
-                    onPressed: () {},
+                    onPressed: () => showComingSoon(context),
                     icon: Icon(PhosphorIcons.mapTrifold(),
                         color: AppColors.textOnPrimary, size: 18),
                     label: const Text('Mapa',
@@ -101,6 +101,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
               _fieldCard(
+                id: 'field-001',
                 name: 'Arena Society Xaxim',
                 neighborhood: 'Xaxim',
                 distance: '2,3 km',
@@ -112,6 +113,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
               ),
               const SizedBox(height: AppSpacing.md),
               _fieldCard(
+                id: 'field-002',
                 name: 'Campo do Ze',
                 neighborhood: 'Pinheirinho',
                 distance: '4,1 km',
@@ -123,6 +125,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
               ),
               const SizedBox(height: AppSpacing.md),
               _fieldCard(
+                id: 'field-003',
                 name: 'Futsal Center Portao',
                 neighborhood: 'Portao',
                 distance: '5,8 km',
@@ -140,6 +143,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
   }
 
   Widget _fieldCard({
+    required String id,
     required String name,
     required String neighborhood,
     required String distance,
@@ -150,7 +154,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
     required bool available,
   }) {
     return AppCard(
-      onTap: () => context.push(AppRoutes.fieldDetail),
+      onTap: () => context.push(AppRoutes.fieldDetailOf(id)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Stack(children: [
           Container(
@@ -214,7 +218,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
                 label: 'Ver mais',
                 filled: false,
                 onPressed: () =>
-                    context.push(AppRoutes.fieldDetail),
+                    context.push(AppRoutes.fieldDetailOf(id)),
               ),
             ]),
             const SizedBox(height: AppSpacing.xs),

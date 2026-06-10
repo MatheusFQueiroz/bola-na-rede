@@ -14,41 +14,44 @@ class FakeSearchRepository implements SearchRepository {
   Future<List<Team>> searchTeams(String query) async => [];
 }
 
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        searchRepositoryProvider.overrideWithValue(FakeSearchRepository()),
+      ],
+    );
+
 void main() {
-  ProviderContainer makeContainer() => ProviderContainer(
-        overrides: [
-          searchRepositoryProvider.overrideWithValue(FakeSearchRepository()),
-        ],
-      );
-
-  group('SearchViewModel', () {
-    test('initial state is idle with empty lists', () {
+  group('searchProvider', () {
+    test('initial state resolves to empty result', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      final s = c.read(searchViewModelProvider);
-
-      expect(s.status, SearchStatus.idle);
-      expect(s.matches, isEmpty);
+      final result = await c.read(searchProvider.future);
+      expect(result.matches, isEmpty);
+      expect(result.teams, isEmpty);
     });
 
-    test('search sets status to success', () async {
+    test('search resolves with results', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      await c.read(searchViewModelProvider.notifier).search('fusão');
+      await c.read(searchProvider.future);
+      await c.read(searchProvider.notifier).search('fusão');
 
-      expect(c.read(searchViewModelProvider).status, SearchStatus.success);
+      final result = c.read(searchProvider).value;
+      expect(result, isNotNull);
+      expect(result!.matches, isEmpty);
     });
 
-    test('clear resets to idle', () async {
+    test('clear resets to empty result', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      await c.read(searchViewModelProvider.notifier).search('fusão');
-      c.read(searchViewModelProvider.notifier).clear();
+      await c.read(searchProvider.notifier).search('fusão');
+      c.read(searchProvider.notifier).clear();
 
-      expect(c.read(searchViewModelProvider).status, SearchStatus.idle);
+      final result = c.read(searchProvider).value;
+      expect(result?.query, '');
     });
   });
 }

@@ -5,6 +5,12 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 
+void showComingSoon(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Em breve')),
+  );
+}
+
 enum AppButtonVariant { primary, outline, danger }
 
 class AppButton extends StatelessWidget {
@@ -495,7 +501,7 @@ class AppWarningBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.warning,
         borderRadius: AppRadius.cardRadius,
-        border: Border.all(color: AppColors.warningIcon.withOpacity(0.4)),
+        border: Border.all(color: AppColors.warningIcon.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [

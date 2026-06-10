@@ -10,67 +10,59 @@ import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmode
 import 'package:bola_na_rede/features/home/presentation/viewmodels/home_viewmodel.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/date_utils.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
-  @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(homeViewModelProvider.notifier).loadHome();
-    });
-  }
 
   @override
-  Widget build(BuildContext context) {
-    final vm = ref.watch(homeViewModelProvider);
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Builder(
-        builder: (_) {
-          if (vm.status == HomeStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeader(vm)),
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    if (vm.nextMatch != null) ...[
-                      _buildNextMatch(vm.nextMatch!),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
-                    if (vm.pendingRequest != null) ...[
-                      _buildPendingRequest(vm.pendingRequest!),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
-                    _buildQuickActions(),
-                    const SizedBox(height: AppSpacing.md),
-                    _buildRanking(),
-                    const SizedBox(height: AppSpacing.md),
-                    if (vm.myTeam != null) _buildMyTeam(vm),
-                    const SizedBox(height: AppSpacing.lg),
-                  ]),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+      body: ref.watch(homeProvider).when(
+            data: (data) => _buildBody(context, ref, data),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Center(
+              child: Text('Não foi possível carregar.'),
+            ),
+          ),
     );
   }
 
-  Widget _buildHeader(HomeState vm) {
-    final user = ref.read(authViewModelProvider).currentUser;
+  Widget _buildBody(BuildContext context, WidgetRef ref, HomeData data) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(context, ref, data)),
+        SliverPadding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              if (data.nextMatch != null) ...[
+                _buildNextMatch(context, data.nextMatch!),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              if (data.pendingRequest != null) ...[
+                _buildPendingRequest(context, data.pendingRequest!),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              _buildQuickActions(context),
+              const SizedBox(height: AppSpacing.md),
+              _buildRanking(context, ref),
+              const SizedBox(height: AppSpacing.md),
+              if (data.myTeam != null) _buildMyTeam(context, data),
+              const SizedBox(height: AppSpacing.lg),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(
+      BuildContext context, WidgetRef ref, HomeData data) {
+    final user = ref.watch(authViewModelProvider).value;
     final name = user?.displayName ?? 'Jogador';
 
     return Container(
@@ -89,7 +81,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             decoration: const BoxDecoration(
                 color: AppColors.primaryLight, shape: BoxShape.circle),
             alignment: Alignment.center,
-            child: Text(name.substring(0, 1).toUpperCase(),
+            child: Text(initials(name, max: 1),
                 style: const TextStyle(
                     color: AppColors.textOnPrimary,
                     fontWeight: FontWeight.w700,
@@ -115,11 +107,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         ]),
         const SizedBox(height: AppSpacing.lg),
         Row(children: [
-          _statCard(PhosphorIcons.trophy(), '${vm.myRank}', 'Lugar'),
+          _statCard(PhosphorIcons.trophy(), '${data.myRank}', 'Lugar'),
           const SizedBox(width: AppSpacing.sm),
-          _statCard(PhosphorIcons.users(), '${vm.playerCount}', 'Jogadores'),
+          _statCard(PhosphorIcons.users(), '${data.playerCount}', 'Jogadores'),
           const SizedBox(width: AppSpacing.sm),
-          _statCard(PhosphorIcons.lightning(), '${vm.winStreak}', 'Vitorias'),
+          _statCard(PhosphorIcons.lightning(), '${data.winStreak}', 'Vitorias'),
         ]),
       ]),
     );
@@ -130,7 +122,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.12),
+          color: Colors.white.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Column(children: [
@@ -143,21 +135,20 @@ class _HomePageState extends ConsumerState<HomePage> {
                   fontSize: 22)),
           Text(label,
               style: TextStyle(
-                  color: AppColors.textOnPrimary.withOpacity(0.6),
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.6),
                   fontSize: 11)),
         ]),
       ),
     );
   }
 
-  Widget _buildNextMatch(Match match) {
+  Widget _buildNextMatch(BuildContext context, Match match) {
     final teamA = match.teamASnapshot?.name ?? 'Time A';
     final teamB = match.teamBSnapshot?.name ?? 'Time B';
-    final initialsA = teamA.substring(0, 2).toUpperCase();
-    final initialsB = teamB.substring(0, 2).toUpperCase();
+    final initialsA = initials(teamA);
+    final initialsB = initials(teamB);
     final field = match.fieldSnapshot?.name ?? 'Local a definir';
-    final date =
-        '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}';
+    final date = formatDate(match.scheduledDate);
 
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -214,18 +205,17 @@ class _HomePageState extends ConsumerState<HomePage> {
         AppButton.outline(
           label: 'Ver detalhes',
           height: AppSizes.buttonHeightSmall,
-          onPressed: () => context.push(AppRoutes.matchDetail),
+          onPressed: () => context.push(AppRoutes.matchDetailOf(match.id)),
         ),
       ]),
     );
   }
 
-  Widget _buildPendingRequest(Match match) {
+  Widget _buildPendingRequest(BuildContext context, Match match) {
     final teamA = match.teamASnapshot?.name ?? 'Time';
-    final initialsA = teamA.substring(0, 2).toUpperCase();
+    final initialsA = initials(teamA);
     final field = match.fieldSnapshot?.name ?? 'Local a definir';
-    final date =
-        '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}';
+    final date = formatDate(match.scheduledDate);
 
     return AppCard(
       border: const Border(
@@ -259,7 +249,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               label: 'Aceitar',
               icon: PhosphorIcons.check(),
               height: AppSizes.buttonHeightSmall,
-              onPressed: () {},
+              onPressed: () => showComingSoon(context),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -268,7 +258,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               label: 'Recusar',
               icon: PhosphorIcons.x(),
               height: AppSizes.buttonHeightSmall,
-              onPressed: () {},
+              onPressed: () => showComingSoon(context),
             ),
           ),
         ]),
@@ -276,7 +266,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(BuildContext context) {
     return Row(children: [
       Expanded(
         child: AppCard(
@@ -312,9 +302,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     ]);
   }
 
-  Widget _buildRanking() {
-    final rankings =
-        ref.read(rankingViewModelProvider).teamRankings.take(3).toList();
+  Widget _buildRanking(BuildContext context, WidgetRef ref) {
+    final rankings = ref
+        .watch(rankingProvider)
+        .whenOrNull(data: (d) => d.teamRankings.take(3).toList());
+
+    if (rankings == null) return const SizedBox();
+
     final colors = [
       AppColors.avatarBlue,
       AppColors.avatarRed,
@@ -335,7 +329,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         const SizedBox(height: AppSpacing.md),
         ...rankings.asMap().entries.map((e) {
           final team = e.value;
-          final initials = team.name.substring(0, 2).toUpperCase();
           final color = colors[e.key % colors.length];
           return Column(children: [
             if (e.key > 0) const Divider(),
@@ -353,7 +346,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 AppTeamAvatar(
-                    initials: initials, color: color, size: 32, fontSize: 12),
+                    initials: initials(team.name),
+                    color: color,
+                    size: 32,
+                    fontSize: 12),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
@@ -377,9 +373,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildMyTeam(HomeState vm) {
-    final team = vm.myTeam!;
-    final initials = team.name.substring(0, 2).toUpperCase();
+  Widget _buildMyTeam(BuildContext context, HomeData data) {
+    final team = data.myTeam!;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -390,7 +385,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Column(children: [
         Row(children: [
           AppTeamAvatar(
-              initials: initials, color: AppColors.primaryLight, size: 40),
+              initials: initials(team.name),
+              color: AppColors.primaryLight,
+              size: 40),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child:
@@ -402,12 +399,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                       fontSize: 15)),
               Text(team.city,
                   style: TextStyle(
-                      color: AppColors.textOnPrimary.withOpacity(0.7),
+                      color: AppColors.textOnPrimary.withValues(alpha: 0.7),
                       fontSize: 12)),
             ]),
           ),
           OutlinedButton(
-            onPressed: () => context.push(AppRoutes.teamManage),
+            onPressed: () => context.push(AppRoutes.teamManageOf(team.id)),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.textOnPrimary,
               side: const BorderSide(color: AppColors.textOnPrimary),
@@ -423,8 +420,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         const SizedBox(height: AppSpacing.md),
         Row(children: [
           _teamStat('Capitao', 'Voce'),
-          _teamStat('Jogadores', '${vm.playerCount}'),
-          _teamStat('Serie', '${vm.winStreak}V'),
+          _teamStat('Jogadores', '${data.playerCount}'),
+          _teamStat('Serie', '${data.winStreak}V'),
         ]),
       ]),
     );
@@ -436,13 +433,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         padding: const EdgeInsets.all(AppSpacing.sm),
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.12),
+          color: Colors.white.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Column(children: [
           Text(label,
               style: TextStyle(
-                  color: AppColors.textOnPrimary.withOpacity(0.6),
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.6),
                   fontSize: 11)),
           Text(value,
               style: const TextStyle(

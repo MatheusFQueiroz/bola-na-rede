@@ -6,7 +6,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/date_utils.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class MatchDetailPage extends ConsumerWidget {
@@ -14,22 +17,32 @@ class MatchDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(matchViewModelProvider);
-    final match = vm.selectedMatch;
+    final id = GoRouterState.of(context).pathParameters['id']!;
+    return ref.watch(matchDetailProvider(id)).when(
+          data: (match) => _buildPage(context, match),
+          loading: () => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => Scaffold(
+            appBar: AppGradientAppBar(
+                title: 'Detalhes da Partida', showBackButton: true),
+            body: const Center(
+                child: Text('Não foi possível carregar a partida.')),
+          ),
+        );
+  }
 
-    final teamA = match?.teamASnapshot?.name ?? 'Furacao FC';
-    final teamB = match?.teamBSnapshot?.name ?? 'Uniao Vila';
-    final initialsA = teamA.substring(0, 2).toUpperCase();
-    final initialsB = teamB.substring(0, 2).toUpperCase();
-    final fieldName = match?.fieldSnapshot?.name ?? 'Arena Society Xaxim';
+  Widget _buildPage(BuildContext context, Match match) {
+    final teamA = match.teamASnapshot?.name ?? 'Furacao FC';
+    final teamB = match.teamBSnapshot?.name ?? 'Uniao Vila';
+    final initialsA = initials(teamA);
+    final initialsB = initials(teamB);
+    final fieldName = match.fieldSnapshot?.name ?? 'Arena Society Xaxim';
     final fieldAddr =
-        match?.fieldSnapshot?.address ?? 'Rua das Araucarias, 450 — Xaxim';
-    final timeRange = match != null
-        ? '${match.scheduledTimeStart} – ${match.scheduledTimeEnd}'
-        : '18:00 – 19:00';
-    final date = match != null
-        ? '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}'
-        : 'Sab, 15/03/2025';
+        match.fieldSnapshot?.address ?? 'Rua das Araucarias, 450 — Xaxim';
+    final timeRange = formatTimeRange(
+        match.scheduledTimeStart, match.scheduledTimeEnd);
+    final date = formatDate(match.scheduledDate);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -121,12 +134,12 @@ class MatchDetailPage extends ConsumerWidget {
           ('CA', AppColors.avatarGreen, 'Carlos'),
           ('JO', AppColors.avatarTeal, 'Joao'),
           ('PE', AppColors.avatarBlue, 'Pedro'),
-          ('LU', AppColors.avatarOrange, 'Lucas')
+          ('LU', AppColors.avatarOrange, 'Lucas'),
         ]),
         const Divider(height: AppSpacing.xl),
         _teamSection('Uniao Vila', 2, 7, [
           ('AN', AppColors.avatarBlue, 'Andre'),
-          ('MA', AppColors.avatarPurple, 'Marcos')
+          ('MA', AppColors.avatarPurple, 'Marcos'),
         ]),
         Text('5 vagas abertas',
             style: AppTextStyles.bodySmall.copyWith(
@@ -228,7 +241,7 @@ class MatchDetailPage extends ConsumerWidget {
           child: AppButton.danger(
             label: 'Cancelar',
             height: AppSizes.buttonHeightSmall,
-            onPressed: () {},
+            onPressed: () => showComingSoon(context),
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -237,8 +250,7 @@ class MatchDetailPage extends ConsumerWidget {
           child: AppButton.primary(
             label: 'Registrar Resultado',
             height: AppSizes.buttonHeightSmall,
-            onPressed: () =>
-                context.push(AppRoutes.registerResult),
+            onPressed: () => context.push(AppRoutes.registerResult),
           ),
         ),
       ]),

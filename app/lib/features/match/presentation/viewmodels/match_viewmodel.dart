@@ -6,90 +6,35 @@ import 'package:bola_na_rede/core/shared/snapshots.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/match/data/repositories/match_repository_provider.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
-import 'package:bola_na_rede/features/match/domain/repositories/match_repository.dart';
+import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
 
-enum MatchLoadStatus { idle, loading, success, error }
+class MatchListVM extends AsyncNotifier<List<Match>> {
+  @override
+  Future<List<Match>> build() =>
+      ref.watch(matchRepositoryProvider).getMatches();
 
-class MatchState {
-  final MatchLoadStatus listStatus;
-  final List<Match> matches;
-  final String? listError;
-  final Match? selectedMatch;
-  final MatchLoadStatus createStatus;
-  final String? createError;
-
-  const MatchState({
-    required this.listStatus,
-    required this.matches,
-    this.listError,
-    this.selectedMatch,
-    required this.createStatus,
-    this.createError,
-  });
-
-  const MatchState.initial()
-      : listStatus = MatchLoadStatus.idle,
-        matches = const [],
-        listError = null,
-        selectedMatch = null,
-        createStatus = MatchLoadStatus.idle,
-        createError = null;
-
-  List<Match> get scheduledMatches =>
-      matches.where((m) => m.status == MatchStatus.scheduled).toList();
-  List<Match> get completedMatches =>
-      matches.where((m) => m.status == MatchStatus.completed).toList();
-
-  MatchState copyWith({
-    MatchLoadStatus? listStatus,
-    List<Match>? matches,
-    String? listError,
-    Match? selectedMatch,
-    MatchLoadStatus? createStatus,
-    String? createError,
-  }) =>
-      MatchState(
-        listStatus: listStatus ?? this.listStatus,
-        matches: matches ?? this.matches,
-        listError: listError ?? this.listError,
-        selectedMatch: selectedMatch ?? this.selectedMatch,
-        createStatus: createStatus ?? this.createStatus,
-        createError: createError ?? this.createError,
-      );
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(matchRepositoryProvider).getMatches(),
+    );
+  }
 }
 
-final matchViewModelProvider =
-    NotifierProvider<MatchViewModel, MatchState>(MatchViewModel.new);
+final matchListProvider =
+    AsyncNotifierProvider<MatchListVM, List<Match>>(MatchListVM.new);
 
-class MatchViewModel extends Notifier<MatchState> {
+
+final matchDetailProvider = FutureProvider.family<Match, String>(
+  (ref, id) => ref.read(matchRepositoryProvider).getMatchById(id),
+);
+
+
+class CreateMatchVM extends AsyncNotifier<void> {
   @override
-  MatchState build() => const MatchState.initial();
+  Future<void> build() async {}
 
-  MatchRepository get _repo => ref.read(matchRepositoryProvider);
-
-  Future<void> loadMatches() async {
-    state = state.copyWith(listStatus: MatchLoadStatus.loading, listError: null);
-    try {
-      final matches = await _repo.getMatches();
-      state = state.copyWith(
-          listStatus: MatchLoadStatus.success, matches: matches);
-    } catch (_) {
-      state = state.copyWith(
-          listStatus: MatchLoadStatus.error,
-          listError: 'Não foi possível carregar as partidas.');
-    }
-  }
-
-  Future<void> loadMatchDetail(String matchId) async {
-    try {
-      final match = await _repo.getMatchById(matchId);
-      state = state.copyWith(selectedMatch: match);
-    } catch (_) {
-      state = state.copyWith(selectedMatch: null);
-    }
-  }
-
-  Future<bool> createMatch({
+  Future<bool> submit({
     required String teamBId,
     required String teamBName,
     required String teamBCity,
@@ -100,12 +45,12 @@ class MatchViewModel extends Notifier<MatchState> {
     String? fieldName,
     String? fieldAddress,
   }) async {
-    state = state.copyWith(
-        createStatus: MatchLoadStatus.loading, createError: null);
-    try {
-      final authState = ref.read(authViewModelProvider);
-      final teamAId = authState.currentTeamId;
-      final teamAName = authState.currentUser?.displayName ?? 'Meu Time';
+    state = const AsyncLoading();
+    final result = await AsyncValue.guard(() async {
+      final user = ref.read(authViewModelProvider).value;
+      final myTeam = await ref.read(myTeamProvider.future);
+      final teamAId = myTeam?.id ?? '';
+      final teamAName = myTeam?.name ?? user?.displayName ?? 'Meu Time';
 
       final newMatch = Match(
         id: const Uuid().v4(),
@@ -115,7 +60,7 @@ class MatchViewModel extends Notifier<MatchState> {
         teamASnapshot: TeamSnapshot(
           teamId: teamAId,
           name: teamAName,
-          city: authState.currentUser?.city ?? 'Curitiba',
+          city: myTeam?.city ?? user?.city ?? 'Curitiba',
         ),
         teamBSnapshot:
             TeamSnapshot(teamId: teamBId, name: teamBName, city: teamBCity),
@@ -135,15 +80,13 @@ class MatchViewModel extends Notifier<MatchState> {
         updatedAt: DateTime.now(),
       );
 
-      await _repo.createMatch(newMatch);
-      await loadMatches();
-      state = state.copyWith(createStatus: MatchLoadStatus.success);
-      return true;
-    } catch (_) {
-      state = state.copyWith(
-          createStatus: MatchLoadStatus.error,
-          createError: 'Não foi possível criar a partida.');
-      return false;
-    }
+      await ref.read(matchRepositoryProvider).createMatch(newMatch);
+      await ref.read(matchListProvider.notifier).refresh();
+    });
+    state = result;
+    return !result.hasError;
   }
 }
+
+final createMatchProvider =
+    AsyncNotifierProvider<CreateMatchVM, void>(CreateMatchVM.new);

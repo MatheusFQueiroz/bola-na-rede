@@ -9,30 +9,42 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/date_utils.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class MatchListPage extends ConsumerStatefulWidget {
+class MatchListPage extends ConsumerWidget {
   const MatchListPage({super.key});
-  @override
-  ConsumerState<MatchListPage> createState() => _MatchListPageState();
-}
-
-class _MatchListPageState extends ConsumerState<MatchListPage> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(matchViewModelProvider.notifier).loadMatches();
-    });
-  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(children: [
         _buildHeader(context),
-        Expanded(child: _buildBody()),
+        Expanded(
+          child: ref.watch(matchListProvider).when(
+                data: (matches) => matches.isEmpty
+                    ? _buildEmpty()
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: matches.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.md),
+                        itemBuilder: (_, i) =>
+                            _matchCard(context, matches[i]),
+                      ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Text(
+                    'Não foi possível carregar as partidas.',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.textSecondary),
+                  ),
+                ),
+              ),
+        ),
       ]),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.createMatch),
@@ -72,39 +84,20 @@ class _MatchListPageState extends ConsumerState<MatchListPage> {
     );
   }
 
-  Widget _buildBody() {
-    final vm = ref.watch(matchViewModelProvider);
-
-    if (vm.listStatus == MatchLoadStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (vm.listStatus == MatchLoadStatus.error) {
-      return Center(child: Text(vm.listError ?? 'Erro'));
-    }
-    if (vm.matches.isEmpty) return _buildEmpty();
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: vm.matches.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-      itemBuilder: (_, i) => _matchCard(vm.matches[i]),
-    );
-  }
-
-  Widget _matchCard(Match match) {
+  Widget _matchCard(BuildContext context, Match match) {
     final teamA = match.teamASnapshot?.name ?? 'Time A';
     final teamB = match.teamBSnapshot?.name ?? 'Time B';
-    final initialsA = teamA.substring(0, 2).toUpperCase();
-    final initialsB = teamB.substring(0, 2).toUpperCase();
+    final initialsA = initials(teamA);
+    final initialsB = initials(teamB);
     final field = match.fieldSnapshot?.name ?? 'Local a definir';
-    final date =
-        '${match.scheduledDate.day.toString().padLeft(2, '0')}/${match.scheduledDate.month.toString().padLeft(2, '0')}/${match.scheduledDate.year}';
+    final date = formatDate(match.scheduledDate);
 
     final badgeType = match.status == MatchStatus.scheduled
         ? AppBadgeType.confirmed
         : AppBadgeType.closed;
 
     return AppCard(
-      onTap: () => context.push(AppRoutes.matchDetail),
+      onTap: () => context.push(AppRoutes.matchDetailOf(match.id)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           AppBadge(type: badgeType),

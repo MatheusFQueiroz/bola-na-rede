@@ -9,6 +9,7 @@ import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
 import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class CreateMatchPage extends ConsumerStatefulWidget {
@@ -31,14 +32,6 @@ class _CreateMatchPageState extends ConsumerState<CreateMatchPage> {
   final _timeStartController = TextEditingController();
   final _timeEndController = TextEditingController();
   final _fieldController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(teamViewModelProvider.notifier).loadTeams();
-    });
-  }
 
   @override
   void dispose() {
@@ -81,7 +74,7 @@ class _CreateMatchPageState extends ConsumerState<CreateMatchPage> {
       return;
     }
 
-    final success = await ref.read(matchViewModelProvider.notifier).createMatch(
+    final success = await ref.read(createMatchProvider.notifier).submit(
           teamBId: _selectedTeam!.id,
           teamBName: _selectedTeam!.name,
           teamBCity: _selectedTeam!.city,
@@ -99,20 +92,16 @@ class _CreateMatchPageState extends ConsumerState<CreateMatchPage> {
     if (success) {
       context.go(AppRoutes.matchList);
     } else {
+      final err = ref.read(createMatchProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            ref.read(matchViewModelProvider).createError ?? 'Erro',
-          ),
-        ),
+        SnackBar(content: Text(err?.toString() ?? 'Erro')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(matchViewModelProvider).createStatus ==
-        MatchLoadStatus.loading;
+    final isLoading = ref.watch(createMatchProvider).isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -257,6 +246,9 @@ class _CreateMatchPageState extends ConsumerState<CreateMatchPage> {
   }
 
   Widget _buildTeamButton() {
+    // Preload teams so the list is ready when user opens team search.
+    ref.watch(teamListProvider);
+
     return GestureDetector(
       onTap: () async {
         final team = await context.push<Object?>(AppRoutes.teamSearch);
@@ -279,7 +271,7 @@ class _CreateMatchPageState extends ConsumerState<CreateMatchPage> {
         child: Row(children: [
           if (_selectedTeam != null) ...[
             AppTeamAvatar(
-              initials: _selectedTeam!.name.substring(0, 2).toUpperCase(),
+              initials: initials(_selectedTeam!.name),
               color: AppColors.avatarBlue,
               size: 40,
               fontSize: 13,

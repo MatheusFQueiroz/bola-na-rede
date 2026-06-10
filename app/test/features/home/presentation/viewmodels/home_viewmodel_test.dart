@@ -18,31 +18,31 @@ class FakeHomeRepository implements HomeRepository {
   Future<Team?> getMyTeam(String teamId) async => null;
 }
 
-void main() {
-  ProviderContainer makeContainer() => ProviderContainer(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
-          homeRepositoryProvider.overrideWithValue(FakeHomeRepository()),
-        ],
-      );
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        homeRepositoryProvider.overrideWithValue(FakeHomeRepository()),
+      ],
+    );
 
-  group('HomeViewModel', () {
-    test('initial state is idle', () {
+void main() {
+  group('homeProvider', () {
+    test('starts loading', () {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      expect(c.read(homeViewModelProvider).status, HomeStatus.idle);
+      expect(c.read(homeProvider), isA<AsyncLoading<HomeData>>());
     });
 
-    test('loadHome sets status to success with null data when repo returns null',
+    test('resolves to HomeData with null fields when repo returns null',
         () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      await c.read(homeViewModelProvider.notifier).loadHome();
-
-      expect(c.read(homeViewModelProvider).status, HomeStatus.success);
-      expect(c.read(homeViewModelProvider).nextMatch, isNull);
+      final data = await c.read(homeProvider.future);
+      expect(data.nextMatch, isNull);
+      expect(data.pendingRequest, isNull);
+      expect(data.myTeam, isNull);
     });
   });
 }

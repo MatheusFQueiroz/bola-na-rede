@@ -17,33 +17,29 @@ class FakeProfileRepository implements ProfileRepository {
       [];
 }
 
-void main() {
-  ProviderContainer makeContainer() => ProviderContainer(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
-          profileRepositoryProvider
-              .overrideWithValue(FakeProfileRepository()),
-        ],
-      );
+ProviderContainer makeContainer() => ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+      ],
+    );
 
-  group('ProfileViewModel', () {
-    test('initial state is idle with null profile', () {
+void main() {
+  group('profileProvider', () {
+    test('starts loading', () {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      expect(c.read(profileViewModelProvider).status, ProfileStatus.idle);
-      expect(c.read(profileViewModelProvider).profile, isNull);
+      expect(c.read(profileProvider), isA<AsyncLoading<ProfileData>>());
     });
 
-    test('loadProfile sets status to success', () async {
+    test('resolves to ProfileData with non-null profile', () async {
       final c = makeContainer();
       addTearDown(c.dispose);
 
-      await c.read(profileViewModelProvider.notifier).loadProfile();
-
-      expect(
-          c.read(profileViewModelProvider).status, ProfileStatus.success);
-      expect(c.read(profileViewModelProvider).profile, isNotNull);
+      final data = await c.read(profileProvider.future);
+      expect(data.profile, isNotNull);
+      expect(data.recentMatches, isEmpty);
     });
   });
 }

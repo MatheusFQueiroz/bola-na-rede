@@ -35,7 +35,6 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
   int get _totalGoalsB =>
       _playersB.fold(0, (sum, p) => sum + (p['goals'] as int));
 
-  // valida se gols individuais batem com o placar
   bool get _goalsMatchScore =>
       _totalGoalsA == _scoreA && _totalGoalsB == _scoreB;
 

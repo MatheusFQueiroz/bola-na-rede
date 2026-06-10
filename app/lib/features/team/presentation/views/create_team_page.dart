@@ -120,7 +120,7 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
               AppButton.primary(
                 label: 'Criar Time',
                 onPressed: () =>
-                    context.push(AppRoutes.teamManage),
+                    context.push(AppRoutes.teamManageOf('team-001')),
               ),
             ]),
           ),
