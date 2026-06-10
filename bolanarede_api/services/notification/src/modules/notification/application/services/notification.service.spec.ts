@@ -16,7 +16,7 @@ const mockNotifRepo = {
   countUnread: jest.fn(),
 };
 const mockTokenRepo = { upsert: jest.fn(), findByUserId: jest.fn() };
-const mockRedis = { set: jest.fn() };
+const mockRedis = { set: jest.fn(), get: jest.fn() };
 const mockPush = { send: jest.fn() };
 
 const makeNotif = (overrides = {}) => ({
@@ -59,12 +59,13 @@ describe('NotificationService', () => {
     };
 
     it('skips if event already processed (Redis NX returns null)', async () => {
-      mockRedis.set.mockResolvedValue(null);
+      mockRedis.get.mockResolvedValue('1');
       await service.createNotification(data);
       expect(mockNotifRepo.create).not.toHaveBeenCalled();
     });
 
     it('creates notification and sends push when device token exists', async () => {
+      mockRedis.get.mockResolvedValue(null);
       mockRedis.set.mockResolvedValue('OK');
       mockNotifRepo.create.mockResolvedValue(makeNotif());
       mockTokenRepo.findByUserId.mockResolvedValue({ token: 'tok-123', platform: 'ios' });
@@ -83,6 +84,7 @@ describe('NotificationService', () => {
     });
 
     it('creates notification without push when no device token', async () => {
+      mockRedis.get.mockResolvedValue(null);
       mockRedis.set.mockResolvedValue('OK');
       mockNotifRepo.create.mockResolvedValue(makeNotif());
       mockTokenRepo.findByUserId.mockResolvedValue(null);
@@ -94,6 +96,7 @@ describe('NotificationService', () => {
     });
 
     it('does not throw if push send fails', async () => {
+      mockRedis.get.mockResolvedValue(null);
       mockRedis.set.mockResolvedValue('OK');
       mockNotifRepo.create.mockResolvedValue(makeNotif());
       mockTokenRepo.findByUserId.mockResolvedValue({ token: 'tok-123', platform: 'ios' });

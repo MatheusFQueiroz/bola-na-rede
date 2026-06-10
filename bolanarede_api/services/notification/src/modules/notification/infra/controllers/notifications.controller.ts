@@ -14,6 +14,10 @@ import { JwtAuthGuard } from '@shared/infra/auth/guards/jwt-auth.guard';
 import { NotificationService } from '../../application/services/notification.service';
 import { NotificationResponseDto } from '../../application/dto/notification-response.dto';
 
+interface AuthenticatedRequest {
+  user: { sub: string };
+}
+
 @Controller('notifications')
 @ApiTags('Notifications')
 @ApiBearerAuth()
@@ -26,7 +30,7 @@ export class NotificationsController {
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Default 0' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Default 20, max 100' })
   async listNotifications(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query('skip') skip?: string,
     @Query('limit') limit?: string,
   ): Promise<NotificationResponseDto[]> {
@@ -42,7 +46,7 @@ export class NotificationsController {
 
   @Get('unread-count')
   @ApiOperation({ summary: 'Count unread notifications' })
-  async getUnreadCount(@Request() req: any): Promise<{ count: number }> {
+  async getUnreadCount(@Request() req: AuthenticatedRequest): Promise<{ count: number }> {
     const count = await this.notifService.getUnreadCount(req.user.sub);
     return { count };
   }
@@ -50,7 +54,7 @@ export class NotificationsController {
   @Patch('read')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Mark all notifications as read' })
-  async markAllAsRead(@Request() req: any): Promise<void> {
+  async markAllAsRead(@Request() req: AuthenticatedRequest): Promise<void> {
     await this.notifService.markAllAsRead(req.user.sub);
   }
 
@@ -58,7 +62,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Mark a single notification as read' })
   async markAsRead(
     @Param('id') id: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
   ): Promise<NotificationResponseDto> {
     const notif = await this.notifService.markAsRead(id, req.user.sub);
     return NotificationResponseDto.from(notif);

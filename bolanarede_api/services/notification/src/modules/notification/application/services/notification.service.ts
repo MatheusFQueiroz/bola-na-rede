@@ -36,8 +36,10 @@ export class NotificationService {
 
   async createNotification(data: CreateNotificationData): Promise<void> {
     const dedupKey = `notification:dedup:${data.eventId}`;
-    const set = await this.redis.set(dedupKey, '1', 'EX', 86400, 'NX');
-    if (set === null) {
+
+    // Check dedup FIRST (read-only), but only SET after successful DB write
+    const existing = await this.redis.get(dedupKey);
+    if (existing !== null) {
       this.logger.debug(`Event ${data.eventId} already processed, skipping`);
       return;
     }
@@ -49,6 +51,9 @@ export class NotificationService {
       body: data.body,
       data: data.data,
     });
+
+    // Set dedup key only after successful DB write
+    await this.redis.set(dedupKey, '1', 'EX', 86400, 'NX');
 
     const deviceToken = await this.tokenRepo.findByUserId(data.recipientUserId);
     if (deviceToken) {

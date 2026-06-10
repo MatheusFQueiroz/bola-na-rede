@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtAuthGuard } from '@shared/infra/auth/guards/jwt-auth.guard';
-import { SharedMessagingService } from '@shared/infra/messaging/shared-messaging.service';
-
 import { NotificationDoc, NotificationSchema } from './infra/schemas/notification.schema';
 import { DeviceTokenDoc, DeviceTokenSchema } from './infra/schemas/device-token.schema';
 
@@ -36,7 +34,6 @@ import { NotificationsController } from './infra/controllers/notifications.contr
     { provide: DEVICE_TOKEN_REPOSITORY, useClass: MongooseDeviceTokenRepository },
     redisProvider,
     PushNotificationService,
-    SharedMessagingService,
     JwtAuthGuard,
     NotificationService,
     DeviceTokenService,

@@ -13,3 +13,4 @@ export class DeviceTokenDoc {
 }
 
 export const DeviceTokenSchema = SchemaFactory.createForClass(DeviceTokenDoc);
+DeviceTokenSchema.index({ userId: 1 }, { unique: true });
