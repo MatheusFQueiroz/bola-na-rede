@@ -38,9 +38,9 @@ not bump versions opportunistically; treat any upgrade as an explicit task.
 | Icons                | `phosphor_flutter`    | Default icon set. Avoid mixing Material icons.   |
 | Lints                | `very_good_analysis`  | Plus the extras in `analysis_options.yaml`.      |
 
-**No code generation yet.** Do not introduce `freezed`, `json_serializable`,
-`build_runner`, `riverpod_generator`, `auto_route` or similar without an
-explicit decision. Models are written by hand (see §7).
+`json_serializable` and `build_runner` **are in use** for domain entities —
+generated `*.g.dart` files are committed. Do not introduce `freezed`,
+`riverpod_generator`, `auto_route` or similar without an explicit decision.
 
 ---
 
@@ -98,6 +98,7 @@ app/
 │   │           ├── viewmodels/    # Riverpod Notifiers
 │   │           └── widgets/       # feature-scoped widgets
 │   └── shared/
+│       ├── utils/           # string_utils.dart, date_utils.dart
 │       └── widgets/         # widgets reused across features
 └── pubspec.yaml
 ```
@@ -138,12 +139,23 @@ even if some folders start empty — keeps the structure predictable for agents.
   `ref.read` only inside callbacks / methods.
 - Cancel subscriptions and dispose resources in `Notifier.dispose` / via
   `ref.onDispose` — the lint `cancel_subscriptions` is enforced.
+- In Riverpod 3.x, `AsyncValue<T>.value` returns `T?` (nullable unwrapped
+  value). The `.valueOrNull` getter was removed — do not use it.
+- Auth state is `AsyncNotifierProvider<AuthViewModel, PlayerProfile?>`. Its
+  `build()` restores a persisted session from `TokenStorage` on startup.
+- The auth redirect lives in `core/routes/app_router.dart` behind
+  `const kAuthGateEnabled = false`. Flip to `true` when real auth ships.
 
 ---
 
-## 7. Models & serialization (manual, no codegen)
+## 7. Models & serialization
 
-Until codegen is introduced explicitly:
+`json_serializable` and `build_runner` are in `dev_dependencies` and generate
+`*.g.dart` files for domain entities. After changing an annotated entity, run:
+
+```
+dart run build_runner build --delete-conflicting-outputs
+```
 
 - DTOs live in `data/models/` and own `fromJson` / `toJson`.
 - Entities live in `domain/entities/`, are immutable (`final` fields,
@@ -167,6 +179,14 @@ Until codegen is introduced explicitly:
   of hardcoding paths.
 - Auth-gated routes use a single `redirect` function on the root router —
   driven by an auth state provider, not by ad-hoc checks per page.
+- **Navbar tabs** are wrapped in a `StatefulShellRoute.indexedStack`. Tab
+  switches are instantaneous and preserve scroll state. Use `goBranch(index)`
+  inside `AppShell` — never `context.go` for tab changes.
+- **Detail screens** sit outside the shell so the navbar is hidden. They use
+  full-screen slide transitions (`CupertinoPageTransitionsBuilder`). Navigate
+  to them with `context.push(AppRoutes.xDetailOf(id))` so they are poppable.
+- Use `context.go(...)` for top-level navigation (splash → home, logout) and
+  `context.push(...)` for detail screens.
 
 ---
 
