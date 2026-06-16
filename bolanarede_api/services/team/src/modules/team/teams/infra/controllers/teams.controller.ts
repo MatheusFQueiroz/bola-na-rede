@@ -43,6 +43,13 @@ export class TeamsController {
     return this.teamService.create(user.id, user.name, dto);
   }
 
+  @Get()
+  @HateoasList(TeamDto)
+  @ApiOperation({ summary: 'Listar times do usuário autenticado' })
+  list(@CurrentUser() user: AuthenticatedUser): Promise<TeamDto[]> {
+    return this.teamService.listByUser(user.id);
+  }
+
   @Get(':id')
   @Public()
   @HateoasItem(TeamDto)

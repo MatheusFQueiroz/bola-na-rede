@@ -29,4 +29,5 @@ export interface TeamRepositoryInterface {
   countActiveMembers(teamExternalId: string): Promise<number>;
   setCaptain(teamExternalId: string, newCaptainUserId: string): Promise<void>;
   updateMemberSnapshot(playerUserId: string, displayName: string, position: string | null): Promise<void>;
+  listByUser(playerUserId: string): Promise<Team[]>;
 }

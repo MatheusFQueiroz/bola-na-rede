@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   CreateTeamData,
@@ -235,6 +235,30 @@ export class DrizzleTeamRepository implements TeamRepositoryInterface {
           isNull(teamMembers.leftAt),
         ),
       );
+  }
+
+  async listByUser(playerUserId: string): Promise<Team[]> {
+    // Find all team IDs where the user is an active member (covers captain too, since captain is always a member)
+    const memberRows = await this.drizzle.db
+      .select({ teamId: teamMembers.teamId })
+      .from(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.playerUserId, playerUserId),
+          isNull(teamMembers.leftAt),
+        ),
+      );
+
+    if (memberRows.length === 0) return [];
+
+    const teamIds = memberRows.map((r) => r.teamId);
+
+    const rows = await this.drizzle.db
+      .select()
+      .from(teams)
+      .where(inArray(teams.id, teamIds));
+
+    return rows.map((row) => this.toTeam(row));
   }
 
   private toTeam(row: TeamRow): Team {

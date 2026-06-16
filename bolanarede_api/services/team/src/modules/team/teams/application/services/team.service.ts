@@ -184,4 +184,15 @@ export class TeamService {
     const members = await this.teamRepository.findMembers(teamId);
     return members.map(TeamMemberDto.fromMember);
   }
+
+  async listByUser(userId: string): Promise<TeamDto[]> {
+    const userTeams = await this.teamRepository.listByUser(userId);
+    const results = await Promise.all(
+      userTeams.map(async (team) => {
+        const count = await this.teamRepository.countActiveMembers(team.id);
+        return TeamDto.fromTeamAndCount(team, count);
+      }),
+    );
+    return results;
+  }
 }
