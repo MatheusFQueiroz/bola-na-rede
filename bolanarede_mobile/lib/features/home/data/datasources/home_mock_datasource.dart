@@ -12,7 +12,7 @@ abstract class HomeDataSource {
 class HomeMockDataSource implements HomeDataSource {
   @override
   Future<Match?> getNextMatch(String teamId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return Match(
       id: 'match-001',
       proposalId: 'proposal-001',
@@ -45,7 +45,7 @@ class HomeMockDataSource implements HomeDataSource {
 
   @override
   Future<Match?> getPendingRequest(String teamId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return Match(
       id: 'match-pending',
       proposalId: 'proposal-pending',
@@ -78,14 +78,14 @@ class HomeMockDataSource implements HomeDataSource {
 
   @override
   Future<Team?> getMyTeam(String teamId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return Team(
       id: 'team-001',
       name: 'Furacao FC',
       city: 'Curitiba',
       status: TeamStatus.active,
       createdBy: 'user-001',
-      createdAt: DateTime(2024, 1, 1),
+      createdAt: DateTime(2024),
       updatedAt: DateTime.now(),
     );
   }
