@@ -386,6 +386,31 @@ services:
       redis:
         condition: service_healthy
 
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - identity
+      - team
+      - field
+      - open-game
+      - social
+      - gamification
+      - matchmaking
+      - game
+      - ranking
+      - notification
+    networks:
+      - bolanarededb
+    restart: unless-stopped
+
+networks:
+  bolanarededb:
+    driver: bridge
+
 volumes:
   postgres_identity_data:
   postgres_team_data:
