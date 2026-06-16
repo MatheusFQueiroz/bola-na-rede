@@ -16,27 +16,28 @@ class AuthViewModel extends AsyncNotifier<PlayerProfile?> {
   Future<PlayerProfile?> build() async {
     final token = await _tokenStorage.readToken();
     if (token == null) return null;
-    return _repo.restoreSession(token);
+    try {
+      return await _repo.restoreSession(token);
+    } on Exception catch (_) {
+      await _tokenStorage.clearToken();
+      return null;
+    }
   }
 
   Future<bool> login(String email, String password) async {
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(() async {
-      final user = await _repo.login(email, password);
-      await _tokenStorage.saveToken('mock-token-${user.userId}');
-      return user;
-    });
+    final result = await AsyncValue.guard(
+      () => _repo.login(email, password),
+    );
     state = result;
     return !result.hasError;
   }
 
   Future<bool> register(String name, String email, String password) async {
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(() async {
-      final user = await _repo.register(name, email, password);
-      await _tokenStorage.saveToken('mock-token-${user.userId}');
-      return user;
-    });
+    final result = await AsyncValue.guard(
+      () => _repo.register(name, email, password),
+    );
     state = result;
     return !result.hasError;
   }

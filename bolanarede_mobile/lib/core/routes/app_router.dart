@@ -24,7 +24,7 @@ import 'package:bola_na_rede/shared/widgets/app_shell.dart';
 
 /// Permissivo por ora: navegação livre mesmo sem sessão. Vira `true` quando
 /// a autenticação entrar no roadmap — o `redirect` abaixo já está completo.
-const kAuthGateEnabled = false;
+const kAuthGateEnabled = true;
 
 class _AuthRefreshNotifier extends ChangeNotifier {
   _AuthRefreshNotifier(Ref ref) {
