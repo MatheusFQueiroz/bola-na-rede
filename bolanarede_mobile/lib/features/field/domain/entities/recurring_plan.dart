@@ -26,6 +26,30 @@ enum LinkedEntityType {
 
 @JsonSerializable()
 class RecurringPlan {
+  const RecurringPlan({
+    required this.id,
+    required this.fieldId,
+    required this.ownerUserId,
+    required this.ownerSnapshot,
+    required this.dayOfWeek,
+    required this.startTime,
+    required this.endTime,
+    required this.pricePerSlot,
+    required this.platformFeePct,
+    required this.releaseBeforeH,
+    required this.status,
+    required this.validFrom,
+    required this.createdAt,
+    required this.updatedAt,
+    this.courtId,
+    this.linkedEntityType,
+    this.linkedEntityId,
+    this.validUntil,
+  });
+
+  factory RecurringPlan.fromJson(Map<String, dynamic> json) =>
+      _$RecurringPlanFromJson(json);
+
   /// = recurring_plans.external_id (UUID)
   final String id;
 
@@ -85,30 +109,6 @@ class RecurringPlan {
   @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
 
-  const RecurringPlan({
-    required this.id,
-    required this.fieldId,
-    this.courtId,
-    required this.ownerUserId,
-    required this.ownerSnapshot,
-    this.linkedEntityType,
-    this.linkedEntityId,
-    required this.dayOfWeek,
-    required this.startTime,
-    required this.endTime,
-    required this.pricePerSlot,
-    required this.platformFeePct,
-    required this.releaseBeforeH,
-    required this.status,
-    required this.validFrom,
-    this.validUntil,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory RecurringPlan.fromJson(Map<String, dynamic> json) =>
-      _$RecurringPlanFromJson(json);
-
   Map<String, dynamic> toJson() => _$RecurringPlanToJson(this);
 }
 
@@ -128,6 +128,22 @@ enum PlanSlotStatus {
 
 @JsonSerializable()
 class RecurringPlanSlot {
+  const RecurringPlanSlot({
+    required this.id,
+    required this.planId,
+    required this.slotDate,
+    required this.status,
+    required this.releaseAt,
+    required this.createdAt,
+    this.reservationId,
+    this.gameRefId,
+    this.confirmedAt,
+    this.releasedAt,
+  });
+
+  factory RecurringPlanSlot.fromJson(Map<String, dynamic> json) =>
+      _$RecurringPlanSlotFromJson(json);
+
   final String id;
 
   @JsonKey(name: 'plan_id')
@@ -157,22 +173,6 @@ class RecurringPlanSlot {
 
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
-
-  const RecurringPlanSlot({
-    required this.id,
-    required this.planId,
-    required this.slotDate,
-    required this.status,
-    this.reservationId,
-    this.gameRefId,
-    required this.releaseAt,
-    this.confirmedAt,
-    this.releasedAt,
-    required this.createdAt,
-  });
-
-  factory RecurringPlanSlot.fromJson(Map<String, dynamic> json) =>
-      _$RecurringPlanSlotFromJson(json);
 
   Map<String, dynamic> toJson() => _$RecurringPlanSlotToJson(this);
 }

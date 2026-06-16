@@ -1,10 +1,12 @@
+import 'package:bola_na_rede/features/field/domain/entities/availability.dart';
 import 'package:bola_na_rede/features/field/domain/entities/field.dart';
 
 abstract class FieldDataSource {
-  Future<List<Field>> getFields();
+  Future<List<Field>> getFields({String? city});
   Future<Field> getFieldById(String id);
   Future<List<FieldCourt>> getCourtsByField(String fieldId);
   Future<List<PricingRule>> getPricingRules(String fieldId);
+  Future<List<AvailabilitySlot>> getAvailability(String fieldId, DateTime date);
 }
 
 class FieldMockDataSource implements FieldDataSource {
@@ -22,12 +24,11 @@ class FieldMockDataSource implements FieldDataSource {
       longitude: -49.2648,
       contactPhone: '41999991234',
       contactEmail: 'arena@xaxim.com',
-      coverPhotoUrl: null,
       status: FieldStatus.active,
       plan: FieldPlan.pro,
       planExpiresAt: DateTime(2025, 12, 31),
       createdAt: DateTime(2024, 1, 10),
-      updatedAt: DateTime(2024, 6, 1),
+      updatedAt: DateTime(2024, 6),
     ),
     Field(
       id: 'field-002',
@@ -41,13 +42,11 @@ class FieldMockDataSource implements FieldDataSource {
       latitude: -25.5421,
       longitude: -49.3012,
       contactPhone: '41988882222',
-      contactEmail: null,
-      coverPhotoUrl: null,
       status: FieldStatus.active,
       plan: FieldPlan.pro,
       planExpiresAt: DateTime(2025, 12, 31),
       createdAt: DateTime(2024, 2, 5),
-      updatedAt: DateTime(2024, 6, 1),
+      updatedAt: DateTime(2024, 6),
     ),
     Field(
       id: 'field-003',
@@ -62,18 +61,17 @@ class FieldMockDataSource implements FieldDataSource {
       longitude: -49.3198,
       contactPhone: '41977773333',
       contactEmail: 'futsal@portao.com',
-      coverPhotoUrl: null,
       status: FieldStatus.active,
       plan: FieldPlan.multi,
       planExpiresAt: DateTime(2025, 12, 31),
-      createdAt: DateTime(2024, 3, 1),
-      updatedAt: DateTime(2024, 6, 1),
+      createdAt: DateTime(2024, 3),
+      updatedAt: DateTime(2024, 6),
     ),
   ];
 
   static final _courts = {
     'field-001': [
-      FieldCourt(
+      const FieldCourt(
         id: 'court-001a',
         fieldId: 'field-001',
         name: 'Quadra 1 — Society',
@@ -82,7 +80,7 @@ class FieldMockDataSource implements FieldDataSource {
         capacity: 14,
         isActive: true,
       ),
-      FieldCourt(
+      const FieldCourt(
         id: 'court-001b',
         fieldId: 'field-001',
         name: 'Quadra 2 — Futsal',
@@ -93,7 +91,7 @@ class FieldMockDataSource implements FieldDataSource {
       ),
     ],
     'field-002': [
-      FieldCourt(
+      const FieldCourt(
         id: 'court-002a',
         fieldId: 'field-002',
         name: 'Quadra Principal',
@@ -104,7 +102,7 @@ class FieldMockDataSource implements FieldDataSource {
       ),
     ],
     'field-003': [
-      FieldCourt(
+      const FieldCourt(
         id: 'court-003a',
         fieldId: 'field-003',
         name: 'Quadra Futsal A',
@@ -113,7 +111,7 @@ class FieldMockDataSource implements FieldDataSource {
         capacity: 10,
         isActive: true,
       ),
-      FieldCourt(
+      const FieldCourt(
         id: 'court-003b',
         fieldId: 'field-003',
         name: 'Quadra Futsal B',
@@ -122,7 +120,7 @@ class FieldMockDataSource implements FieldDataSource {
         capacity: 10,
         isActive: true,
       ),
-      FieldCourt(
+      const FieldCourt(
         id: 'court-003c',
         fieldId: 'field-003',
         name: 'Salão',
@@ -136,85 +134,97 @@ class FieldMockDataSource implements FieldDataSource {
 
   static final _pricing = {
     'field-001': [
-      PricingRule(
+      const PricingRule(
         id: 'price-001a',
         fieldId: 'field-001',
         name: 'Manhã',
         dayOfWeek: [1, 2, 3, 4, 5],
         startTime: '08:00',
         endTime: '12:00',
-        price: 90.0,
+        price: 90,
         isActive: true,
       ),
-      PricingRule(
+      const PricingRule(
         id: 'price-001b',
         fieldId: 'field-001',
         name: 'Noturno',
         dayOfWeek: [1, 2, 3, 4, 5],
         startTime: '18:00',
         endTime: '22:00',
-        price: 120.0,
+        price: 120,
         isActive: true,
       ),
-      PricingRule(
+      const PricingRule(
         id: 'price-001c',
         fieldId: 'field-001',
         name: 'Final de semana',
         dayOfWeek: [0, 6],
         startTime: '08:00',
         endTime: '22:00',
-        price: 150.0,
+        price: 150,
         isActive: true,
       ),
     ],
     'field-002': [
-      PricingRule(
+      const PricingRule(
         id: 'price-002a',
         fieldId: 'field-002',
         name: 'Padrão',
-        dayOfWeek: null,
         startTime: '08:00',
         endTime: '22:00',
-        price: 90.0,
+        price: 90,
         isActive: true,
       ),
     ],
     'field-003': [
-      PricingRule(
+      const PricingRule(
         id: 'price-003a',
         fieldId: 'field-003',
         name: 'Padrão',
-        dayOfWeek: null,
         startTime: '08:00',
         endTime: '22:00',
-        price: 80.0,
+        price: 80,
         isActive: true,
       ),
     ],
   };
 
   @override
-  Future<List<Field>> getFields() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+  Future<List<Field>> getFields({String? city}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (city != null && city.isNotEmpty) {
+      return _fields.where((f) => f.city == city).toList();
+    }
     return List.from(_fields);
   }
 
   @override
   Future<Field> getFieldById(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _fields.firstWhere((f) => f.id == id,
-        orElse: () => throw Exception('Field $id não encontrado'));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    return _fields.firstWhere(
+      (f) => f.id == id,
+      orElse: () => throw Exception('Field $id não encontrado'),
+    );
   }
 
   @override
   Future<List<FieldCourt>> getCourtsByField(String fieldId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     return List.from(_courts[fieldId] ?? []);
   }
 
   @override
   Future<List<PricingRule>> getPricingRules(String fieldId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     return List.from(_pricing[fieldId] ?? []);
+  }
+
+  @override
+  Future<List<AvailabilitySlot>> getAvailability(
+    String fieldId,
+    DateTime date,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    return [];
   }
 }

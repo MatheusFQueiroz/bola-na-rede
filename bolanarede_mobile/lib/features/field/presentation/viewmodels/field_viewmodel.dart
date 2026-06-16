@@ -4,15 +4,15 @@ import 'package:bola_na_rede/features/field/data/repositories/field_repository_p
 import 'package:bola_na_rede/features/field/domain/entities/field.dart';
 
 class FieldDetail {
-  final Field field;
-  final List<FieldCourt> courts;
-  final List<PricingRule> pricingRules;
-
   const FieldDetail({
     required this.field,
     required this.courts,
     required this.pricingRules,
   });
+
+  final Field field;
+  final List<FieldCourt> courts;
+  final List<PricingRule> pricingRules;
 
   double get lowestPrice => pricingRules.isEmpty
       ? 0
@@ -22,7 +22,6 @@ class FieldDetail {
       courts.where((c) => c.isActive).toList();
 }
 
-
 class FieldListVM extends AsyncNotifier<List<Field>> {
   @override
   Future<List<Field>> build() =>
@@ -31,7 +30,6 @@ class FieldListVM extends AsyncNotifier<List<Field>> {
 
 final fieldListProvider =
     AsyncNotifierProvider<FieldListVM, List<Field>>(FieldListVM.new);
-
 
 final fieldDetailProvider = FutureProvider.family<FieldDetail, String>(
   (ref, id) async {

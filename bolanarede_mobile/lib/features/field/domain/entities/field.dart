@@ -43,6 +43,29 @@ enum CourtSurface {
 
 @JsonSerializable()
 class Field {
+  const Field({
+    required this.id,
+    required this.ownerUserId,
+    required this.name,
+    required this.city,
+    required this.state,
+    required this.status,
+    required this.plan,
+    required this.createdAt,
+    required this.updatedAt,
+    this.description,
+    this.street,
+    this.zipCode,
+    this.latitude,
+    this.longitude,
+    this.contactPhone,
+    this.contactEmail,
+    this.coverPhotoUrl,
+    this.planExpiresAt,
+  });
+
+  factory Field.fromJson(Map<String, dynamic> json) => _$FieldFromJson(json);
+
   /// = fields.external_id (UUID)
   final String id;
 
@@ -82,29 +105,6 @@ class Field {
   @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
 
-  const Field({
-    required this.id,
-    required this.ownerUserId,
-    required this.name,
-    this.description,
-    this.street,
-    required this.city,
-    required this.state,
-    this.zipCode,
-    this.latitude,
-    this.longitude,
-    this.contactPhone,
-    this.contactEmail,
-    this.coverPhotoUrl,
-    required this.status,
-    required this.plan,
-    this.planExpiresAt,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Field.fromJson(Map<String, dynamic> json) => _$FieldFromJson(json);
-
   Map<String, dynamic> toJson() => _$FieldToJson(this);
 }
 
@@ -113,6 +113,19 @@ class Field {
 
 @JsonSerializable()
 class FieldCourt {
+  const FieldCourt({
+    required this.id,
+    required this.fieldId,
+    required this.name,
+    required this.modality,
+    required this.capacity,
+    required this.isActive,
+    this.surface,
+  });
+
+  factory FieldCourt.fromJson(Map<String, dynamic> json) =>
+      _$FieldCourtFromJson(json);
+
   final String id;
 
   @JsonKey(name: 'field_id')
@@ -128,19 +141,6 @@ class FieldCourt {
   @JsonKey(name: 'is_active')
   final bool isActive;
 
-  const FieldCourt({
-    required this.id,
-    required this.fieldId,
-    required this.name,
-    required this.modality,
-    this.surface,
-    required this.capacity,
-    required this.isActive,
-  });
-
-  factory FieldCourt.fromJson(Map<String, dynamic> json) =>
-      _$FieldCourtFromJson(json);
-
   Map<String, dynamic> toJson() => _$FieldCourtToJson(this);
 }
 
@@ -148,6 +148,21 @@ class FieldCourt {
 
 @JsonSerializable()
 class PricingRule {
+  const PricingRule({
+    required this.id,
+    required this.fieldId,
+    required this.name,
+    required this.startTime,
+    required this.endTime,
+    required this.price,
+    required this.isActive,
+    this.courtId,
+    this.dayOfWeek,
+  });
+
+  factory PricingRule.fromJson(Map<String, dynamic> json) =>
+      _$PricingRuleFromJson(json);
+
   final String id;
 
   @JsonKey(name: 'field_id')
@@ -172,21 +187,6 @@ class PricingRule {
 
   @JsonKey(name: 'is_active')
   final bool isActive;
-
-  const PricingRule({
-    required this.id,
-    required this.fieldId,
-    this.courtId,
-    required this.name,
-    this.dayOfWeek,
-    required this.startTime,
-    required this.endTime,
-    required this.price,
-    required this.isActive,
-  });
-
-  factory PricingRule.fromJson(Map<String, dynamic> json) =>
-      _$PricingRuleFromJson(json);
 
   Map<String, dynamic> toJson() => _$PricingRuleToJson(this);
 }

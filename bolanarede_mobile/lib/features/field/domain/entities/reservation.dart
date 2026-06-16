@@ -11,6 +11,34 @@ part 'reservation.g.dart';
 
 @JsonSerializable()
 class Reservation {
+  const Reservation({
+    required this.id,
+    required this.fieldId,
+    required this.channel,
+    required this.bookerSnapshot,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+    required this.price,
+    required this.platformFeePct,
+    required this.platformFeeAmt,
+    required this.netAmount,
+    required this.status,
+    required this.paymentStatus,
+    required this.createdAt,
+    required this.updatedAt,
+    this.courtId,
+    this.recurringPlanId,
+    this.channelRefId,
+    this.bookerUserId,
+    this.notes,
+    this.cancelledAt,
+    this.cancellationReason,
+  });
+
+  factory Reservation.fromJson(Map<String, dynamic> json) =>
+      _$ReservationFromJson(json);
+
   /// = reservations.external_id (UUID)
   final String id;
 
@@ -74,34 +102,6 @@ class Reservation {
 
   @JsonKey(name: 'cancellation_reason')
   final String? cancellationReason;
-
-  const Reservation({
-    required this.id,
-    required this.fieldId,
-    this.courtId,
-    this.recurringPlanId,
-    required this.channel,
-    this.channelRefId,
-    this.bookerUserId,
-    required this.bookerSnapshot,
-    required this.date,
-    required this.startTime,
-    required this.endTime,
-    required this.price,
-    required this.platformFeePct,
-    required this.platformFeeAmt,
-    required this.netAmount,
-    required this.status,
-    required this.paymentStatus,
-    this.notes,
-    required this.createdAt,
-    required this.updatedAt,
-    this.cancelledAt,
-    this.cancellationReason,
-  });
-
-  factory Reservation.fromJson(Map<String, dynamic> json) =>
-      _$ReservationFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReservationToJson(this);
 }

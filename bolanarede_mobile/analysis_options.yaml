@@ -42,3 +42,4 @@ linter:
     # desativados intencionalmente
     directives_ordering: false
     public_member_api_docs: false
+    specify_nonobvious_property_types: false
