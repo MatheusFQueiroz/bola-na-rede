@@ -8,7 +8,7 @@ abstract class RankingDataSource {
 class RankingMockDataSource implements RankingDataSource {
   @override
   Future<List<TeamRanking>> getTeamRankings() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     return const [
       TeamRanking(
         id: 'team-002',
@@ -119,7 +119,7 @@ class RankingMockDataSource implements RankingDataSource {
 
   @override
   Future<List<PlayerRanking>> getPlayerRankings() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     return const [
       PlayerRanking(
         id: 'user-001',
