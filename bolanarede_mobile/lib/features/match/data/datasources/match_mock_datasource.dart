@@ -2,12 +2,25 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/shared/snapshots.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match_request.dart';
-import 'package:bola_na_rede/features/match/domain/entities/match_result.dart';
 
 abstract class MatchDataSource {
   Future<List<Match>> getMatches();
   Future<Match> getMatchById(String id);
   Future<void> createMatch(Match match);
+  Future<List<MatchRequest>> getMatchRequests({String? city});
+  Future<MatchRequest> createMatchRequest(String sport);
+  Future<void> cancelMatchRequest(String requestId);
+  Future<void> acceptMatch(String matchId);
+  Future<Match> getGame(String gameId);
+  Future<void> submitResult(
+    String gameId, {
+    required int playerAGoals,
+    required int playerBGoals,
+    required int playerAAssists,
+    required int playerBAssists,
+  });
+  Future<void> confirmResult(String gameId);
+  Future<void> disputeResult(String gameId);
 }
 
 class MatchMockDataSource implements MatchDataSource {
@@ -72,13 +85,13 @@ class MatchMockDataSource implements MatchDataSource {
 
   @override
   Future<List<Match>> getMatches() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future<void>.delayed(const Duration(milliseconds: 600));
     return List.from(_matches);
   }
 
   @override
   Future<Match> getMatchById(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     return _matches.firstWhere(
       (m) => m.id == id,
       orElse: () => throw Exception('Match $id não encontrado'),
@@ -87,7 +100,39 @@ class MatchMockDataSource implements MatchDataSource {
 
   @override
   Future<void> createMatch(Match match) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future<void>.delayed(const Duration(milliseconds: 800));
     _matches.add(match);
   }
+
+  @override
+  Future<List<MatchRequest>> getMatchRequests({String? city}) async => [];
+
+  @override
+  Future<MatchRequest> createMatchRequest(String sport) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> cancelMatchRequest(String requestId) async {}
+
+  @override
+  Future<void> acceptMatch(String matchId) async {}
+
+  @override
+  Future<Match> getGame(String gameId) => getMatchById(gameId);
+
+  @override
+  Future<void> submitResult(
+    String gameId, {
+    required int playerAGoals,
+    required int playerBGoals,
+    required int playerAAssists,
+    required int playerBAssists,
+  }) async {}
+
+  @override
+  Future<void> confirmResult(String gameId) async {}
+
+  @override
+  Future<void> disputeResult(String gameId) async {}
 }
