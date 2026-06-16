@@ -10,10 +10,10 @@ class ProfileData {
 
   const ProfileData({required this.profile, required this.recentMatches});
 
-  int get totalMatches => 42;
-  int get totalGoals => 28;
-  int get totalWins => 28;
-  String get winRate => '67%';
+  int get totalMatches => 0;
+  int get totalGoals => 0;
+  int get totalWins => 0;
+  String get winRate => '0%';
 }
 
 class ProfileVM extends AsyncNotifier<ProfileData> {

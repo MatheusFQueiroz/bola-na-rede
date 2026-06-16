@@ -27,13 +27,18 @@ class MatchHttpDataSource implements MatchDataSource {
   }
 
   @override
-  Future<void> createMatch(Match match) async {}
+  Future<void> createMatch(Match match) async {
+    await dio.post<Map<String, dynamic>>(
+      '/v1/match-requests',
+      data: <String, dynamic>{'sport': 'futsal'},
+    );
+  }
 
   @override
   Future<List<MatchRequest>> getMatchRequests({String? city}) async {
     final res = await dio.get<List<dynamic>>(
       '/v1/match-requests',
-      queryParameters: {if (city != null) 'city': city},
+      queryParameters: <String, dynamic>{if (city != null) 'city': city},
     );
     final data = res.data ?? [];
     return data
