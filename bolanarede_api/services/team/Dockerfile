@@ -7,7 +7,7 @@ COPY shared/ ./shared/
 COPY services/team/ ./services/team/
 
 WORKDIR /app/services/team
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 RUN npm run build
 
 # ---- Runner ----
@@ -19,7 +19,7 @@ WORKDIR /app/services/team
 
 COPY --from=builder /app/services/team/dist ./dist
 COPY --from=builder /app/services/team/package*.json ./
-RUN npm ci --only=production
+RUN npm ci --only=production --legacy-peer-deps
 
 COPY --from=builder /app/services/team/drizzle ./drizzle
 COPY services/team/scripts ./scripts

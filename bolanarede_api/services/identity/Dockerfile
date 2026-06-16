@@ -13,7 +13,7 @@ COPY services/identity/ ./services/identity/
 
 # Install all dependencies (including devDeps for build)
 WORKDIR /app/services/identity
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Compile TypeScript (shared module and service compiled together into dist/)
 RUN npm run build
@@ -31,7 +31,7 @@ COPY --from=builder /app/services/identity/dist ./dist
 
 # Copy package files and install ONLY production dependencies
 COPY --from=builder /app/services/identity/package*.json ./
-RUN npm ci --only=production
+RUN npm ci --only=production --legacy-peer-deps
 
 # Copy Drizzle migration files
 COPY --from=builder /app/services/identity/drizzle ./drizzle
