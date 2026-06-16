@@ -23,7 +23,7 @@ class AuthMockDataSource implements AuthDataSource {
 
   @override
   Future<PlayerProfile> login(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future<void>.delayed(const Duration(milliseconds: 800));
 
     if (password.length < 6) {
       throw Exception('Senha deve ter pelo menos 6 caracteres');
@@ -35,7 +35,7 @@ class AuthMockDataSource implements AuthDataSource {
 
   @override
   Future<PlayerProfile> restoreSession(String token) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
 
     if (!token.startsWith('mock-token-')) {
       throw Exception('Sessão inválida');
@@ -47,7 +47,7 @@ class AuthMockDataSource implements AuthDataSource {
   @override
   Future<PlayerProfile> register(
       String name, String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future<void>.delayed(const Duration(milliseconds: 800));
 
     if (name.isEmpty) throw Exception('Nome obrigatório');
     if (password.length < 6)

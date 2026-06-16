@@ -128,7 +128,7 @@ class SearchMockDataSource implements SearchDataSource {
 
   @override
   Future<List<Match>> searchMatches(String query) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     if (query.isEmpty) return List.from(_matches);
     return _matches.where((m) {
       final teamName = m.teamASnapshot?.name.toLowerCase() ?? '';
@@ -140,7 +140,7 @@ class SearchMockDataSource implements SearchDataSource {
 
   @override
   Future<List<Team>> searchTeams(String query) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     if (query.isEmpty) return List.from(_teams);
     return _teams.where((t) {
       final q = query.toLowerCase();

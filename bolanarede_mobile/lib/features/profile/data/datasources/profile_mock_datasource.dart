@@ -9,7 +9,7 @@ abstract class ProfileDataSource {
 class ProfileMockDataSource implements ProfileDataSource {
   @override
   Future<PlayerProfile> getProfile(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return PlayerProfile(
       userId: userId,
       displayName: 'Carlos Souza',
@@ -26,7 +26,7 @@ class ProfileMockDataSource implements ProfileDataSource {
 
   @override
   Future<List<Map<String, dynamic>>> getRecentMatches(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
     return [
       {
         'title': 'FU 3 x 1 UN',

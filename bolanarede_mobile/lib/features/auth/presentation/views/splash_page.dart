@@ -7,7 +7,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class SplashPage extends ConsumerWidget {
   const SplashPage({super.key});
