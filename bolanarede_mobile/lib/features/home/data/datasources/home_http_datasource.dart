@@ -30,7 +30,32 @@ class HomeHttpDataSource implements HomeDataSource {
   }
 
   @override
-  Future<Match?> getPendingRequest(String teamId) async => null;
+  Future<Match?> getPendingRequest(String teamId) async {
+    final response =
+        await dio.get<List<dynamic>>('/v1/match-requests');
+    for (final item in response.data ?? []) {
+      final json = item as Map<String, dynamic>;
+      if ((json['status'] as String? ?? '') == 'pending') {
+        final createdAt = DateTime.tryParse(
+              json['createdAt'] as String? ?? '',
+            ) ??
+            DateTime.now();
+        return Match(
+          id: json['id'] as String? ?? '',
+          proposalId: '',
+          teamAId: json['requesterUserId'] as String? ?? '',
+          teamBId: teamId,
+          scheduledDate: createdAt,
+          scheduledTimeStart: '',
+          scheduledTimeEnd: '',
+          status: MatchStatus.scheduled,
+          createdAt: createdAt,
+          updatedAt: createdAt,
+        );
+      }
+    }
+    return null;
+  }
 
   @override
   Future<Team?> getMyTeam(String teamId) async {

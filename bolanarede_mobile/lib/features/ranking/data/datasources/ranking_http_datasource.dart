@@ -10,7 +10,25 @@ class RankingHttpDatasource implements RankingDataSource {
   final Dio dio;
 
   @override
-  Future<List<TeamRanking>> getTeamRankings() async => [];
+  Future<List<TeamRanking>> getTeamRankings() async {
+    final playerRankings = await getPlayerRankings();
+    return playerRankings.asMap().entries.map((e) {
+      final p = e.value;
+      return TeamRanking(
+        id: p.id,
+        name: p.name,
+        city: '',
+        points: p.goals + p.assists,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goalsFor: p.goals,
+        goalsAgainst: 0,
+        matchesPlayed: p.matchesPlayed,
+        rank: p.rank,
+      );
+    }).toList();
+  }
 
   @override
   Future<List<PlayerRanking>> getPlayerRankings() async {
