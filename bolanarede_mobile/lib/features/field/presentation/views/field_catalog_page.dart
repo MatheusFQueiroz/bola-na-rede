@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/field/domain/entities/field.dart';
+import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class FieldCatalogPage extends StatefulWidget {
+class FieldCatalogPage extends ConsumerStatefulWidget {
   const FieldCatalogPage({super.key});
+
   @override
-  State<FieldCatalogPage> createState() => _FieldCatalogPageState();
+  ConsumerState<FieldCatalogPage> createState() => _FieldCatalogPageState();
 }
 
-class _FieldCatalogPageState extends State<FieldCatalogPage> {
+class _FieldCatalogPageState extends ConsumerState<FieldCatalogPage> {
   String _selectedFilter = 'Perto de mim';
   final _filters = ['Perto de mim', 'Society', 'Futsal', 'Salao', 'Disponivel hoje'];
 
   @override
   Widget build(BuildContext context) {
+    final fieldsAsync = ref.watch(fieldListProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(children: [
@@ -71,7 +77,7 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       contentPadding:
-                          EdgeInsets.symmetric(vertical: 12),
+                          const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -97,64 +103,33 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
           ),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              _fieldCard(
-                id: 'field-001',
-                name: 'Arena Society Xaxim',
-                neighborhood: 'Xaxim',
-                distance: '2,3 km',
-                modalities: ['Society', 'Futsal'],
-                price: 'R\$ 120/h',
-                rating: 4.7,
-                reviews: 38,
-                available: true,
+          child: fieldsAsync.when(
+            loading: () =>
+                const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(
+              child: Text(
+                'Nao foi possivel carregar os campos.',
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: AppColors.textSecondary),
               ),
-              const SizedBox(height: AppSpacing.md),
-              _fieldCard(
-                id: 'field-002',
-                name: 'Campo do Ze',
-                neighborhood: 'Pinheirinho',
-                distance: '4,1 km',
-                modalities: ['Society'],
-                price: 'R\$ 90/h',
-                rating: 4.2,
-                reviews: 21,
-                available: true,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              _fieldCard(
-                id: 'field-003',
-                name: 'Futsal Center Portao',
-                neighborhood: 'Portao',
-                distance: '5,8 km',
-                modalities: ['Futsal', 'Salao'],
-                price: 'R\$ 80/h',
-                rating: 4.9,
-                reviews: 54,
-                available: false,
-              ),
-            ],
+            ),
+            data: (fields) => ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: fields.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
+              itemBuilder: (_, i) => _fieldCard(fields[i]),
+            ),
           ),
         ),
       ]),
     );
   }
 
-  Widget _fieldCard({
-    required String id,
-    required String name,
-    required String neighborhood,
-    required String distance,
-    required List<String> modalities,
-    required String price,
-    required double rating,
-    required int reviews,
-    required bool available,
-  }) {
+  Widget _fieldCard(Field field) {
+    final location = field.street ?? field.city;
     return AppCard(
-      onTap: () => context.push(AppRoutes.fieldDetailOf(id)),
+      onTap: () => context.push(AppRoutes.fieldDetailOf(field.id)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Stack(children: [
           Container(
@@ -176,15 +151,19 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md, vertical: AppSpacing.xs),
               decoration: BoxDecoration(
-                color: available ? AppColors.primarySurface : AppColors.errorSurface,
+                color: field.status == FieldStatus.active
+                    ? AppColors.primarySurface
+                    : AppColors.errorSurface,
                 borderRadius: BorderRadius.circular(AppRadius.xs),
               ),
               child: Text(
-                available ? 'DISPONIVEL' : 'LOTADO',
+                field.status == FieldStatus.active ? 'DISPONIVEL' : 'INDISPONIVEL',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: available ? AppColors.primary : AppColors.error,
+                  color: field.status == FieldStatus.active
+                      ? AppColors.primary
+                      : AppColors.error,
                 ),
               ),
             ),
@@ -193,40 +172,25 @@ class _FieldCatalogPageState extends State<FieldCatalogPage> {
         Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name, style: AppTextStyles.titleSmall),
+            Text(field.name, style: AppTextStyles.titleSmall),
             const SizedBox(height: AppSpacing.xs),
             Row(children: [
               Icon(PhosphorIcons.mapPin(),
                   size: 14, color: AppColors.primary),
-              Text(' $neighborhood  $distance',
+              Text(' $location  ${field.city}',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: AppColors.textSecondary)),
             ]),
             const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.xs,
-              children: modalities.map((m) => AppFilterChip(
-                label: m, selected: false, onTap: () {})).toList(),
-            ),
             const SizedBox(height: AppSpacing.sm),
             Row(children: [
-              Text('A partir de $price',
-                  style: AppTextStyles.titleSmall
-                      .copyWith(color: AppColors.primary)),
               const Spacer(),
               AppButtonSmall(
                 label: 'Ver mais',
                 filled: false,
                 onPressed: () =>
-                    context.push(AppRoutes.fieldDetailOf(id)),
+                    context.push(AppRoutes.fieldDetailOf(field.id)),
               ),
-            ]),
-            const SizedBox(height: AppSpacing.xs),
-            Row(children: [
-              Icon(PhosphorIcons.star(PhosphorIconsStyle.fill), color: AppColors.warningIcon, size: 14),
-              Text(' $rating  $reviews reservas',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textSecondary)),
             ]),
           ]),
         ),
