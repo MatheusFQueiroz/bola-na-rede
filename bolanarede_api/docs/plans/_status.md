@@ -17,6 +17,7 @@
 
 ## Planos
 
+- `docs/plans/2026-06-16-mobile-integration.md` — 14 tasks (nginx gateway + Flutter API integration)
 - `docs/plans/2026-05-26-shared-module.md` — 29 tasks
 - `docs/plans/2026-05-26-identity-service.md` — 37 tasks
 - `docs/plans/2026-05-27-team-service.md` — 29 tasks
