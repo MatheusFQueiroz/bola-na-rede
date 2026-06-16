@@ -21,6 +21,14 @@ import { GameDto } from '../../application/dto/game.dto';
 export class GamesController {
   constructor(private readonly gameService: GameService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Listar jogos do usuário autenticado' })
+  async list(@Request() req: any): Promise<GameDto[]> {
+    const userId: string = req.user.sub;
+    const games = await this.gameService.listByUser(userId);
+    return games.map(GameDto.from);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get competitive game info' })
   async getGame(@Request() req: any, @Param('id') id: string): Promise<GameDto> {
@@ -48,5 +56,13 @@ export class GamesController {
     const userId: string = req.user.sub;
     const game = await this.gameService.disputeResult(userId, id);
     return GameDto.from(game);
+  }
+
+  @Post(':id/results/confirm')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Confirmar resultado do jogo' })
+  async confirmResult(@Request() req: any, @Param('id') id: string): Promise<void> {
+    const userId: string = req.user.sub;
+    return this.gameService.confirmResult(userId, id);
   }
 }

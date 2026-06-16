@@ -23,8 +23,12 @@ export interface GameRepositoryInterface {
   /** Idempotente: ignora duplicata via onConflictDoNothing. Retorna null se já existia. */
   create(data: CreateGameData): Promise<CompetitiveGame | null>;
   findByExternalId(externalId: string): Promise<CompetitiveGame | null>;
+  /** Retorna os últimos 50 jogos do usuário (como userA ou userB), ordenados por created_at DESC. */
+  findByUserId(userId: string): Promise<CompetitiveGame[]>;
   /** Atualiza status para 'completed' e grava o placar. */
   submitResult(externalId: string, data: SubmitResultData): Promise<CompetitiveGame>;
   /** Atualiza status para 'disputed'. */
   dispute(externalId: string): Promise<CompetitiveGame>;
+  /** Confirma resultado: atualiza status para 'completed' sem alterar placar. */
+  confirm(externalId: string): Promise<CompetitiveGame>;
 }

@@ -102,4 +102,27 @@ export class GameService {
     }
     return game;
   }
+
+  async listByUser(userId: string): Promise<CompetitiveGame[]> {
+    return this.gameRepo.findByUserId(userId);
+  }
+
+  async confirmResult(userId: string, gameExternalId: string): Promise<void> {
+    const game = await this.gameRepo.findByExternalId(gameExternalId);
+    if (!game) throw new NotFoundException('Game not found');
+
+    if (game.userAId !== userId && game.userBId !== userId) {
+      throw new ForbiddenException('You are not a participant in this game');
+    }
+
+    if (game.status !== 'completed') {
+      throw new ConflictException(`Cannot confirm a game with status ${game.status}`);
+    }
+
+    if (game.submittedByUserId !== null && game.submittedByUserId === userId) {
+      throw new ForbiddenException('Cannot confirm your own submission');
+    }
+
+    await this.gameRepo.confirm(gameExternalId);
+  }
 }

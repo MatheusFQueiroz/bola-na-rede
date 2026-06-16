@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { desc, eq, or } from 'drizzle-orm';
 import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type {
   GameRepositoryInterface,
@@ -44,6 +44,21 @@ export class DrizzleGameRepository implements GameRepositoryInterface {
     return row ? this.toEntity(row) : null;
   }
 
+  async findByUserId(userId: string): Promise<CompetitiveGame[]> {
+    const rows = await this.drizzle.db
+      .select()
+      .from(competitiveGames)
+      .where(
+        or(
+          eq(competitiveGames.userAId, userId),
+          eq(competitiveGames.userBId, userId),
+        ),
+      )
+      .orderBy(desc(competitiveGames.createdAt))
+      .limit(50);
+    return rows.map((row) => this.toEntity(row));
+  }
+
   async submitResult(externalId: string, data: SubmitResultData): Promise<CompetitiveGame> {
     const [row] = await this.drizzle.db
       .update(competitiveGames)
@@ -67,6 +82,16 @@ export class DrizzleGameRepository implements GameRepositoryInterface {
     const [row] = await this.drizzle.db
       .update(competitiveGames)
       .set({ status: 'disputed', updatedAt: new Date() })
+      .where(eq(competitiveGames.externalId, externalId))
+      .returning();
+    if (!row) throw new NotFoundException(`Game ${externalId} not found`);
+    return this.toEntity(row);
+  }
+
+  async confirm(externalId: string): Promise<CompetitiveGame> {
+    const [row] = await this.drizzle.db
+      .update(competitiveGames)
+      .set({ status: 'completed', updatedAt: new Date() })
       .where(eq(competitiveGames.externalId, externalId))
       .returning();
     if (!row) throw new NotFoundException(`Game ${externalId} not found`);
