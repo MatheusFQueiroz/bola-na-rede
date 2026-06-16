@@ -9,6 +9,8 @@ import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
+import 'package:bola_na_rede/features/team/domain/entities/team.dart';
+import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
 import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
@@ -50,7 +52,7 @@ class ProfilePage extends ConsumerWidget {
             delegate: SliverChildListDelegate([
           _buildStatsGrid(data),
           const SizedBox(height: AppSpacing.md),
-          _buildMyTeams(context),
+          _buildMyTeams(context, ref),
           const SizedBox(height: AppSpacing.md),
           _buildRecentMatches(context, data),
           const SizedBox(height: AppSpacing.md),
@@ -168,55 +170,81 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMyTeams(BuildContext context) {
+  Widget _buildMyTeams(BuildContext context, WidgetRef ref) {
+    final teamsAsync = ref.watch(teamListProvider);
+
     return AppCard(
-      child: Column(children: [
-        Row(children: [
-          const Text('Meus Times (2/3)', style: AppTextStyles.titleSmall),
-          const Spacer(),
-          TextButton(
-            onPressed: () => context.push(AppRoutes.createTeam),
-            child: const Text('Criar time'),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Text(
+                teamsAsync.whenOrNull(data: (ts) => 'Meus Times (${ts.length})')
+                    ?? 'Meus Times',
+                style: AppTextStyles.titleSmall,
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => context.push(AppRoutes.createTeam),
+                child: const Text('Criar time'),
+              ),
+            ],
           ),
-        ]),
-        const Divider(),
-        _teamRow('team-001', 'FU', AppColors.avatarGreen, 'Furacao FC',
-            'Capitao', 'Curitiba', context),
-        const Divider(),
-        _teamRow('team-002', 'LS', AppColors.avatarBlue, 'Los Sharkis',
-            'Membro', 'Curitiba', context),
-      ]),
+          ...teamsAsync.when(
+            loading: () => [
+              const Padding(
+                padding: EdgeInsets.all(AppSpacing.md),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ],
+            error: (_, __) => [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Text(
+                  'Não foi possível carregar os times.',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+            ],
+            data: (teams) => teams.isEmpty
+                ? [
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      child: Text(
+                        'Você não faz parte de nenhum time.',
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ]
+                : teams
+                    .map((t) => _teamRowFromEntity(t, context))
+                    .expand((w) => [const Divider(), w])
+                    .toList(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _teamRow(String teamId, String avatarInitials, Color color,
-      String name, String role, String city, BuildContext context) {
+  Widget _teamRowFromEntity(Team team, BuildContext context) {
+    final avatarColor = AppColors.avatarGreen;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: AppTeamAvatar(
-          initials: avatarInitials, color: color, size: 40, fontSize: 13),
-      title: Text(name,
-          style:
-              AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text(city, style: AppTextStyles.bodySmall),
-      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (role == 'Capitao')
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(AppRadius.xs),
-            ),
-            child: const Text('Capitao',
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600)),
-          ),
-        Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
-      ]),
-      onTap: () => context.push(AppRoutes.teamManageOf(teamId)),
+        initials: initials(team.name),
+        color: avatarColor,
+        size: 40,
+        fontSize: 13,
+      ),
+      title: Text(
+        team.name,
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(team.city, style: AppTextStyles.bodySmall),
+      trailing: Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
+      onTap: () => context.push(AppRoutes.teamManageOf(team.id)),
     );
   }
 
@@ -265,7 +293,7 @@ class ProfilePage extends ConsumerWidget {
       child: Column(children: [
         _settingRow(PhosphorIcons.user(), 'Editar perfil', false, () => showComingSoon(context)),
         const Divider(),
-        _settingRow(PhosphorIcons.bell(), 'Notificacoes', false, () => showComingSoon(context)),
+        _settingRow(PhosphorIcons.bell(), 'Notificacoes', false, () => context.push(AppRoutes.notifications)),
         const Divider(),
         _settingRow(PhosphorIcons.shield(), 'Privacidade', false, () => showComingSoon(context)),
         const Divider(),

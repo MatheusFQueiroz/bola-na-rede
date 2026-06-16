@@ -14,6 +14,10 @@ import 'package:bola_na_rede/features/match/presentation/views/create_match_page
 import 'package:bola_na_rede/features/match/presentation/views/match_detail_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/match_list_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/register_result_page.dart';
+import 'package:bola_na_rede/features/notificacoes/presentation/views/notifications_page.dart';
+import 'package:bola_na_rede/features/peladas/presentation/views/create_pelada_page.dart';
+import 'package:bola_na_rede/features/peladas/presentation/views/pelada_detail_page.dart';
+import 'package:bola_na_rede/features/peladas/presentation/views/peladas_list_page.dart';
 import 'package:bola_na_rede/features/profile/presentation/views/profile_page.dart';
 import 'package:bola_na_rede/features/ranking/presentation/views/ranking_page.dart';
 import 'package:bola_na_rede/features/search/presentation/views/search_page.dart';
@@ -49,10 +53,15 @@ abstract class AppRoutes {
   static const teamManage = '/team/manage/:id';
   static const createTeam = '/team/create';
   static const teamSearch = '/team/search';
+  static const peladas = '/peladas';
+  static const peladaDetail = '/peladas/:id';
+  static const createPelada = '/peladas/create';
+  static const notifications = '/notifications';
 
   static String matchDetailOf(String id) => '/match/detail/$id';
   static String fieldDetailOf(String id) => '/fields/detail/$id';
   static String teamManageOf(String id) => '/team/manage/$id';
+  static String peladaDetailOf(String id) => '/peladas/$id';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -168,6 +177,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.teamSearch,
         builder: (_, __) => const TeamSearchPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.peladas,
+        builder: (_, __) => const PeladasListPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.createPelada,
+        builder: (_, __) => const CreatePeladaPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.peladaDetail,
+        builder: (context, state) => PeladaDetailPage(
+          id: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, __) => const NotificationsPage(),
       ),
     ],
   );

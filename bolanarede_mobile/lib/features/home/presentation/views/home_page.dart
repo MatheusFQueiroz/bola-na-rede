@@ -267,39 +267,62 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _buildQuickActions(BuildContext context) {
-    return Row(children: [
-      Expanded(
-        child: AppCard(
-          onTap: () => context.push(AppRoutes.search),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(PhosphorIcons.magnifyingGlass(),
+    return Column(
+      children: [
+        Row(children: [
+          Expanded(
+            child: AppCard(
+              onTap: () => context.push(AppRoutes.search),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Icon(PhosphorIcons.magnifyingGlass(),
+                    color: AppColors.primary, size: AppSizes.iconLg),
+                const SizedBox(height: AppSpacing.sm),
+                const Text('Buscar partida', style: AppTextStyles.titleSmall),
+                Text('Encontre adversarios',
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: AppColors.textSecondary)),
+              ]),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: AppCard(
+              onTap: () => context.push(AppRoutes.fieldCatalog),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Icon(PhosphorIcons.soccerBall(),
+                    color: AppColors.primary, size: AppSizes.iconLg),
+                const SizedBox(height: AppSpacing.sm),
+                const Text('Reservar campo', style: AppTextStyles.titleSmall),
+                Text('Veja campos proximos',
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: AppColors.textSecondary)),
+              ]),
+            ),
+          ),
+        ]),
+        const SizedBox(height: AppSpacing.md),
+        AppCard(
+          onTap: () => context.push(AppRoutes.peladas),
+          child: Row(children: [
+            Icon(PhosphorIcons.users(),
                 color: AppColors.primary, size: AppSizes.iconLg),
-            const SizedBox(height: AppSpacing.sm),
-            const Text('Buscar partida', style: AppTextStyles.titleSmall),
-            Text('Encontre adversarios',
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
+            const SizedBox(width: AppSpacing.md),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Peladas abertas', style: AppTextStyles.titleSmall),
+              Text('Entre numa partida agora',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary)),
+            ]),
+            const Spacer(),
+            Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
           ]),
         ),
-      ),
-      const SizedBox(width: AppSpacing.md),
-      Expanded(
-        child: AppCard(
-          onTap: () => context.push(AppRoutes.fieldCatalog),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(PhosphorIcons.soccerBall(),
-                color: AppColors.primary, size: AppSizes.iconLg),
-            const SizedBox(height: AppSpacing.sm),
-            const Text('Reservar campo', style: AppTextStyles.titleSmall),
-            Text('Veja campos proximos',
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ]),
-        ),
-      ),
-    ]);
+      ],
+    );
   }
 
   Widget _buildRanking(BuildContext context, WidgetRef ref) {
