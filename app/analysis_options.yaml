@@ -1,0 +1,44 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  errors:
+    missing_required_param: error
+    missing_return: error
+    dead_code: warning
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+
+linter:
+  rules:
+    # tipo e segurança
+    avoid_dynamic_calls: true
+    null_check_on_nullable_type_parameter: true
+    avoid_positional_boolean_parameters: true
+    always_declare_return_types: true
+    unawaited_futures: true
+    cancel_subscriptions: true
+
+    # const e imutabilidade
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_final_locals: true
+    prefer_final_fields: true
+
+    # estilo e consistência
+    prefer_single_quotes: true
+    prefer_collection_literals: true
+    curly_braces_in_flow_control_structures: true
+    avoid_redundant_argument_values: true
+    use_super_parameters: true
+
+    # flutter específico
+    sized_box_for_whitespace: true
+    use_decorated_box: true
+    avoid_print: true
+
+    # desativados intencionalmente
+    directives_ordering: false
+    public_member_api_docs: false
