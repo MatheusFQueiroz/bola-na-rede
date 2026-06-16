@@ -403,13 +403,7 @@ services:
       - game
       - ranking
       - notification
-    networks:
-      - bolanarededb
     restart: unless-stopped
-
-networks:
-  bolanarededb:
-    driver: bridge
 
 volumes:
   postgres_identity_data:
