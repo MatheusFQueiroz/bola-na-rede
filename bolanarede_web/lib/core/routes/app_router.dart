@@ -69,7 +69,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.fields,
-            builder: (_, __) => const FieldsListPage(),
+            builder: (_, __) => const FieldsListPage(), 
           ),
           GoRoute(
             path: AppRoutes.fieldNew,

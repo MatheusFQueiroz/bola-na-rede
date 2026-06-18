@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'package:bolanarede_web/core/shared/enums.dart';
 import 'package:bolanarede_web/core/routes/app_router.dart';
 import 'package:bolanarede_web/core/themes/app_tokens.dart';
 import 'package:bolanarede_web/data/mocks/mock_data.dart';
@@ -14,13 +15,27 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final todayReservations =
-        MockData.reservations.where((r) => r.date.day == 9).toList();
+    final today = DateTime.now();
+    final todayReservations = MockData.reservations.where((r) {
+      return r.date.year == today.year &&
+          r.date.month == today.month &&
+          r.date.day == today.day;
+    }).toList();
+
+    final todayRevenue = todayReservations
+        .where(
+          (r) =>
+              r.status == ReservationStatus.confirmed ||
+              r.status == ReservationStatus.completed,
+        )
+        .fold<double>(0, (sum, r) => sum + r.price);
+
+    final todayLabel =
+        '${today.day.toString().padLeft(2, '0')}/${today.month.toString().padLeft(2, '0')}/${today.year}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         Row(
           children: [
             const Expanded(
@@ -46,23 +61,26 @@ class DashboardPage extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxl),
 
-        // Métricas
         Row(
           children: [
             _MetricCard(
               icon: PhosphorIcons.calendarBlank(),
               label: 'Reservas hoje',
               value: '${todayReservations.length}',
-              change: '+3 vs ontem',
-              isPositive: true,
+              change: todayReservations.isEmpty
+                  ? 'Nenhuma reserva hoje'
+                  : '${todayReservations.length} reserva(s) encontrada(s)',
+              isPositive: todayReservations.isNotEmpty,
             ),
             const SizedBox(width: AppSpacing.lg),
             _MetricCard(
               icon: PhosphorIcons.currencyCircleDollar(),
               label: 'Receita hoje',
-              value: 'R\$ 1.240',
-              change: '+R\$ 200 vs ont.',
-              isPositive: true,
+              value: todayRevenue > 0
+                  ? 'R\$ ${todayRevenue.toStringAsFixed(0)}'
+                  : 'R\$ 0',
+              change: 'Reservas confirmadas',
+              isPositive: todayRevenue > 0,
             ),
             const SizedBox(width: AppSpacing.lg),
             _MetricCard(
@@ -76,23 +94,24 @@ class DashboardPage extends StatelessWidget {
             _MetricCard(
               icon: PhosphorIcons.usersThree(),
               label: 'Clientes',
-              value: '847',
-              change: '+12 este mês',
+              value: '${MockData.customers.length}',
+              change: 'cadastrados',
               isPositive: true,
             ),
           ],
         ),
         const SizedBox(height: AppSpacing.xxl),
 
-        // Próximas reservas
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Text(
-                    'Próximas Reservas — Hoje, 09/06/2026',
+                  Text(
+                    todayReservations.isEmpty
+                        ? 'Nenhuma reserva hoje — $todayLabel'
+                        : 'Reservas de Hoje — $todayLabel',
                     style: AppTextStyles.titleSmall,
                   ),
                   const Spacer(),
@@ -103,13 +122,41 @@ class DashboardPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              _buildReservationTable(todayReservations),
+              if (todayReservations.isEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          PhosphorIcons.calendarBlank(),
+                          size: 40,
+                          color: AppColors.textDisabled,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        const Text(
+                          'Nenhuma reserva para hoje',
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'As reservas de hoje aparecerão aqui',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                _buildReservationTable(context, todayReservations),
             ],
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
 
-        // Atenção: slots liberados
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
@@ -161,7 +208,10 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildReservationTable(List<Reservation> reservations) {
+  Widget _buildReservationTable(
+    BuildContext context,
+    List<Reservation> reservations,
+  ) {
     return Table(
       columnWidths: const {
         0: FlexColumnWidth(1.2),
@@ -220,7 +270,10 @@ class DashboardPage extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.sm),
-                child: Text(r.courtId ?? '—', style: AppTextStyles.bodyMedium),
+                child: Text(
+                  r.courtId ?? '—',
+                  style: AppTextStyles.bodyMedium,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.sm),
@@ -240,7 +293,8 @@ class DashboardPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () =>
+                      context.go('/dashboard/reservations/${r.id}'),
                   child: const Text('Ver'),
                 ),
               ),

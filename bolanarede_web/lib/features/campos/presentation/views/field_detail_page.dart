@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'package:bolanarede_web/core/shared/enums.dart';
 import 'package:bolanarede_web/core/themes/app_tokens.dart';
+import 'package:bolanarede_web/data/mocks/mock_data.dart';
+import 'package:bolanarede_web/features/campos/domain/entities/field.dart';
 import 'package:bolanarede_web/shared/widgets/web_components.dart';
 
 class FieldDetailPage extends StatelessWidget {
@@ -13,6 +16,53 @@ class FieldDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final field = MockData.fields.where((f) => f.id == fieldId).firstOrNull;
+    final courts = MockData.courts[fieldId] ?? [];
+
+    if (field == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(PhosphorIcons.arrowLeft()),
+                onPressed: () => context.go('/dashboard/fields'),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              const Text('Campo não encontrado', style: AppTextStyles.titleLarge),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          EmptyState(
+            icon: PhosphorIcons.soccerBall(),
+            title: 'Campo não encontrado',
+            description: 'O campo com ID "$fieldId" não existe ou foi removido.',
+            actionLabel: 'Voltar para campos',
+            onAction: () => context.go('/dashboard/fields'),
+          ),
+        ],
+      );
+    }
+
+    final addressParts = [
+      if (field.street != null) field.street!,
+      field.city,
+      field.state,
+    ];
+    final fullAddress = addressParts.join(', ');
+
+    final fieldReservations =
+        MockData.reservations.where((r) => r.fieldId == field.id).toList();
+    final confirmedToday = fieldReservations
+        .where(
+          (r) =>
+              r.date.day == DateTime.now().day &&
+              (r.status == ReservationStatus.confirmed ||
+                  r.status == ReservationStatus.completed),
+        )
+        .length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -23,8 +73,8 @@ class FieldDetailPage extends StatelessWidget {
               onPressed: () => context.go('/dashboard/fields'),
             ),
             const SizedBox(width: AppSpacing.sm),
-            const Expanded(
-              child: Text('Detalhe do Campo', style: AppTextStyles.titleLarge),
+            Expanded(
+              child: Text(field.name, style: AppTextStyles.titleLarge),
             ),
             AppButton.outline(
               label: 'Editar',
@@ -36,51 +86,96 @@ class FieldDetailPage extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.xxl),
+
         AppCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Arena Society Xaxim', style: AppTextStyles.titleLarge),
+              Text(field.name, style: AppTextStyles.titleLarge),
               const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Icon(
-                    PhosphorIcons.mapPin(),
-                    size: 14,
-                    color: AppColors.primary,
+
+              if (fullAddress.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(
+                      PhosphorIcons.mapPin(),
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(fullAddress, style: AppTextStyles.bodySmall),
+                  ],
+                ),
+
+              if (field.contactPhone != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    Icon(
+                      PhosphorIcons.phone(),
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      _formatPhone(field.contactPhone!),
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+
+              if (field.contactEmail != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  children: [
+                    Icon(
+                      PhosphorIcons.envelope(),
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      field.contactEmail!,
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+
+              if (field.description != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  field.description!,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  const Text(
-                    'Rua das Araucárias, 450 — Xaxim, Curitiba, PR',
-                    style: AppTextStyles.bodySmall,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Icon(
-                    PhosphorIcons.phone(),
-                    size: 14,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  const Text('(41) 99999-1234', style: AppTextStyles.bodySmall),
-                ],
-              ),
+                ),
+              ],
+
               const Divider(height: AppSpacing.xxl),
-              Row(
+
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
                 children: [
-                  _StatChip(label: '2 quadras', icon: PhosphorIcons.soccerBall()),
-                  const SizedBox(width: AppSpacing.sm),
                   _StatChip(
-                    label: 'Plano PRO',
+                    label: '${courts.length} quadra(s)',
+                    icon: PhosphorIcons.soccerBall(),
+                  ),
+                  _StatChip(
+                    label: 'Plano ${field.plan.name.toUpperCase()}',
                     icon: PhosphorIcons.crown(),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
                   _StatChip(
-                    label: 'Hoje: 67% ocupado',
+                    label: confirmedToday > 0
+                        ? 'Hoje: $confirmedToday reserva(s)'
+                        : 'Sem reservas hoje',
                     icon: PhosphorIcons.chartBar(),
+                  ),
+                  _StatChip(
+                    label: field.status.name == 'active' ? 'Ativo' : 'Inativo',
+                    icon: PhosphorIcons.checkCircle(),
                   ),
                 ],
               ),
@@ -88,7 +183,7 @@ class FieldDetailPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
-        // Ações rápidas
+
         Row(
           children: [
             _ActionCard(
@@ -113,8 +208,73 @@ class FieldDetailPage extends StatelessWidget {
             ),
           ],
         ),
+
+        if (courts.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xxl),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(AppSpacing.lg),
+                  child: Text('Quadras', style: AppTextStyles.titleSmall),
+                ),
+                const Divider(height: 1),
+                ...courts.map(
+                  (court) => ListTile(
+                    leading: Icon(
+                      PhosphorIcons.soccerBall(),
+                      size: 18,
+                      color: court.isActive
+                          ? AppColors.primary
+                          : AppColors.textDisabled,
+                    ),
+                    title: Text(court.name, style: AppTextStyles.bodyMedium),
+                    subtitle: Text(
+                      '${court.modality.name.toUpperCase()} · ${court.capacity}v${court.capacity}${court.surface != null ? ' · ${court.surface!.name}' : ''}',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: court.isActive
+                            ? AppColors.primarySurface
+                            : AppColors.errorSurface,
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                      ),
+                      child: Text(
+                        court.isActive ? 'Ativa' : 'Inativa',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: court.isActive
+                              ? AppColors.primary
+                              : AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  String _formatPhone(String raw) {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.length == 11) {
+      return '(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7)}';
+    } else if (digits.length == 10) {
+      return '(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6)}';
+    }
+    return raw;
   }
 }
 

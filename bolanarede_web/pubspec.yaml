@@ -30,7 +30,6 @@ flutter:
   uses-material-design: true
   assets:
     - .env
-    - assets/
 
 import_sorter:
   comments: false
