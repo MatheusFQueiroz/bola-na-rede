@@ -72,6 +72,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           _nameController.text.trim(),
           _emailController.text.trim(),
           _passwordController.text,
+          position:
+              _selectedPosition == 'Qualquer' ? null : _selectedPosition,
         );
 
     if (!mounted) return;

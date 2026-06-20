@@ -4,7 +4,7 @@ import { DrizzleService } from '@shared/infra/database/drizzle.service';
 import type { DeviceTokenRepositoryInterface } from '../../domain/repositories/device-token-repository.interface';
 import type { DeviceToken } from '../../domain/models/device-token.entity';
 import { deviceTokens, type DeviceTokenRow } from '../database/schemas/device-token.schema';
-import { users } from '../../../../users/infra/database/schemas/user.schema';
+import { users } from '../../../users/infra/database/schemas/user.schema';
 
 @Injectable()
 export class DrizzleDeviceTokenRepository implements DeviceTokenRepositoryInterface {

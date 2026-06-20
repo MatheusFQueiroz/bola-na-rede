@@ -5,6 +5,7 @@ export const playerRankings = pgTable(
   {
     id: bigserial('id', { mode: 'number' }).primaryKey(),
     playerUserId: text('player_user_id').notNull(),
+    displayName: text('display_name').notNull().default(''),
     sport: text('sport').notNull(),
     gamesPlayed: integer('games_played').notNull().default(0),
     wins: integer('wins').notNull().default(0),

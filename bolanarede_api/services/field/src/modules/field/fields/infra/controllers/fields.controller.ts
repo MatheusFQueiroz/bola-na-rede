@@ -31,7 +31,15 @@ export class FieldsController {
 
   @Post()
   @Permissions('fields:write')
-  @HateoasItem(FieldDto)
+  @HateoasItem<FieldDto>({
+    basePath: '/v1/fields',
+    itemLinks: (f) => ({
+      self: { href: `/v1/fields/${f.id}`, method: 'GET' },
+      courts: { href: `/v1/fields/${f.id}/courts`, method: 'GET' },
+      availability: { href: `/v1/fields/${f.id}/availability`, method: 'GET' },
+      reservations: { href: `/v1/fields/${f.id}/reservations`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Registrar campo' })
   register(
     @Body() dto: CreateFieldDto,
@@ -42,7 +50,14 @@ export class FieldsController {
 
   @Get()
   @Public()
-  @HateoasList(FieldDto)
+  @HateoasList<FieldDto>({
+    basePath: '/v1/fields',
+    itemLinks: (f) => ({
+      self: { href: `/v1/fields/${f.id}`, method: 'GET' },
+      courts: { href: `/v1/fields/${f.id}/courts`, method: 'GET' },
+      availability: { href: `/v1/fields/${f.id}/availability`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Buscar campos por cidade ou geolocalização' })
   search(@Query() query: SearchFieldsDto): Promise<FieldDto[]> {
     return this.fieldService.searchNearby({
@@ -53,9 +68,33 @@ export class FieldsController {
     });
   }
 
+  @Get('mine')
+  @Permissions('fields:read')
+  @HateoasList<FieldDto>({
+    basePath: '/v1/fields',
+    itemLinks: (f) => ({
+      self: { href: `/v1/fields/${f.id}`, method: 'GET' },
+      courts: { href: `/v1/fields/${f.id}/courts`, method: 'GET' },
+      availability: { href: `/v1/fields/${f.id}/availability`, method: 'GET' },
+      reservations: { href: `/v1/fields/${f.id}/reservations`, method: 'GET' },
+    }),
+  })
+  @ApiOperation({ summary: 'Listar campos do dono autenticado' })
+  getMine(@CurrentUser() user: AuthenticatedUser): Promise<FieldDto[]> {
+    return this.fieldService.findByOwner(user.id);
+  }
+
   @Get(':id')
   @Public()
-  @HateoasItem(FieldDto)
+  @HateoasItem<FieldDto>({
+    basePath: '/v1/fields',
+    itemLinks: (f) => ({
+      self: { href: `/v1/fields/${f.id}`, method: 'GET' },
+      courts: { href: `/v1/fields/${f.id}/courts`, method: 'GET' },
+      availability: { href: `/v1/fields/${f.id}/availability`, method: 'GET' },
+      reservations: { href: `/v1/fields/${f.id}/reservations`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Obter campo por ID' })
   getById(@Param('id') id: string): Promise<FieldDto> {
     return this.fieldService.getById(id);
@@ -63,7 +102,13 @@ export class FieldsController {
 
   @Get(':id/availability')
   @Public()
-  @HateoasItem(FieldAvailabilityDto)
+  @HateoasItem<FieldAvailabilityDto>({
+    basePath: '/v1/fields',
+    itemLinks: (f) => ({
+      self: { href: `/v1/fields/${f.fieldId}/availability`, method: 'GET' },
+      field: { href: `/v1/fields/${f.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Verificar disponibilidade do campo na data' })
   @ApiQuery({ name: 'date', description: 'Data no formato YYYY-MM-DD', example: '2026-06-15' })
   getAvailability(
@@ -75,7 +120,13 @@ export class FieldsController {
 
   @Post(':id/courts')
   @Permissions('fields:write')
-  @HateoasItem(FieldCourtDto)
+  @HateoasItem<FieldCourtDto>({
+    basePath: '/v1/fields',
+    itemLinks: (c) => ({
+      self: { href: `/v1/fields/${c.fieldId}/courts`, method: 'GET' },
+      field: { href: `/v1/fields/${c.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Adicionar quadra ao campo' })
   addCourt(
     @Param('id') id: string,
@@ -87,7 +138,13 @@ export class FieldsController {
 
   @Get(':id/courts')
   @Public()
-  @HateoasList(FieldCourtDto)
+  @HateoasList<FieldCourtDto>({
+    basePath: '/v1/fields',
+    itemLinks: (c) => ({
+      self: { href: `/v1/fields/${c.fieldId}/courts`, method: 'GET' },
+      field: { href: `/v1/fields/${c.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar quadras do campo' })
   getCourts(@Param('id') id: string): Promise<FieldCourtDto[]> {
     return this.fieldService.getCourts(id);

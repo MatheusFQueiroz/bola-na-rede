@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/team/data/repositories/team_repository_provider.dart';
 import 'package:bola_na_rede/features/team/domain/entities/team.dart';
 import 'package:bola_na_rede/features/team/presentation/viewmodels/team_viewmodel.dart';
 import 'package:bola_na_rede/shared/utils/string_utils.dart';
@@ -17,7 +19,7 @@ class TeamManagePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final id = GoRouterState.of(context).pathParameters['id']!;
     return ref.watch(teamDetailProvider(id)).when(
-          data: (team) => _buildPage(context, team),
+          data: (team) => _buildPage(context, ref, team),
           loading: () => const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           ),
@@ -29,231 +31,250 @@ class TeamManagePage extends ConsumerWidget {
         );
   }
 
-  Widget _buildPage(BuildContext context, Team team) {
+  Widget _buildPage(BuildContext context, WidgetRef ref, Team team) {
+    final myUserId = ref.watch(authViewModelProvider).value?.userId ?? '';
+    final isCaptain = team.createdBy == myUserId;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(slivers: [
-        SliverToBoxAdapter(child: _buildHeader(context, team)),
+        SliverToBoxAdapter(child: _buildHeader(context, ref, team, isCaptain)),
         SliverPadding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          sliver: SliverList(delegate: SliverChildListDelegate([
-            _buildMembersCard(context),
-            const SizedBox(height: AppSpacing.md),
-            _buildPendingCard(context),
-            const SizedBox(height: AppSpacing.md),
-            _buildRecentMatchesCard(context),
-            const SizedBox(height: AppSpacing.md),
-            _buildDangerCard(),
-            const SizedBox(height: AppSpacing.lg),
-          ])),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _MembersCard(teamId: team.id, isCaptain: isCaptain),
+              const SizedBox(height: AppSpacing.md),
+              if (isCaptain) _buildDangerCard(context, ref, team),
+              if (!isCaptain) _buildLeaveCard(context, ref, team),
+              const SizedBox(height: AppSpacing.lg),
+            ]),
+          ),
         ),
       ]),
     );
   }
 
-  Widget _buildHeader(BuildContext context, Team team) {
+  Widget _buildHeader(
+      BuildContext context, WidgetRef ref, Team team, bool isCaptain) {
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.primaryVertical),
       child: SafeArea(
         bottom: false,
         child: Column(children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
             child: Row(children: [
               IconButton(
-                icon: Icon(PhosphorIcons.arrowLeft(), color: AppColors.textOnPrimary),
+                icon: Icon(PhosphorIcons.arrowLeft(),
+                    color: AppColors.textOnPrimary),
                 onPressed: () => context.pop(),
               ),
               Expanded(
-                child: Text(team.name, textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
+                child: Text(team.name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: AppColors.textOnPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600)),
               ),
-              IconButton(
-                icon: Icon(PhosphorIcons.pencil(), color: AppColors.textOnPrimary),
-                onPressed: () => showComingSoon(context),
-              ),
+              const SizedBox(width: 48),
             ]),
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTeamAvatar(initials: initials(team.name), color: AppColors.primaryLight, size: 72, fontSize: 24),
+          AppTeamAvatar(
+              initials: initials(team.name),
+              color: AppColors.primaryLight,
+              size: 72,
+              fontSize: 24),
           const SizedBox(height: AppSpacing.sm),
           Text(team.name,
-              style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
-          Text(team.city,
-              style: TextStyle(color: AppColors.textOnPrimary.withValues(alpha: 0.7), fontSize: 13)),
-          const SizedBox(height: AppSpacing.sm),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppRadius.full),
+              style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700)),
+          if (isCaptain)
+            Container(
+              margin: const EdgeInsets.only(top: AppSpacing.xs),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(AppRadius.full),
+              ),
+              child: const Text('Capitão',
+                  style: TextStyle(
+                      color: AppColors.textOnPrimary, fontSize: 11)),
             ),
-            child: const Text('Capitao',
-                style: TextStyle(color: AppColors.textOnPrimary, fontSize: 11)),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: Row(children: [
-              _miniStat('Jogadores', '6'),
-              _miniStat('Jogos', '42'),
-              _miniStat('Vitorias', '28'),
-            ]),
-          ),
           const SizedBox(height: AppSpacing.xl),
         ]),
       ),
     );
   }
 
-  Widget _miniStat(String label, String value) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-        ),
-        child: Column(children: [
-          Text(value, style: const TextStyle(
-              color: AppColors.textOnPrimary, fontWeight: FontWeight.w700, fontSize: 16)),
-          Text(label, style: TextStyle(
-              color: AppColors.textOnPrimary.withValues(alpha: 0.6), fontSize: 11)),
-        ]),
-      ),
-    );
-  }
-
-  Widget _buildMembersCard(BuildContext context) {
-    final members = [
-      ('Carlos Souza', 'Atacante', true),
-      ('Joao Silva', 'Goleiro', false),
-      ('Pedro Alves', 'Zagueiro', false),
-      ('Lucas Costa', 'Meia', false),
-      ('Rafael Lima', 'Lateral', false),
-      ('Bruno Martins', 'Atacante', false),
-    ];
-    return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Text('Membros (6/8)', style: AppTextStyles.titleSmall),
-          const Spacer(),
-          TextButton(onPressed: () => showComingSoon(context), child: const Text('Convidar')),
-        ]),
-        ...members.map((m) => Column(children: [
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Row(children: [
-              AppTeamAvatar(
-                initials: initials(m.$1),
-                color: AppColors.avatarGreen,
-                size: 40, fontSize: 13,
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(m.$1, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                Text(m.$2, style: AppTextStyles.bodySmall),
-              ])),
-              if (m.$3)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: BorderRadius.circular(AppRadius.xs),
-                  ),
-                  child: const Text('Capitao',
-                      style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
-                )
-              else
-                IconButton(icon: Icon(PhosphorIcons.dotsThreeVertical(), color: AppColors.textDisabled), onPressed: () => showComingSoon(context)),
-            ]),
-          ),
-        ])),
-      ]),
-    );
-  }
-
-  Widget _buildPendingCard(BuildContext context) {
-    return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Convites enviados (1)', style: AppTextStyles.titleSmall),
-        const Divider(),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(children: [
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(color: AppColors.surfaceVariant, shape: BoxShape.circle),
-              child: Icon(PhosphorIcons.user(), color: AppColors.textDisabled),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Felipe Rocha', style: AppTextStyles.labelMedium),
-              Text('Enviado ha 2 dias', style: AppTextStyles.bodySmall),
-            ])),
-            TextButton(
-              onPressed: () => showComingSoon(context),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.error, fontSize: 12)),
-            ),
-          ]),
-        ),
-      ]),
-    );
-  }
-
-  Widget _buildRecentMatchesCard(BuildContext context) {
-    final matches = [
-      ('FU 3 x 1 UN', AppBadgeType.confirmed, '10/03'),
-      ('FU 2 x 2 D2', AppBadgeType.waiting, '05/03'),
-      ('FU 0 x 1 RS', AppBadgeType.closed, '01/03'),
-    ];
-    return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Text('Partidas recentes', style: AppTextStyles.titleSmall),
-          const Spacer(),
-          TextButton(onPressed: () => showComingSoon(context), child: const Text('Ver todas')),
-        ]),
-        ...matches.map((m) => Column(children: [
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Row(children: [
-              Expanded(child: Text(m.$1, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700))),
-              AppBadge(type: m.$2),
-              const SizedBox(width: AppSpacing.sm),
-              Text(m.$3, style: AppTextStyles.bodySmall),
-            ]),
-          ),
-        ])),
-      ]),
-    );
-  }
-
-  Widget _buildDangerCard() {
+  Widget _buildDangerCard(BuildContext context, WidgetRef ref, Team team) {
     return AppCard(
       border: Border.all(color: AppColors.errorSurface),
       child: Column(children: [
         ListTile(
-          leading: Icon(PhosphorIcons.arrowsLeftRight(), color: AppColors.error),
-          title: const Text('Transferir capitania',
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w500)),
-          trailing: Icon(PhosphorIcons.caretRight(), color: AppColors.error),
-          onTap: () {},
-          contentPadding: EdgeInsets.zero,
-        ),
-        const Divider(),
-        ListTile(
           leading: Icon(PhosphorIcons.trash(), color: AppColors.error),
           title: const Text('Desfazer time',
-              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w500)),
+              style: TextStyle(
+                  color: AppColors.error, fontWeight: FontWeight.w500)),
           trailing: Icon(PhosphorIcons.caretRight(), color: AppColors.error),
-          onTap: () {},
+          onTap: () => showComingSoon(context),
           contentPadding: EdgeInsets.zero,
         ),
       ]),
     );
+  }
+
+  Widget _buildLeaveCard(BuildContext context, WidgetRef ref, Team team) {
+    return AppCard(
+      border: Border.all(color: AppColors.errorSurface),
+      child: ListTile(
+        leading: Icon(PhosphorIcons.signOut(), color: AppColors.error),
+        title: const Text('Sair do time',
+            style: TextStyle(
+                color: AppColors.error, fontWeight: FontWeight.w500)),
+        trailing: Icon(PhosphorIcons.caretRight(), color: AppColors.error),
+        onTap: () => _confirmLeave(context, ref, team),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Future<void> _confirmLeave(
+      BuildContext context, WidgetRef ref, Team team) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sair do time'),
+        content:
+            Text('Tem certeza que deseja sair de "${team.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sair'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(teamRepositoryProvider).leaveTeam(team.id);
+      ref.invalidate(teamListProvider);
+      if (!context.mounted) return;
+      context.pop();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível sair do time.')),
+      );
+    }
+  }
+}
+
+class _MembersCard extends ConsumerWidget {
+  const _MembersCard({required this.teamId, required this.isCaptain});
+
+  final String teamId;
+  final bool isCaptain;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref.watch(teamMembersProvider(teamId)).when(
+          data: (members) {
+            final active = members.where((m) => m.isActive).toList();
+            return AppCard(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Text('Membros (${active.length})',
+                          style: AppTextStyles.titleSmall),
+                      const Spacer(),
+                      if (isCaptain)
+                        TextButton(
+                          onPressed: () => showComingSoon(context),
+                          child: const Text('Convidar'),
+                        ),
+                    ]),
+                    ...active.map((m) => _memberRow(context, ref, m)),
+                  ]),
+            );
+          },
+          loading: () => const AppCard(
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.lg),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+          error: (_, __) => const AppCard(
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.lg),
+              child: Text('Não foi possível carregar membros.'),
+            ),
+          ),
+        );
+  }
+
+  Widget _memberRow(
+      BuildContext context, WidgetRef ref, TeamMember member) {
+    final name = member.displayName ?? member.userId.substring(0, 8);
+    final isCaptainMember = member.role == TeamMemberRole.captain;
+
+    return Column(children: [
+      const Divider(),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Row(children: [
+          AppTeamAvatar(
+            initials: initials(name),
+            color: isCaptainMember ? AppColors.avatarGreen : AppColors.avatarBlue,
+            size: 40,
+            fontSize: 13,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(name,
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                    isCaptainMember ? 'Capitão' : 'Membro',
+                    style: AppTextStyles.bodySmall),
+              ])),
+          if (isCaptainMember)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(AppRadius.xs),
+              ),
+              child: const Text('Capitão',
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600)),
+            )
+          else if (isCaptain)
+            IconButton(
+              icon: Icon(PhosphorIcons.dotsThreeVertical(),
+                  color: AppColors.textDisabled),
+              onPressed: () => showComingSoon(context),
+            ),
+        ]),
+      ),
+    ]);
   }
 }

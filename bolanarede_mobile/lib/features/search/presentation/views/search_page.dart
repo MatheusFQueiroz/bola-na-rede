@@ -300,7 +300,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         AppButtonSmall(
           label: 'Ver time',
           filled: false,
-          onPressed: () => showComingSoon(context),
+          onPressed: () => context.push(AppRoutes.teamManageOf(team.id)),
         ),
       ]),
     );

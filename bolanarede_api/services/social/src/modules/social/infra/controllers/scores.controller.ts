@@ -16,7 +16,14 @@ export class ScoresController {
 
   @Get('players/:userId')
   @Public()
-  @HateoasItem(PlayerScoreDto)
+  @HateoasItem<PlayerScoreDto>({
+    basePath: '/v1/scores',
+    itemLinks: (s) => ({
+      self: { href: `/v1/scores/players/${s.playerUserId}`, method: 'GET' },
+      reviews: { href: `/v1/reviews?revieweeId=${s.playerUserId}`, method: 'GET' },
+      profile: { href: `/v1/users/${s.playerUserId}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Obter score/reputação de um jogador' })
   getPlayerScore(@Param('userId') userId: string): Promise<PlayerScoreDto> {
     return this.service.getPlayerScore(userId);

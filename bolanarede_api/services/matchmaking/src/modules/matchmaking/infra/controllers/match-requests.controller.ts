@@ -22,6 +22,14 @@ import { MatchRequestDto } from '../../application/dto/match-request.dto';
 export class MatchRequestsController {
   constructor(private readonly matchmakingService: MatchmakingService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get current user active match request' })
+  async getActiveRequest(@Request() req: any): Promise<MatchRequestDto | null> {
+    const userId: string = req.user.sub;
+    const request = await this.matchmakingService.getActiveRequest(userId);
+    return request ? MatchRequestDto.from(request) : null;
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new matchmaking request' })
   async createRequest(

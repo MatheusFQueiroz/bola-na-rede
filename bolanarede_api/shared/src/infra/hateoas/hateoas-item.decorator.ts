@@ -1,4 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { HATEOAS_ITEM_KEY } from './hateoas.types';
+import { HATEOAS_ITEM_KEY, HateoasItemConfig } from './hateoas.types';
 
-export const HateoasItem = (_dto: unknown) => SetMetadata(HATEOAS_ITEM_KEY, true);
+export const HateoasItem = <T>(config: HateoasItemConfig<T>) =>
+  SetMetadata(HATEOAS_ITEM_KEY, config);

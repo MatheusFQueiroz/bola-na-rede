@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "../../dist/services/notification",
-    "rootDir": ".",
+    "outDir": "./dist",
     "baseUrl": ".",
     "types": ["jest", "node"],
     "paths": {
@@ -20,6 +19,6 @@
     },
     "isolatedModules": true
   },
-  "include": ["src/**/*", "../../shared/src/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

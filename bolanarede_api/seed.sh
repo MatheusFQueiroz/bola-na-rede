@@ -16,7 +16,7 @@ set -euo pipefail
 
 GATEWAY="http://localhost:3000"
 FIELD_DB="bolanarededb_field"
-FIELD_CONTAINER="bolanarede_api-field-1"
+FIELD_CONTAINER="bolanarede_api-postgres-field-1"
 
 # Cores para output
 GREEN='\033[0;32m'

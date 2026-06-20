@@ -75,5 +75,6 @@ class TeamMemberModel {
             ? TeamMemberRole.captain
             : TeamMemberRole.member,
         joinedAt: DateTime.parse(joinedAt),
+        displayName: name.isNotEmpty ? name : null,
       );
 }

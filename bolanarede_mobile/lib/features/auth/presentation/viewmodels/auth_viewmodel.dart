@@ -33,10 +33,15 @@ class AuthViewModel extends AsyncNotifier<PlayerProfile?> {
     return !result.hasError;
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<bool> register(
+    String name,
+    String email,
+    String password, {
+    String? position,
+  }) async {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(
-      () => _repo.register(name, email, password),
+      () => _repo.register(name, email, password, position: position),
     );
     state = result;
     return !result.hasError;

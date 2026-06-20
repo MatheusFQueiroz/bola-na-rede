@@ -64,6 +64,9 @@ class TeamMember {
   @JsonKey(name: 'left_at')
   final DateTime? leftAt;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? displayName;
+
   bool get isActive => leftAt == null;
 
   const TeamMember({
@@ -72,6 +75,7 @@ class TeamMember {
     required this.role,
     required this.joinedAt,
     this.leftAt,
+    this.displayName,
   });
 
   factory TeamMember.fromJson(Map<String, dynamic> json) =>

@@ -11,8 +11,8 @@ class TeamHttpDataSource implements TeamDataSource {
 
   @override
   Future<List<Team>> getTeams() async {
-    final res = await dio.get<List<dynamic>>('/v1/teams');
-    final data = res.data ?? [];
+    final res = await dio.get<Map<String, dynamic>>('/v1/teams');
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map((e) => TeamModel.fromJson(e as Map<String, dynamic>).toEntity())
         .toList();
@@ -21,7 +21,8 @@ class TeamHttpDataSource implements TeamDataSource {
   @override
   Future<Team> getTeamById(String id) async {
     final res = await dio.get<Map<String, dynamic>>('/v1/teams/$id');
-    return TeamModel.fromJson(res.data!).toEntity();
+    return TeamModel.fromJson(res.data!['data'] as Map<String, dynamic>)
+        .toEntity();
   }
 
   @override
@@ -40,14 +41,15 @@ class TeamHttpDataSource implements TeamDataSource {
         if (maxPlayers != null) 'maxPlayers': maxPlayers,
       },
     );
-    return TeamModel.fromJson(res.data!).toEntity();
+    return TeamModel.fromJson(res.data!['data'] as Map<String, dynamic>)
+        .toEntity();
   }
 
   @override
   Future<List<TeamMember>> getMembers(String teamId) async {
     final res =
-        await dio.get<List<dynamic>>('/v1/teams/$teamId/members');
-    final data = res.data ?? [];
+        await dio.get<Map<String, dynamic>>('/v1/teams/$teamId/members');
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map(
           (e) =>

@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls:*)",
+      "Bash(rtk read:*)",
+      "Bash(rtk git:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(sed:*)",
+      "Bash(dart analyze:*)",
+      "Bash(rtk grep:*)",
+      "Bash(rtk npm:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(rtk docker:*)",
+      "Bash(do:*)",
+      "Bash(rtk curl:*)",
+      "Bash(docker compose:*)",
+      "Bash(bash:*)",
+      "Bash(winget install:*)",
+      "Bash(flutter test:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(\"$SDK_ROOT/cmdline-tools/latest/bin/avdmanager.bat\" create:*)",
+      "Bash(\"$SDK_ROOT/cmdline-tools/latest/bin/avdmanager.bat\" list:*)",
+      "Bash(\"$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager.bat\" list:*)",
+      "Bash(\"$ANDROID_HOME/platform-tools/adb.exe\" devices:*)",
+      "Bash(\"$ANDROID_HOME/platform-tools/adb.exe\" wait-for-device:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Bash(flutter devices:*)",
+      "Bash(\"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager.bat\":*)",
+      "Bash(cmd.exe:*)",
+      "Bash(npm test:*)"
+    ]
+  }
+}

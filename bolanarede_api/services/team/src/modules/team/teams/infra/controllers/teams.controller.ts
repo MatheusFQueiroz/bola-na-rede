@@ -34,7 +34,15 @@ export class TeamsController {
 
   @Post()
   @Permissions('teams:write')
-  @HateoasItem(TeamDto)
+  @HateoasItem<TeamDto>({
+    basePath: '/v1/teams',
+    itemLinks: (t) => ({
+      self: { href: `/v1/teams/${t.id}`, method: 'GET' },
+      update: { href: `/v1/teams/${t.id}`, method: 'PUT' },
+      delete: { href: `/v1/teams/${t.id}`, method: 'DELETE' },
+      members: { href: `/v1/teams/${t.id}/members`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Criar equipe' })
   create(
     @Body() dto: CreateTeamDto,
@@ -44,7 +52,14 @@ export class TeamsController {
   }
 
   @Get()
-  @HateoasList(TeamDto)
+  @HateoasList<TeamDto>({
+    basePath: '/v1/teams',
+    itemLinks: (t) => ({
+      self: { href: `/v1/teams/${t.id}`, method: 'GET' },
+      update: { href: `/v1/teams/${t.id}`, method: 'PUT' },
+      members: { href: `/v1/teams/${t.id}/members`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar times do usuário autenticado' })
   list(@CurrentUser() user: AuthenticatedUser): Promise<TeamDto[]> {
     return this.teamService.listByUser(user.id);
@@ -52,7 +67,15 @@ export class TeamsController {
 
   @Get(':id')
   @Public()
-  @HateoasItem(TeamDto)
+  @HateoasItem<TeamDto>({
+    basePath: '/v1/teams',
+    itemLinks: (t) => ({
+      self: { href: `/v1/teams/${t.id}`, method: 'GET' },
+      update: { href: `/v1/teams/${t.id}`, method: 'PUT' },
+      delete: { href: `/v1/teams/${t.id}`, method: 'DELETE' },
+      members: { href: `/v1/teams/${t.id}/members`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Obter detalhes da equipe' })
   getTeam(@Param('id') id: string): Promise<TeamDto> {
     return this.teamService.getTeam(id);
@@ -60,7 +83,14 @@ export class TeamsController {
 
   @Put(':id')
   @Permissions('teams:write')
-  @HateoasItem(TeamDto)
+  @HateoasItem<TeamDto>({
+    basePath: '/v1/teams',
+    itemLinks: (t) => ({
+      self: { href: `/v1/teams/${t.id}`, method: 'GET' },
+      update: { href: `/v1/teams/${t.id}`, method: 'PUT' },
+      delete: { href: `/v1/teams/${t.id}`, method: 'DELETE' },
+    }),
+  })
   @ApiOperation({ summary: 'Atualizar equipe (somente capitão)' })
   update(
     @Param('id') id: string,
@@ -83,7 +113,13 @@ export class TeamsController {
 
   @Post(':id/members')
   @Permissions('teams:write')
-  @HateoasItem(TeamMemberDto)
+  @HateoasItem<TeamMemberDto>({
+    basePath: '/v1/teams',
+    itemLinks: (_m) => ({
+      self: { href: `/v1/teams`, method: 'GET' },
+      leave: { href: `/v1/teams`, method: 'DELETE' },
+    }),
+  })
   @ApiOperation({ summary: 'Entrar na equipe' })
   join(
     @Param('id') id: string,
@@ -117,7 +153,13 @@ export class TeamsController {
 
   @Put(':id/captain')
   @Permissions('teams:write')
-  @HateoasItem(TeamDto)
+  @HateoasItem<TeamDto>({
+    basePath: '/v1/teams',
+    itemLinks: (t) => ({
+      self: { href: `/v1/teams/${t.id}`, method: 'GET' },
+      update: { href: `/v1/teams/${t.id}`, method: 'PUT' },
+    }),
+  })
   @ApiOperation({ summary: 'Transferir capitania' })
   transferCaptaincy(
     @Param('id') id: string,
@@ -129,7 +171,12 @@ export class TeamsController {
 
   @Get(':id/members')
   @Public()
-  @HateoasList(TeamMemberDto)
+  @HateoasList<TeamMemberDto>({
+    basePath: '/v1/teams',
+    itemLinks: (m) => ({
+      self: { href: `/v1/users/${m.playerUserId}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar membros da equipe' })
   getMembers(@Param('id') id: string): Promise<TeamMemberDto[]> {
     return this.teamService.getMembers(id);

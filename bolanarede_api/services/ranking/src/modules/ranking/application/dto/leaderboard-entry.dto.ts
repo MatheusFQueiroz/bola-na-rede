@@ -4,6 +4,7 @@ import type { PlayerRanking } from '../../domain/models/player-ranking.entity';
 export class LeaderboardEntryDto {
   @ApiProperty() position!: number;
   @ApiProperty() playerUserId!: string;
+  @ApiProperty() displayName!: string;
   @ApiProperty() sport!: string;
   @ApiProperty() gamesPlayed!: number;
   @ApiProperty() wins!: number;
@@ -17,6 +18,7 @@ export class LeaderboardEntryDto {
     const dto = new LeaderboardEntryDto();
     dto.position = position;
     dto.playerUserId = r.playerUserId;
+    dto.displayName = r.displayName;
     dto.sport = r.sport;
     dto.gamesPlayed = r.gamesPlayed;
     dto.wins = r.wins;

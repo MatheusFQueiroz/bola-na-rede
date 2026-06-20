@@ -11,13 +11,13 @@ class OpenGameHttpDataSource implements OpenGameRepository {
 
   @override
   Future<List<OpenGame>> getOpenGames({String? sport}) async {
-    final res = await dio.get<List<dynamic>>(
+    final res = await dio.get<Map<String, dynamic>>(
       '/v1/open-games',
       queryParameters: <String, dynamic>{
         if (sport != null) 'sport': sport,
       },
     );
-    final data = res.data ?? [];
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map((e) => OpenGameModel.fromJson(e as Map<String, dynamic>).toEntity())
         .toList();
@@ -26,7 +26,9 @@ class OpenGameHttpDataSource implements OpenGameRepository {
   @override
   Future<OpenGame> getOpenGameById(String id) async {
     final res = await dio.get<Map<String, dynamic>>('/v1/open-games/$id');
-    return OpenGameModel.fromJson(res.data!).toEntity();
+    return OpenGameModel.fromJson(
+      res.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 
   @override
@@ -53,7 +55,9 @@ class OpenGameHttpDataSource implements OpenGameRepository {
         if (description != null) 'description': description,
       },
     );
-    return OpenGameModel.fromJson(res.data!).toEntity();
+    return OpenGameModel.fromJson(
+      res.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 
   @override

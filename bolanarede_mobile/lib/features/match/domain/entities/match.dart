@@ -56,6 +56,14 @@ class Match {
   @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
 
+  // Campos extras do game-service (não serializados via JsonKey)
+  final String? sport;
+  final int? playerAGoals;
+  final int? playerBGoals;
+  final int? playerAAssists;
+  final int? playerBAssists;
+  final String? winnerId;
+
   const Match({
     required this.id,
     required this.proposalId,
@@ -71,6 +79,12 @@ class Match {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.sport,
+    this.playerAGoals,
+    this.playerBGoals,
+    this.playerAAssists,
+    this.playerBAssists,
+    this.winnerId,
   });
 
   factory Match.fromJson(Map<String, dynamic> json) => _$MatchFromJson(json);

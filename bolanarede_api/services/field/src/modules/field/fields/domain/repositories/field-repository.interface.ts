@@ -39,6 +39,7 @@ export interface FieldRepositoryInterface {
   create(data: CreateFieldData): Promise<Field>;
   findById(externalId: string): Promise<Field | null>;
   findNearby(params: SearchFieldsParams): Promise<Field[]>;
+  findByOwner(ownerUserId: string): Promise<Field[]>;
   addCourt(data: CreateCourtData): Promise<FieldCourt>;
   findCourt(courtExternalId: string): Promise<FieldCourt | null>;
   findCourts(fieldExternalId: string): Promise<FieldCourt[]>;

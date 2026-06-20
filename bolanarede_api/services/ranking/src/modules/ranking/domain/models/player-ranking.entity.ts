@@ -1,6 +1,7 @@
 export class PlayerRanking {
   id!: number;
   playerUserId!: string;
+  displayName!: string;
   sport!: string;
   gamesPlayed!: number;
   wins!: number;

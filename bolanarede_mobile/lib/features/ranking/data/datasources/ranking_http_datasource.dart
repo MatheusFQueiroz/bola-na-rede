@@ -32,11 +32,12 @@ class RankingHttpDatasource implements RankingDataSource {
 
   @override
   Future<List<PlayerRanking>> getPlayerRankings() async {
-    final response = await dio.get<List<dynamic>>(
+    final response = await dio.get<Map<String, dynamic>>(
       '/v1/rankings',
       queryParameters: <String, dynamic>{'sport': 'futsal', 'limit': 50},
     );
-    return (response.data ?? [])
+    final data = (response.data?['data'] as List<dynamic>?) ?? [];
+    return data
         .cast<Map<String, dynamic>>()
         .map(LeaderboardEntryModel.fromJson)
         .map((m) => m.toPlayerEntity())

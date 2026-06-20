@@ -17,6 +17,10 @@ final teamDetailProvider = FutureProvider.family<Team, String>(
   (ref, id) => ref.read(teamRepositoryProvider).getTeamById(id),
 );
 
+final teamMembersProvider = FutureProvider.autoDispose.family<List<TeamMember>, String>(
+  (ref, teamId) => ref.read(teamRepositoryProvider).getMembers(teamId),
+);
+
 final myTeamProvider = FutureProvider<Team?>((ref) async {
   final user = ref.watch(authViewModelProvider).value;
   if (user == null) return null;

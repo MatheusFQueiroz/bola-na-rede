@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/ranking/domain/entities/ranking.dart';
 import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/shared/utils/string_utils.dart';
@@ -312,54 +313,38 @@ class _RankingPageState extends ConsumerState<RankingPage> {
   }
 
   Widget _buildMyCard(RankingData data) {
+    final myUserId = ref.watch(authViewModelProvider).value?.userId ?? '';
+
     if (_tab == 0) {
-      final myTeam =
-          data.teamRankings.where((t) => t.id == 'team-001').firstOrNull;
-      if (myTeam == null) return const SizedBox();
-
-      return AppCard(
-        color: AppColors.primarySurface,
-        border: Border.all(color: AppColors.primary),
-        child: Row(children: [
-          const AppTeamAvatar(
-              initials: 'FU', color: AppColors.avatarGreen, size: 40),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                Text(myTeam.name, style: AppTextStyles.titleSmall),
-                Text('Sua posicao: #${myTeam.rank}  ${myTeam.points} pts',
-                    style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.primary, fontWeight: FontWeight.w600)),
-              ])),
-        ]),
-      );
-    } else {
-      final myPlayer =
-          data.playerRankings.where((p) => p.id == 'user-001').firstOrNull;
-      if (myPlayer == null) return const SizedBox();
-
-      return AppCard(
-        color: AppColors.primarySurface,
-        border: Border.all(color: AppColors.primary),
-        child: Row(children: [
-          const AppTeamAvatar(
-              initials: 'CS', color: AppColors.avatarGreen, size: 40),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                Text(myPlayer.name, style: AppTextStyles.titleSmall),
-                Text(
-                    '#${myPlayer.rank}  ${myPlayer.goals} gols  '
-                    '${myPlayer.matchesPlayed} jogos',
-                    style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.primary, fontWeight: FontWeight.w600)),
-              ])),
-        ]),
-      );
+      return const SizedBox();
     }
+
+    final myPlayer =
+        data.playerRankings.where((p) => p.id == myUserId).firstOrNull;
+    if (myPlayer == null) return const SizedBox();
+
+    return AppCard(
+      color: AppColors.primarySurface,
+      border: Border.all(color: AppColors.primary),
+      child: Row(children: [
+        AppTeamAvatar(
+            initials: initials(myPlayer.name),
+            color: AppColors.avatarGreen,
+            size: 40),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              const Text('Minha posição', style: AppTextStyles.titleSmall),
+              Text(
+                  '#${myPlayer.rank}  ${myPlayer.goals} gols  '
+                  '${myPlayer.assists} assist.  ${myPlayer.matchesPlayed} jogos',
+                  style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600)),
+            ])),
+      ]),
+    );
   }
 }

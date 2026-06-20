@@ -45,7 +45,8 @@ abstract class AppRoutes {
   static const matchList = '/match';
   static const matchDetail = '/match/detail/:id';
   static const createMatch = '/match/create';
-  static const registerResult = '/match/result';
+  static const registerResult = '/match/result/:id';
+  static String registerResultOf(String id) => '/match/result/$id';
   static const ranking = '/ranking';
   static const profile = '/profile';
   static const fieldCatalog = '/fields';
@@ -164,7 +165,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.registerResult,
-        builder: (_, __) => const RegisterResultPage(),
+        builder: (_, state) => RegisterResultPage(
+          gameId: state.pathParameters['id']!,
+        ),
       ),
       GoRoute(
         path: AppRoutes.teamManage,

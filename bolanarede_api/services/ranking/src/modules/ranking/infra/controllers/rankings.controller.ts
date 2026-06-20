@@ -6,6 +6,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { HateoasItem, HateoasList } from '@shared/infra/hateoas';
 import { RankingService } from '../../application/services/ranking.service';
 import { RankingDto } from '../../application/dto/ranking.dto';
 import { LeaderboardEntryDto } from '../../application/dto/leaderboard-entry.dto';
@@ -16,6 +17,13 @@ export class RankingsController {
   constructor(private readonly rankingService: RankingService) {}
 
   @Get()
+  @HateoasList<LeaderboardEntryDto>({
+    basePath: '/v1/rankings',
+    itemLinks: (e) => ({
+      self: { href: `/v1/rankings/${e.playerUserId}`, method: 'GET' },
+      profile: { href: `/v1/profiles/${e.playerUserId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Get leaderboard for a sport (top N players by points)' })
   @ApiQuery({ name: 'sport', required: true, description: 'Sport name (e.g. futsal)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max results (default 10, max 100)' })
@@ -29,6 +37,14 @@ export class RankingsController {
   }
 
   @Get(':userId')
+  @HateoasItem<RankingDto>({
+    basePath: '/v1/rankings',
+    itemLinks: (r) => ({
+      self: { href: `/v1/rankings/${r.playerUserId}`, method: 'GET' },
+      profile: { href: `/v1/profiles/${r.playerUserId}`, method: 'GET' },
+      score: { href: `/v1/scores/players/${r.playerUserId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Get ranking for a specific player in a sport' })
   @ApiQuery({ name: 'sport', required: true, description: 'Sport name (e.g. futsal)' })
   async getPlayerRanking(

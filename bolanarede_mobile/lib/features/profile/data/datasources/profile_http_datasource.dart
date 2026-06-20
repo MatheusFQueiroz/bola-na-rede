@@ -12,13 +12,15 @@ class ProfileHttpDataSource implements ProfileDataSource {
   @override
   Future<PlayerProfile> getProfile(String userId) async {
     final res = await dio.get<Map<String, dynamic>>('/v1/users/me');
-    return UserProfileModel.fromJson(res.data!).toEntity();
+    return UserProfileModel.fromJson(
+      res.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 
   @override
   Future<List<Map<String, dynamic>>> getRecentMatches(String userId) async {
-    final res = await dio.get<List<dynamic>>('/v1/games');
-    final data = res.data ?? [];
+    final res = await dio.get<Map<String, dynamic>>('/v1/games');
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     final completed = data
         .cast<Map<String, dynamic>>()
         .where((g) => (g['status'] as String? ?? '') == 'COMPLETED')

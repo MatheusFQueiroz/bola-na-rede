@@ -32,6 +32,7 @@ export class DrizzleRankingRepository implements RankingRepositoryInterface {
       .insert(playerRankings)
       .values({
         playerUserId: data.playerUserId,
+        displayName: data.displayName ?? '',
         sport: data.sport,
         gamesPlayed: 1,
         wins,
@@ -45,6 +46,7 @@ export class DrizzleRankingRepository implements RankingRepositoryInterface {
       .onConflictDoUpdate({
         target: [playerRankings.playerUserId, playerRankings.sport],
         set: {
+          displayName: sql`CASE WHEN ${data.displayName ?? ''} <> '' THEN ${data.displayName ?? ''} ELSE ${playerRankings.displayName} END`,
           gamesPlayed: sql`${playerRankings.gamesPlayed} + 1`,
           wins: sql`${playerRankings.wins} + ${wins}`,
           losses: sql`${playerRankings.losses} + ${losses}`,
@@ -78,10 +80,18 @@ export class DrizzleRankingRepository implements RankingRepositoryInterface {
     return rows.map((r) => this.toEntity(r));
   }
 
+  async updateDisplayName(playerUserId: string, displayName: string): Promise<void> {
+    await this.drizzle.db
+      .update(playerRankings)
+      .set({ displayName })
+      .where(eq(playerRankings.playerUserId, playerUserId));
+  }
+
   private toEntity(row: PlayerRankingRow): PlayerRanking {
     return {
       id: row.id,
       playerUserId: row.playerUserId,
+      displayName: row.displayName,
       sport: row.sport,
       gamesPlayed: row.gamesPlayed,
       wins: row.wins,

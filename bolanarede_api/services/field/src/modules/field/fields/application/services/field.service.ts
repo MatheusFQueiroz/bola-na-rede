@@ -44,6 +44,11 @@ export class FieldService {
     return results.map((f) => FieldDto.from(f));
   }
 
+  async findByOwner(ownerUserId: string): Promise<FieldDto[]> {
+    const results = await this.fieldRepo.findByOwner(ownerUserId);
+    return results.map((f) => FieldDto.from(f));
+  }
+
   async addCourt(ownerUserId: string, fieldExternalId: string, dto: CreateCourtDto): Promise<FieldCourtDto> {
     const field = await this.fieldRepo.findById(fieldExternalId);
     if (!field) throw new NotFoundException(`Field ${fieldExternalId} not found`);

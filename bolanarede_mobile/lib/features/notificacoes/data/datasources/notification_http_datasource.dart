@@ -14,11 +14,11 @@ class NotificationHttpDatasource implements NotificationRepository {
     int skip = 0,
     int limit = 20,
   }) async {
-    final response = await dio.get<List<dynamic>>(
+    final response = await dio.get<Map<String, dynamic>>(
       '/v1/notifications',
       queryParameters: <String, dynamic>{'skip': skip, 'limit': limit},
     );
-    return (response.data ?? [])
+    return ((response.data?['data'] as List<dynamic>?) ?? [])
         .cast<Map<String, dynamic>>()
         .map(NotificationModel.fromJson)
         .map((m) => m.toEntity())
@@ -41,6 +41,8 @@ class NotificationHttpDatasource implements NotificationRepository {
   Future<AppNotification> markAsRead(String id) async {
     final response = await dio
         .patch<Map<String, dynamic>>('/v1/notifications/$id/read');
-    return NotificationModel.fromJson(response.data!).toEntity();
+    return NotificationModel.fromJson(
+      response.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 }

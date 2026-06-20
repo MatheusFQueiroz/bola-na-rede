@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:bola_na_rede/core/routes/app_router.dart';
+import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/match/data/repositories/match_repository_provider.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
 import 'package:bola_na_rede/shared/utils/date_utils.dart';
-import 'package:bola_na_rede/shared/utils/string_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class MatchDetailPage extends ConsumerWidget {
@@ -19,7 +21,7 @@ class MatchDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final id = GoRouterState.of(context).pathParameters['id']!;
     return ref.watch(matchDetailProvider(id)).when(
-          data: (match) => _buildPage(context, match),
+          data: (match) => _buildPage(context, ref, match),
           loading: () => const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           ),
@@ -32,74 +34,91 @@ class MatchDetailPage extends ConsumerWidget {
         );
   }
 
-  Widget _buildPage(BuildContext context, Match match) {
-    final teamA = match.teamASnapshot?.name ?? 'Furacao FC';
-    final teamB = match.teamBSnapshot?.name ?? 'Uniao Vila';
-    final initialsA = initials(teamA);
-    final initialsB = initials(teamB);
-    final fieldName = match.fieldSnapshot?.name ?? 'Arena Society Xaxim';
-    final fieldAddr =
-        match.fieldSnapshot?.address ?? 'Rua das Araucarias, 450 — Xaxim';
-    final timeRange = formatTimeRange(
-        match.scheduledTimeStart, match.scheduledTimeEnd);
+  Widget _buildPage(BuildContext context, WidgetRef ref, Match match) {
+    final myUserId = ref.watch(authViewModelProvider).value?.userId ?? '';
+    final iAmA = match.teamAId == myUserId;
+    final sport = _sportLabel(match.sport);
     final date = formatDate(match.scheduledDate);
+    final badgeType = _badgeFor(match.status);
+    final isCompleted = match.status == MatchStatus.completed;
+    final isActive = match.status == MatchStatus.scheduled ||
+        match.status == MatchStatus.inProgress;
+
+    final myGoals = iAmA ? match.playerAGoals : match.playerBGoals;
+    final theirGoals = iAmA ? match.playerBGoals : match.playerAGoals;
+    final myAssists = iAmA ? match.playerAAssists : match.playerBAssists;
+    final theirAssists = iAmA ? match.playerBAssists : match.playerAAssists;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppGradientAppBar(
-        title: 'Detalhes da Partida',
+        title: 'Partida de $sport',
         showBackButton: true,
-        actions: [const AppBadge(type: AppBadgeType.confirmed)],
+        actions: [AppBadge(type: badgeType)],
       ),
       body: Stack(children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100),
           child: Column(children: [
-            _buildVsCard(
-                initialsA, teamA, initialsB, teamB, date, timeRange, fieldName),
+            _buildVsCard(myGoals, theirGoals, sport, date, isCompleted),
             const SizedBox(height: AppSpacing.md),
-            _buildPlayersCard(),
-            const SizedBox(height: AppSpacing.md),
-            _buildLocationCard(fieldName, fieldAddr),
-            const SizedBox(height: AppSpacing.md),
-            _buildRulesCard(),
-            const SizedBox(height: 100),
+            if (isCompleted && myGoals != null)
+              _buildStatsCard(
+                  myGoals, theirGoals!, myAssists, theirAssists, iAmA),
+            if (isCompleted && myGoals != null)
+              const SizedBox(height: AppSpacing.md),
+            _buildInfoCard(match),
           ]),
         ),
         Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: _buildFooter(context),
+          child: _buildFooter(context, ref, match, isActive, isCompleted),
         ),
       ]),
     );
   }
 
-  Widget _buildVsCard(String initialsA, String teamA, String initialsB,
-      String teamB, String date, String timeRange, String fieldName) {
+  Widget _buildVsCard(
+    int? myGoals,
+    int? theirGoals,
+    String sport,
+    String date,
+    bool isCompleted,
+  ) {
     return AppCard(
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           Column(children: [
-            AppTeamAvatar(
-                initials: initialsA, color: AppColors.avatarGreen, size: 56),
+            const AppTeamAvatar(
+                initials: 'EU', color: AppColors.avatarGreen, size: 56),
             const SizedBox(height: AppSpacing.sm),
-            Text(teamA, style: AppTextStyles.titleSmall),
+            const Text('Eu', style: AppTextStyles.titleSmall),
           ]),
           Column(children: [
-            Text('VS',
-                style: AppTextStyles.titleLarge
-                    .copyWith(color: AppColors.textSecondary)),
-            Text('Amistoso',
+            if (isCompleted && myGoals != null && theirGoals != null)
+              Text(
+                '$myGoals – $theirGoals',
+                style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary),
+              )
+            else
+              Text('VS',
+                  style: AppTextStyles.titleLarge
+                      .copyWith(color: AppColors.textSecondary)),
+            Text(sport,
                 style: AppTextStyles.bodySmall
                     .copyWith(color: AppColors.textDisabled)),
           ]),
           Column(children: [
-            AppTeamAvatar(
-                initials: initialsB, color: AppColors.avatarBlue, size: 56),
+            const AppTeamAvatar(
+                initials: 'ADV', color: AppColors.avatarBlue, size: 56),
             const SizedBox(height: AppSpacing.sm),
-            Text(teamB, style: AppTextStyles.titleSmall),
+            const Text('Adversário', style: AppTextStyles.titleSmall),
           ]),
         ]),
         const Divider(height: AppSpacing.xl),
@@ -108,114 +127,94 @@ class MatchDetailPage extends ConsumerWidget {
           Text(' $date',
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
-          const SizedBox(width: AppSpacing.lg),
-          Icon(PhosphorIcons.clock(), size: 14, color: AppColors.primary),
-          Text(' $timeRange',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
-        ]),
-        const SizedBox(height: AppSpacing.xs),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(PhosphorIcons.mapPin(), size: 14, color: AppColors.primary),
-          Text(' $fieldName',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
         ]),
       ]),
     );
   }
 
-  Widget _buildPlayersCard() {
+  Widget _buildStatsCard(
+    int myGoals,
+    int theirGoals,
+    int? myAssists,
+    int? theirAssists,
+    bool iAmA,
+  ) {
+    final resultLabel = myGoals > theirGoals
+        ? 'VITÓRIA'
+        : myGoals < theirGoals
+            ? 'DERROTA'
+            : 'EMPATE';
+    final resultColor = myGoals > theirGoals
+        ? AppColors.avatarGreen
+        : myGoals < theirGoals
+            ? AppColors.error
+            : AppColors.textSecondary;
+
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Jogadores confirmados', style: AppTextStyles.titleSmall),
+        Row(children: [
+          const Text('Resultado', style: AppTextStyles.titleSmall),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: 2),
+            decoration: BoxDecoration(
+              color: resultColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.xs),
+            ),
+            child: Text(resultLabel,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: resultColor)),
+          ),
+        ]),
         const SizedBox(height: AppSpacing.md),
-        _teamSection('Furacao FC', 4, 8, [
-          ('CA', AppColors.avatarGreen, 'Carlos'),
-          ('JO', AppColors.avatarTeal, 'Joao'),
-          ('PE', AppColors.avatarBlue, 'Pedro'),
-          ('LU', AppColors.avatarOrange, 'Lucas'),
+        Row(children: [
+          _statTile('Gols', '$myGoals', AppColors.primary),
+          const SizedBox(width: AppSpacing.sm),
+          _statTile('Assist.', '${myAssists ?? 0}', AppColors.avatarTeal),
+          const Spacer(),
+          const Text('Eu    ×    Adv',
+              style: TextStyle(
+                  color: AppColors.textDisabled,
+                  fontSize: 11)),
+          const Spacer(),
+          _statTile('Gols', '$theirGoals', AppColors.primary),
+          const SizedBox(width: AppSpacing.sm),
+          _statTile('Assist.', '${theirAssists ?? 0}', AppColors.avatarTeal),
         ]),
-        const Divider(height: AppSpacing.xl),
-        _teamSection('Uniao Vila', 2, 7, [
-          ('AN', AppColors.avatarBlue, 'Andre'),
-          ('MA', AppColors.avatarPurple, 'Marcos'),
-        ]),
-        Text('5 vagas abertas',
-            style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textDisabled, fontStyle: FontStyle.italic)),
       ]),
     );
   }
 
-  Widget _teamSection(String team, int confirmed, int total,
-      List<(String, Color, String)> players) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Text(team,
-            style:
-                AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-        const Spacer(),
-        Text('$confirmed/$total',
-            style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.w600)),
-      ]),
-      const SizedBox(height: AppSpacing.sm),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        child: LinearProgressIndicator(value: confirmed / total, minHeight: 6),
-      ),
-      const SizedBox(height: AppSpacing.md),
-      Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: players
-            .map((p) => Row(mainAxisSize: MainAxisSize.min, children: [
-                  AppTeamAvatar(
-                      initials: p.$1, color: p.$2, size: 32, fontSize: 11),
-                  const SizedBox(width: 4),
-                  Text(p.$3, style: AppTextStyles.bodySmall),
-                ]))
-            .toList(),
-      ),
+  Widget _statTile(String label, String value, Color color) {
+    return Column(children: [
+      Text(value,
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.w800, color: color)),
+      Text(label,
+          style: const TextStyle(
+              fontSize: 11, color: AppColors.textSecondary)),
     ]);
   }
 
-  Widget _buildLocationCard(String name, String address) {
-    return AppCard(
-      onTap: () {},
-      child: Row(children: [
-        Icon(PhosphorIcons.mapPin(), size: 24, color: AppColors.primary),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name, style: AppTextStyles.titleSmall),
-            Text(address,
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textSecondary)),
-          ]),
-        ),
-        Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
-      ]),
-    );
-  }
-
-  Widget _buildRulesCard() {
+  Widget _buildInfoCard(Match match) {
+    final createdAt = formatDate(match.createdAt);
     return AppCard(
       child: Column(children: [
-        _ruleRow(PhosphorIcons.soccerBall(), 'Modalidade', 'Society'),
+        _infoRow(PhosphorIcons.soccerBall(), 'Modalidade',
+            _sportLabel(match.sport)),
         const Divider(),
-        _ruleRow(PhosphorIcons.timer(), 'Duracao', '60 min'),
+        _infoRow(PhosphorIcons.calendar(), 'Data', createdAt),
         const Divider(),
-        _ruleRow(PhosphorIcons.user(), 'Arbitro', 'A combinar'),
-        const Divider(),
-        _ruleRow(PhosphorIcons.soccerBall(), 'Bola', 'Fornecida'),
+        _infoRow(PhosphorIcons.hash(), 'ID do jogo',
+            match.id.substring(0, 8).toUpperCase()),
       ]),
     );
   }
 
-  Widget _ruleRow(IconData icon, String label, String value) {
+  Widget _infoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(children: [
@@ -226,34 +225,135 @@ class MatchDetailPage extends ConsumerWidget {
                 .copyWith(color: AppColors.textSecondary)),
         Text(value,
             style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary)),
       ]),
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration:
-          BoxDecoration(color: AppColors.surface, boxShadow: AppShadows.modal),
-      child: Row(children: [
-        Expanded(
-          child: AppButton.danger(
-            label: 'Cancelar',
-            height: AppSizes.buttonHeightSmall,
-            onPressed: () => showComingSoon(context),
-          ),
+  Widget _buildFooter(
+    BuildContext context,
+    WidgetRef ref,
+    Match match,
+    bool isActive,
+    bool isCompleted,
+  ) {
+    if (isActive) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration:
+            BoxDecoration(color: AppColors.surface, boxShadow: AppShadows.modal),
+        child: AppButton.primary(
+          label: 'Registrar Resultado',
+          icon: PhosphorIcons.trophy(),
+          height: AppSizes.buttonHeightSmall,
+          onPressed: () =>
+              context.push(AppRoutes.registerResultOf(match.id)),
         ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          flex: 2,
-          child: AppButton.primary(
-            label: 'Registrar Resultado',
-            height: AppSizes.buttonHeightSmall,
-            onPressed: () => context.push(AppRoutes.registerResult),
+      );
+    }
+
+    if (isCompleted) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration:
+            BoxDecoration(color: AppColors.surface, boxShadow: AppShadows.modal),
+        child: Row(children: [
+          Expanded(
+            child: AppButton.outline(
+              label: 'Disputar',
+              icon: PhosphorIcons.warning(),
+              height: AppSizes.buttonHeightSmall,
+              onPressed: () => _dispute(context, ref, match.id),
+            ),
           ),
-        ),
-      ]),
-    );
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            flex: 2,
+            child: AppButton.primary(
+              label: 'Confirmar',
+              icon: PhosphorIcons.check(),
+              height: AppSizes.buttonHeightSmall,
+              onPressed: () => _confirm(context, ref, match.id),
+            ),
+          ),
+        ]),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
+
+  Future<void> _confirm(
+      BuildContext context, WidgetRef ref, String gameId) async {
+    try {
+      await ref.read(matchRepositoryProvider).confirmResult(gameId);
+      ref.invalidate(matchDetailProvider(gameId));
+      ref.invalidate(matchListProvider);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Resultado confirmado!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível confirmar.')),
+      );
+    }
+  }
+
+  Future<void> _dispute(
+      BuildContext context, WidgetRef ref, String gameId) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Disputar resultado'),
+        content: const Text(
+            'Tem certeza que deseja disputar este resultado? O jogo será revisado.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Disputar'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(matchRepositoryProvider).disputeResult(gameId);
+      ref.invalidate(matchDetailProvider(gameId));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Disputa registrada.')),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível disputar.')),
+      );
+    }
+  }
+
+  AppBadgeType _badgeFor(MatchStatus status) => switch (status) {
+        MatchStatus.scheduled => AppBadgeType.waiting,
+        MatchStatus.inProgress => AppBadgeType.confirmed,
+        MatchStatus.completed => AppBadgeType.closed,
+        MatchStatus.cancelled => AppBadgeType.closed,
+        MatchStatus.noShow => AppBadgeType.closed,
+      };
+
+  String _sportLabel(String? sport) => switch (sport) {
+        'futsal' => 'Futsal',
+        'society' => 'Society',
+        'campo' => 'Campo',
+        _ => 'Futebol',
+      };
 }

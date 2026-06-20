@@ -489,6 +489,98 @@ class AppGradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(AppSizes.appBarHeight);
 }
 
+class AppShimmer extends StatefulWidget {
+  final double width;
+  final double height;
+  final BorderRadius? borderRadius;
+
+  const AppShimmer({
+    super.key,
+    required this.width,
+    required this.height,
+    this.borderRadius,
+  });
+
+  @override
+  State<AppShimmer> createState() => _AppShimmerState();
+}
+
+class _AppShimmerState extends State<AppShimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(AppRadius.sm),
+            gradient: LinearGradient(
+              begin: const Alignment(-1.5, 0),
+              end: const Alignment(1.5, 0),
+              transform: _SlidingGradient(_controller.value),
+              colors: const [
+                Color(0xFFEEEEEE),
+                Color(0xFFF5F5F5),
+                Color(0xFFEEEEEE),
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SlidingGradient extends GradientTransform {
+  final double progress;
+  const _SlidingGradient(this.progress);
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * 2 * progress - bounds.width, 0, 0);
+  }
+}
+
+class AppShimmerCard extends StatelessWidget {
+  const AppShimmerCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        AppShimmer(width: 120, height: 14, borderRadius: BorderRadius.circular(4)),
+        const SizedBox(height: AppSpacing.md),
+        AppShimmer(width: double.infinity, height: 14, borderRadius: BorderRadius.circular(4)),
+        const SizedBox(height: AppSpacing.sm),
+        AppShimmer(width: 200, height: 14, borderRadius: BorderRadius.circular(4)),
+        const SizedBox(height: AppSpacing.md),
+        AppShimmer(width: double.infinity, height: 40, borderRadius: BorderRadius.circular(AppRadius.sm)),
+      ]),
+    );
+  }
+}
+
 class AppWarningBanner extends StatelessWidget {
   final String message;
 

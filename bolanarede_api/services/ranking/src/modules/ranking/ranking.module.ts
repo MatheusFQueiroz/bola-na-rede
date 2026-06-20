@@ -5,6 +5,7 @@ import { DrizzleRankingRepository } from './infra/database/repositories/drizzle-
 import { RankingMessagingService } from './application/services/ranking-messaging.service';
 import { RankingService } from './application/services/ranking.service';
 import { GameEventsConsumer } from './application/services/game-events.consumer';
+import { IdentityEventsConsumer } from './application/services/identity-events.consumer';
 import { RankingsController } from './infra/controllers/rankings.controller';
 
 @Module({
@@ -15,6 +16,7 @@ import { RankingsController } from './infra/controllers/rankings.controller';
     RankingMessagingService,
     RankingService,
     GameEventsConsumer,
+    IdentityEventsConsumer,
   ],
 })
 export class RankingModule {}

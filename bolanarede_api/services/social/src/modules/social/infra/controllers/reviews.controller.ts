@@ -28,7 +28,14 @@ export class ReviewsController {
 
   @Post()
   @Permissions('social:write')
-  @HateoasItem(ReviewDto)
+  @HateoasItem<ReviewDto>({
+    basePath: '/v1/reviews',
+    itemLinks: (r) => ({
+      self: { href: `/v1/reviews`, method: 'GET' },
+      reviewer: { href: `/v1/scores/players/${r.reviewerUserId}`, method: 'GET' },
+      reviewee: { href: `/v1/scores/players/${r.revieweeUserId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Submeter avaliação de jogador após partida' })
   create(
     @Body() dto: CreateReviewDto,
@@ -39,7 +46,14 @@ export class ReviewsController {
 
   @Get()
   @Public()
-  @HateoasList(ReviewDto)
+  @HateoasList<ReviewDto>({
+    basePath: '/v1/reviews',
+    itemLinks: (r) => ({
+      self: { href: `/v1/reviews`, method: 'GET' },
+      reviewer: { href: `/v1/scores/players/${r.reviewerUserId}`, method: 'GET' },
+      reviewee: { href: `/v1/scores/players/${r.revieweeUserId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar avaliações (filtrável por reviewee, reviewer ou jogo)' })
   list(@Query() query: ListReviewsDto): Promise<ReviewDto[]> {
     return this.service.listReviews(query);

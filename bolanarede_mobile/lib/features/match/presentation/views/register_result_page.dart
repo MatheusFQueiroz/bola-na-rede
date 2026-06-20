@@ -1,87 +1,107 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
-class RegisterResultPage extends StatefulWidget {
-  const RegisterResultPage({super.key});
+class RegisterResultPage extends ConsumerStatefulWidget {
+  const RegisterResultPage({required this.gameId, super.key});
+
+  final String gameId;
+
   @override
-  State<RegisterResultPage> createState() => _RegisterResultPageState();
+  ConsumerState<RegisterResultPage> createState() =>
+      _RegisterResultPageState();
 }
 
-class _RegisterResultPageState extends State<RegisterResultPage> {
-  int _scoreA = 0;
-  int _scoreB = 0;
+class _RegisterResultPageState extends ConsumerState<RegisterResultPage> {
+  int _goalsA = 0;
+  int _goalsB = 0;
+  int _assistsA = 0;
+  int _assistsB = 0;
 
-  // listas reativas — não são mais final
-  final List<Map<String, dynamic>> _playersA = [
-    {'name': 'Carlos Souza', 'initials': 'CA', 'goals': 0, 'assists': 0},
-    {'name': 'Joao Silva', 'initials': 'JO', 'goals': 0, 'assists': 0},
-    {'name': 'Pedro Alves', 'initials': 'PE', 'goals': 0, 'assists': 0},
-    {'name': 'Lucas Costa', 'initials': 'LU', 'goals': 0, 'assists': 0},
-  ];
+  Future<void> _submit() async {
+    final match =
+        ref.read(matchDetailProvider(widget.gameId)).value;
+    if (match == null) return;
 
-  final List<Map<String, dynamic>> _playersB = [
-    {'name': 'Andre', 'initials': 'AN', 'goals': 0, 'assists': 0},
-    {'name': 'Marcos', 'initials': 'MA', 'goals': 0, 'assists': 0},
-  ];
+    final myUserId = ref.read(authViewModelProvider).value?.userId ?? '';
+    final iAmA = match.teamAId == myUserId;
 
-  int get _totalGoalsA =>
-      _playersA.fold(0, (sum, p) => sum + (p['goals'] as int));
-  int get _totalGoalsB =>
-      _playersB.fold(0, (sum, p) => sum + (p['goals'] as int));
+    final playerAGoals = iAmA ? _goalsA : _goalsB;
+    final playerBGoals = iAmA ? _goalsB : _goalsA;
+    final playerAAssists = iAmA ? _assistsA : _assistsB;
+    final playerBAssists = iAmA ? _assistsB : _assistsA;
 
-  bool get _goalsMatchScore =>
-      _totalGoalsA == _scoreA && _totalGoalsB == _scoreB;
+    final ok = await ref.read(submitResultProvider.notifier).submit(
+          widget.gameId,
+          playerAGoals: playerAGoals,
+          playerBGoals: playerBGoals,
+          playerAAssists: playerAAssists,
+          playerBAssists: playerBAssists,
+        );
 
-  void _submit() {
-    if (!_goalsMatchScore && (_totalGoalsA > 0 || _totalGoalsB > 0)) {
+    if (!mounted) return;
+
+    if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
-            'Gols individuais não batem com o placar '
-            '(Time A: $_totalGoalsA/$_scoreA, '
-            'Time B: $_totalGoalsB/$_scoreB)',
-          ),
-          backgroundColor: AppColors.error,
+              'Resultado enviado! Aguardando confirmação do adversário.'),
+          backgroundColor: Colors.green,
         ),
       );
-      return;
+      context.pop();
+    } else {
+      final err = ref.read(submitResultProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text(err?.toString() ?? 'Erro ao enviar resultado')),
+      );
     }
-    context.go(AppRoutes.home);
   }
 
   @override
   Widget build(BuildContext context) {
+    final gameAsync = ref.watch(matchDetailProvider(widget.gameId));
+    final isLoading = ref.watch(submitResultProvider).isLoading;
+    final myUserId = ref.watch(authViewModelProvider).value?.userId ?? '';
+
+    final sport = gameAsync.whenOrNull(
+          data: (m) => _sportLabel(m.sport),
+        ) ??
+        'Futebol';
+
+    final iAmA = gameAsync.whenOrNull(
+          data: (m) => m.teamAId == myUserId,
+        ) ??
+        true;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar:
-          AppGradientAppBar(title: 'Registrar Resultado', showBackButton: true),
+      appBar: AppGradientAppBar(
+          title: 'Registrar Resultado — $sport',
+          showBackButton: true),
       body: Stack(children: [
         SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 100),
           child: Column(children: [
-            _buildScoreCard(),
+            _buildScoreCard(iAmA),
             const SizedBox(height: AppSpacing.md),
-            if ((_totalGoalsA > 0 || _totalGoalsB > 0) && !_goalsMatchScore)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: AppWarningBanner(
-                  message: 'Gols individuais não batem com o placar. '
-                      'Time A: $_totalGoalsA/$_scoreA  '
-                      'Time B: $_totalGoalsB/$_scoreB',
-                ),
-              ),
-            _buildGoalsCard(),
+            _buildAssistsCard(iAmA),
             const SizedBox(height: AppSpacing.md),
-            _buildNotesCard(),
-            const SizedBox(height: AppSpacing.md),
-            _buildWarningCard(),
+            const AppWarningBanner(
+              message:
+                  'O adversário terá 72 horas para confirmar este resultado. '
+                  'Se não responder, será aceito automaticamente.',
+            ),
           ]),
         ),
         Positioned(
@@ -93,8 +113,9 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
             decoration: BoxDecoration(
                 color: AppColors.surface, boxShadow: AppShadows.modal),
             child: AppButton.primary(
-              label: 'Enviar Resultado',
-              onPressed: _submit,
+              label: isLoading ? 'Enviando…' : 'Enviar Resultado',
+              icon: isLoading ? null : PhosphorIcons.trophy(),
+              onPressed: isLoading ? null : _submit,
             ),
           ),
         ),
@@ -102,7 +123,7 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
     );
   }
 
-  Widget _buildScoreCard() {
+  Widget _buildScoreCard(bool iAmA) {
     return AppCard(
       child: Column(children: [
         Text('Placar final',
@@ -110,34 +131,38 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
                 .copyWith(color: AppColors.textSecondary)),
         const SizedBox(height: AppSpacing.lg),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          _scoreColumn('FU', AppColors.avatarGreen, 'Furacao FC', true),
-          Text('X',
+          _scoreColumn('EU', AppColors.avatarGreen, 'Eu',
+              iAmA ? _goalsA : _goalsB, true),
+          Text('×',
               style: AppTextStyles.titleLarge
                   .copyWith(color: AppColors.textDisabled)),
-          _scoreColumn('UN', AppColors.avatarBlue, 'Uniao Vila', false),
+          _scoreColumn('ADV', AppColors.avatarBlue, 'Adversário',
+              iAmA ? _goalsB : _goalsA, false),
         ]),
       ]),
     );
   }
 
-  Widget _scoreColumn(String initials, Color color, String name, bool isA) {
-    final score = isA ? _scoreA : _scoreB;
+  Widget _scoreColumn(
+      String initials, Color color, String label, int score, bool isMe) {
     return Column(children: [
       AppTeamAvatar(initials: initials, color: color, size: 48),
-      const SizedBox(height: AppSpacing.sm),
-      Text(name,
-          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+      const SizedBox(height: AppSpacing.xs),
+      Text(label,
+          style: AppTextStyles.bodySmall
+              .copyWith(fontWeight: FontWeight.w600)),
       const SizedBox(height: AppSpacing.md),
       Row(children: [
         _counterBtn(
             PhosphorIcons.minus(),
             () => setState(() {
-                  if (isA && _scoreA > 0) _scoreA--;
-                  if (!isA && _scoreB > 0) _scoreB--;
+                  if (isMe && _goalsA > 0) _goalsA--;
+                  if (!isMe && _goalsB > 0) _goalsB--;
                 }),
             false),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Text('$score',
               style: const TextStyle(
                   fontSize: 32,
@@ -147,159 +172,80 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
         _counterBtn(
             PhosphorIcons.plus(),
             () => setState(() {
-                  if (isA)
-                    _scoreA++;
-                  else
-                    _scoreB++;
+                  if (isMe) _goalsA++;
+                  if (!isMe) _goalsB++;
                 }),
             true),
       ]),
     ]);
   }
 
-  Widget _buildGoalsCard() {
+  Widget _buildAssistsCard(bool iAmA) {
     return AppCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Quem fez os gols? (opcional)',
-            style: AppTextStyles.titleSmall),
-        Text('Use + e - para marcar gols e assistencias de cada jogador',
-            style: AppTextStyles.bodySmall
-                .copyWith(color: AppColors.textSecondary)),
-        const SizedBox(height: AppSpacing.md),
-        Row(children: [
-          _goalSummaryBadge('Furacao FC', _totalGoalsA, _scoreA),
-          const SizedBox(width: AppSpacing.sm),
-          _goalSummaryBadge('Uniao Vila', _totalGoalsB, _scoreB),
-        ]),
-        const SizedBox(height: AppSpacing.md),
-        Text('Furacao FC',
-            style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
-        const SizedBox(height: AppSpacing.sm),
-        ..._playersA.asMap().entries.map(
-              (e) => _playerRow(e.value, e.key, true),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Assistências (opcional)',
+              style: AppTextStyles.titleSmall),
+          const SizedBox(height: AppSpacing.md),
+          Row(children: [
+            const Expanded(
+              child: Text('Eu',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary)),
             ),
-        const Divider(height: AppSpacing.xl),
-        Text('Uniao Vila',
-            style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
-        const SizedBox(height: AppSpacing.sm),
-        ..._playersB.asMap().entries.map(
-              (e) => _playerRow(e.value, e.key, false),
+            _smallCounter(
+              iAmA ? _assistsA : _assistsB,
+              () => setState(() {
+                if (iAmA && _assistsA > 0) _assistsA--;
+                if (!iAmA && _assistsB > 0) _assistsB--;
+              }),
+              () => setState(() {
+                if (iAmA) _assistsA++;
+                if (!iAmA) _assistsB++;
+              }),
             ),
-      ]),
-    );
-  }
-
-  Widget _goalSummaryBadge(String team, int individual, int placar) {
-    final ok = individual == placar;
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-        decoration: BoxDecoration(
-          color: ok ? AppColors.primarySurface : AppColors.errorSurface,
-          borderRadius: BorderRadius.circular(AppRadius.xs),
-        ),
-        child: Text(
-          '$team: $individual/$placar gols',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: ok ? AppColors.primary : AppColors.error,
-          ),
-          textAlign: TextAlign.center,
-        ),
+          ]),
+          const SizedBox(height: AppSpacing.sm),
+          Row(children: [
+            const Expanded(
+              child: Text('Adversário',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary)),
+            ),
+            _smallCounter(
+              iAmA ? _assistsB : _assistsA,
+              () => setState(() {
+                if (iAmA && _assistsB > 0) _assistsB--;
+                if (!iAmA && _assistsA > 0) _assistsA--;
+              }),
+              () => setState(() {
+                if (iAmA) _assistsB++;
+                if (!iAmA) _assistsA++;
+              }),
+            ),
+          ]),
+        ],
       ),
     );
   }
 
-  Widget _playerRow(Map<String, dynamic> player, int index, bool isTeamA) {
-    final goals = player['goals'] as int;
-    final assists = player['assists'] as int;
-    final list = isTeamA ? _playersA : _playersB;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          AppTeamAvatar(
-            initials: player['initials'] as String,
-            color: isTeamA ? AppColors.avatarGreen : AppColors.avatarBlue,
-            size: 36,
-            fontSize: 12,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-              child: Text(player['name'] as String,
-                  style: AppTextStyles.bodyMedium)),
-        ]),
-        const SizedBox(height: AppSpacing.xs),
-        Row(children: [
-          const SizedBox(width: 44), // alinha com o avatar
-          Text('Gols:',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
-          const SizedBox(width: AppSpacing.sm),
-          _smallCounterBtn(PhosphorIcons.minus(), () {
-            setState(() {
-              if ((list[index]['goals'] as int) > 0) list[index]['goals']--;
-            });
-          }, false),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Text('$goals',
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
-          ),
-          _smallCounterBtn(PhosphorIcons.plus(), () {
-            setState(() => list[index]['goals']++);
-          }, true),
-          const SizedBox(width: AppSpacing.lg),
-          Text('Assist.:',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.textSecondary)),
-          const SizedBox(width: AppSpacing.sm),
-          _smallCounterBtn(PhosphorIcons.minus(), () {
-            setState(() {
-              if ((list[index]['assists'] as int) > 0) list[index]['assists']--;
-            });
-          }, false),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Text('$assists',
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary)),
-          ),
-          _smallCounterBtn(PhosphorIcons.plus(), () {
-            setState(() => list[index]['assists']++);
-          }, true),
-        ]),
-      ]),
-    );
-  }
-
-  Widget _smallCounterBtn(IconData icon, VoidCallback onTap, bool filled) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: filled ? AppColors.primary : AppColors.surface,
-          border:
-              Border.all(color: filled ? AppColors.primary : AppColors.border),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon,
-            color: filled ? AppColors.textOnPrimary : AppColors.textPrimary,
-            size: 12),
+  Widget _smallCounter(int value, VoidCallback dec, VoidCallback inc) {
+    return Row(children: [
+      _counterBtn(PhosphorIcons.minus(), dec, false),
+      Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        child: Text('$value',
+            style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary)),
       ),
-    );
+      _counterBtn(PhosphorIcons.plus(), inc, true),
+    ]);
   }
 
   Widget _counterBtn(IconData icon, VoidCallback onTap, bool filled) {
@@ -310,31 +256,22 @@ class _RegisterResultPageState extends State<RegisterResultPage> {
         height: 32,
         decoration: BoxDecoration(
           color: filled ? AppColors.primary : AppColors.surface,
-          border:
-              Border.all(color: filled ? AppColors.primary : AppColors.border),
+          border: Border.all(
+              color: filled ? AppColors.primary : AppColors.border),
           shape: BoxShape.circle,
         ),
         child: Icon(icon,
-            color: filled ? AppColors.textOnPrimary : AppColors.textPrimary,
+            color:
+                filled ? AppColors.textOnPrimary : AppColors.textPrimary,
             size: 16),
       ),
     );
   }
 
-  Widget _buildNotesCard() {
-    return AppCard(
-      child: AppInput(
-        label: 'Observacoes (opcional)',
-        hint: 'Algum incidente? Cartao, lesao...',
-        maxLines: 3,
-      ),
-    );
-  }
-
-  Widget _buildWarningCard() {
-    return const AppWarningBanner(
-      message: 'O time adversario tera 72 horas para confirmar este resultado. '
-          'Se nao responder, sera aceito automaticamente.',
-    );
-  }
+  String _sportLabel(String? sport) => switch (sport) {
+        'futsal' => 'Futsal',
+        'society' => 'Society',
+        'campo' => 'Campo',
+        _ => 'Futebol',
+      };
 }

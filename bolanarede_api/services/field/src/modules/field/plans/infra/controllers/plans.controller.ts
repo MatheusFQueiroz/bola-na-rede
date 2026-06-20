@@ -20,7 +20,14 @@ export class PlansController {
 
   @Post()
   @Permissions('fields:write')
-  @HateoasItem(RecurringPlanDto)
+  @HateoasItem<RecurringPlanDto>({
+    basePath: '/v1/fields',
+    itemLinks: (p) => ({
+      self: { href: `/v1/fields/${p.fieldId}/plans`, method: 'GET' },
+      field: { href: `/v1/fields/${p.fieldId}`, method: 'GET' },
+      court: { href: `/v1/fields/${p.fieldId}/courts`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Criar plano recorrente para uma quadra' })
   create(
     @Param('fieldId') fieldId: string,
@@ -32,7 +39,13 @@ export class PlansController {
 
   @Get()
   @Public()
-  @HateoasList(RecurringPlanDto)
+  @HateoasList<RecurringPlanDto>({
+    basePath: '/v1/fields',
+    itemLinks: (p) => ({
+      self: { href: `/v1/fields/${p.fieldId}/plans`, method: 'GET' },
+      field: { href: `/v1/fields/${p.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar planos recorrentes do campo' })
   list(@Param('fieldId') fieldId: string): Promise<RecurringPlanDto[]> {
     return this.planService.getByField(fieldId);

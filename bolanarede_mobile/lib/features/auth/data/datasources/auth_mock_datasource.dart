@@ -3,7 +3,12 @@ import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 
 abstract class AuthDataSource {
   Future<PlayerProfile> login(String email, String password);
-  Future<PlayerProfile> register(String name, String email, String password);
+  Future<PlayerProfile> register(
+    String name,
+    String email,
+    String password, {
+    String? position,
+  });
   Future<PlayerProfile> restoreSession(String token);
 }
 
@@ -46,7 +51,11 @@ class AuthMockDataSource implements AuthDataSource {
 
   @override
   Future<PlayerProfile> register(
-      String name, String email, String password) async {
+    String name,
+    String email,
+    String password, {
+    String? position,
+  }) async {
     await Future<void>.delayed(const Duration(milliseconds: 800));
 
     if (name.isEmpty) throw Exception('Nome obrigatório');

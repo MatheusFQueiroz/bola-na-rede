@@ -24,7 +24,14 @@ export class UsersController {
 
   @Get('me')
   @Permissions('players:read')
-  @HateoasItem(UserDto)
+  @HateoasItem<UserDto>({
+    basePath: '/v1/users',
+    itemLinks: (u) => ({
+      self: { href: `/v1/users/me`, method: 'GET' },
+      update: { href: `/v1/users/me/profile`, method: 'PUT' },
+      public: { href: `/v1/users/${u.id}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Obter perfil do usuário autenticado' })
   getMe(@CurrentUser() user: AuthenticatedUser): Promise<UserDto> {
     return this.userService.getProfile(user.id);
@@ -32,7 +39,14 @@ export class UsersController {
 
   @Put('me/profile')
   @Permissions('players:write')
-  @HateoasItem(UserDto)
+  @HateoasItem<UserDto>({
+    basePath: '/v1/users',
+    itemLinks: (u) => ({
+      self: { href: `/v1/users/me`, method: 'GET' },
+      update: { href: `/v1/users/me/profile`, method: 'PUT' },
+      public: { href: `/v1/users/${u.id}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Atualizar perfil do usuário autenticado' })
   updateProfile(
     @Body() dto: UpdateProfileDto,
@@ -43,7 +57,12 @@ export class UsersController {
 
   @Get(':id/profile')
   @Public()
-  @HateoasItem(UserDto)
+  @HateoasItem<UserDto>({
+    basePath: '/v1/users',
+    itemLinks: (u) => ({
+      self: { href: `/v1/users/${u.id}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Obter perfil público de um usuário' })
   getPublicProfile(@Param('id') id: string): Promise<UserDto> {
     return this.userService.getPublicProfile(id);

@@ -1,46 +1,36 @@
+# syntax=docker/dockerfile:1
 # ---- Builder ----
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Copy monorepo base config (required for @shared/* path resolution)
 COPY tsconfig.base.json ./
-
-# Copy shared module source (compiled into dist alongside service)
 COPY shared/ ./shared/
-
-# Copy service source and package files
-COPY services/open-game/ ./services/open-game/
-
-# Install all dependencies (including devDeps for build)
+COPY services/open-game/package*.json ./services/open-game/
+COPY services/open-game/tsconfig.json ./services/open-game/
+COPY services/open-game/tsconfig.build.json ./services/open-game/
+COPY services/open-game/nest-cli.json ./services/open-game/
 WORKDIR /app/services/open-game
-RUN npm ci --legacy-peer-deps
+RUN --mount=type=cache,target=/root/.npm npm ci --legacy-peer-deps
 
-# Compile TypeScript
+WORKDIR /app
+COPY services/open-game/src ./services/open-game/src
+WORKDIR /app/services/open-game
 RUN npm run build
 
 # ---- Runner ----
 FROM node:22-alpine AS runner
-
 RUN apk add --no-cache dumb-init
 
 WORKDIR /app/services/open-game
 
-# Copy compiled output
 COPY --from=builder /app/services/open-game/dist ./dist
-
-# Copy package files and install ONLY production dependencies
 COPY --from=builder /app/services/open-game/package*.json ./
-RUN npm ci --only=production --legacy-peer-deps
+RUN --mount=type=cache,target=/root/.npm npm ci --only=production --legacy-peer-deps
 
-# Copy Drizzle migration files
-COPY --from=builder /app/services/open-game/drizzle ./drizzle
-
-# Copy migration script
-COPY --from=builder /app/services/open-game/scripts ./scripts
-
-# Copy and make entrypoint executable
-COPY --from=builder /app/services/open-game/docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+COPY services/open-game/drizzle ./drizzle
+COPY services/open-game/scripts ./scripts
+COPY services/open-game/docker-entrypoint.sh ./
+RUN sed -i 's/\r//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 EXPOSE 4004
 

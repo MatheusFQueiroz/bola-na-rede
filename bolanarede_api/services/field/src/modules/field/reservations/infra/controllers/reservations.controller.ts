@@ -19,7 +19,14 @@ export class ReservationsController {
 
   @Post()
   @Permissions('fields:write')
-  @HateoasItem(ReservationDto)
+  @HateoasItem<ReservationDto>({
+    basePath: '/v1/fields',
+    itemLinks: (r) => ({
+      self: { href: `/v1/fields/${r.fieldId}/reservations/${r.id}`, method: 'GET' },
+      cancel: { href: `/v1/fields/${r.fieldId}/reservations/${r.id}`, method: 'DELETE' },
+      field: { href: `/v1/fields/${r.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Criar reserva manual/por telefone' })
   create(
     @Param('fieldId') fieldId: string,
@@ -31,7 +38,14 @@ export class ReservationsController {
 
   @Get()
   @Permissions('fields:write')
-  @HateoasList(ReservationDto)
+  @HateoasList<ReservationDto>({
+    basePath: '/v1/fields',
+    itemLinks: (r) => ({
+      self: { href: `/v1/fields/${r.fieldId}/reservations/${r.id}`, method: 'GET' },
+      cancel: { href: `/v1/fields/${r.fieldId}/reservations/${r.id}`, method: 'DELETE' },
+      field: { href: `/v1/fields/${r.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar reservas do campo' })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 20 })
@@ -45,7 +59,13 @@ export class ReservationsController {
 
   @Delete(':reservationId')
   @Permissions('fields:write')
-  @HateoasItem(ReservationDto)
+  @HateoasItem<ReservationDto>({
+    basePath: '/v1/fields',
+    itemLinks: (r) => ({
+      self: { href: `/v1/fields/${r.fieldId}/reservations`, method: 'GET' },
+      field: { href: `/v1/fields/${r.fieldId}`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Cancelar reserva' })
   cancel(
     @Param('fieldId') fieldId: string,

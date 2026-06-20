@@ -25,6 +25,8 @@ const DEFAULT_PERMISSIONS = [
   'matches:write',
   'rankings:read',
   'notifications:write',
+  'fields:read',
+  'fields:write',
 ];
 
 @Injectable()

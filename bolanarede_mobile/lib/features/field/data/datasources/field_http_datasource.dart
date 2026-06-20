@@ -13,11 +13,11 @@ class FieldHttpDataSource implements FieldDataSource {
 
   @override
   Future<List<Field>> getFields({String? city}) async {
-    final response = await dio.get<List<dynamic>>(
+    final response = await dio.get<Map<String, dynamic>>(
       '/v1/fields',
       queryParameters: city != null ? {'city': city} : null,
     );
-    final data = response.data ?? [];
+    final data = (response.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map((e) => FieldModel.fromJson(e as Map<String, dynamic>).toEntity())
         .toList();
@@ -26,14 +26,16 @@ class FieldHttpDataSource implements FieldDataSource {
   @override
   Future<Field> getFieldById(String id) async {
     final response = await dio.get<Map<String, dynamic>>('/v1/fields/$id');
-    return FieldModel.fromJson(response.data!).toEntity();
+    return FieldModel.fromJson(
+      response.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 
   @override
   Future<List<FieldCourt>> getCourtsByField(String fieldId) async {
     final response =
-        await dio.get<List<dynamic>>('/v1/fields/$fieldId/courts');
-    final data = response.data ?? [];
+        await dio.get<Map<String, dynamic>>('/v1/fields/$fieldId/courts');
+    final data = (response.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map(
           (e) =>
@@ -58,8 +60,9 @@ class FieldHttpDataSource implements FieldDataSource {
       '/v1/fields/$fieldId/availability',
       queryParameters: {'date': dateStr},
     );
-    final models =
-        AvailabilitySlotModel.fromFieldAvailabilityJson(response.data!);
+    final models = AvailabilitySlotModel.fromFieldAvailabilityJson(
+      response.data!['data'] as Map<String, dynamic>,
+    );
     return models.map((m) => m.toEntity()).toList();
   }
 }

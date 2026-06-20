@@ -27,11 +27,17 @@ class AuthHttpDataSource implements AuthDataSource {
   Future<PlayerProfile> register(
     String name,
     String email,
-    String password,
-  ) async {
+    String password, {
+    String? position,
+  }) async {
     final res = await dio.post<Map<String, dynamic>>(
       '/v1/auth/register',
-      data: {'email': email, 'password': password, 'displayName': name},
+      data: {
+        'email': email,
+        'password': password,
+        'displayName': name,
+        if (position != null) 'position': position,
+      },
     );
     final auth = AuthResponseModel.fromJson(res.data!);
     await tokenStorage.saveToken(auth.accessToken);
@@ -43,6 +49,8 @@ class AuthHttpDataSource implements AuthDataSource {
 
   Future<PlayerProfile> _fetchProfile() async {
     final res = await dio.get<Map<String, dynamic>>('/v1/users/me');
-    return UserProfileModel.fromJson(res.data!).toEntity();
+    return UserProfileModel.fromJson(
+      res.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 }

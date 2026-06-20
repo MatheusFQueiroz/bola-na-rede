@@ -19,8 +19,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<PlayerProfile> register(
-      String name, String email, String password) async {
-    _currentUser = await dataSource.register(name, email, password);
+    String name,
+    String email,
+    String password, {
+    String? position,
+  }) async {
+    _currentUser = await dataSource.register(
+      name,
+      email,
+      password,
+      position: position,
+    );
     return _currentUser!;
   }
 

@@ -254,7 +254,7 @@ class ProfilePage extends ConsumerWidget {
         Row(children: [
           const Text('Ultimas partidas', style: AppTextStyles.titleSmall),
           const Spacer(),
-          TextButton(onPressed: () => showComingSoon(context), child: const Text('Ver todas')),
+          TextButton(onPressed: () => context.push(AppRoutes.matchList), child: const Text('Ver todas')),
         ]),
         ...data.recentMatches.map((m) {
           final badgeType = m['result'] == 'win'

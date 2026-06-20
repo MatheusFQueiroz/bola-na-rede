@@ -8,6 +8,7 @@ import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/home/presentation/viewmodels/home_viewmodel.dart';
+import 'package:bola_na_rede/features/match/data/repositories/match_repository_provider.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
 import 'package:bola_na_rede/features/ranking/presentation/viewmodels/ranking_viewmodel.dart';
 import 'package:bola_na_rede/shared/utils/date_utils.dart';
@@ -44,7 +45,7 @@ class HomePage extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
               ],
               if (data.pendingRequest != null) ...[
-                _buildPendingRequest(context, data.pendingRequest!),
+                _buildPendingRequest(context, ref, data.pendingRequest!),
                 const SizedBox(height: AppSpacing.md),
               ],
               _buildQuickActions(context),
@@ -211,59 +212,71 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPendingRequest(BuildContext context, Match match) {
-    final teamA = match.teamASnapshot?.name ?? 'Time';
-    final initialsA = initials(teamA);
-    final field = match.fieldSnapshot?.name ?? 'Local a definir';
-    final date = formatDate(match.scheduledDate);
+  Widget _buildPendingRequest(BuildContext context, WidgetRef ref, Match match) {
+    final sport = match.sport ?? 'futebol';
+    final sportLabel = switch (sport) {
+      'futsal' => 'Futsal',
+      'society' => 'Society',
+      'campo' => 'Campo',
+      _ => 'Futebol',
+    };
 
     return AppCard(
       border: const Border(
           left: BorderSide(color: AppColors.warningIcon, width: 4)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          AppTeamAvatar(
-              initials: initialsA, color: AppColors.avatarRed, size: 40),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.warningIcon.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(PhosphorIcons.clock(),
+                color: AppColors.warningIcon, size: 20),
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(teamA,
-                  style: const TextStyle(
+              const Text('Buscando adversário…',
+                  style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                       color: AppColors.textPrimary)),
-              Text('quer jogar contra seu time',
+              Text('Na fila para uma partida de $sportLabel',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: AppColors.textSecondary)),
-              Text('$date as ${match.scheduledTimeStart}  $field',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textDisabled)),
             ]),
           ),
         ]),
         const SizedBox(height: AppSpacing.md),
-        Row(children: [
-          Expanded(
-            child: AppButton.primary(
-              label: 'Aceitar',
-              icon: PhosphorIcons.check(),
-              height: AppSizes.buttonHeightSmall,
-              onPressed: () => showComingSoon(context),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: AppButton.danger(
-              label: 'Recusar',
-              icon: PhosphorIcons.x(),
-              height: AppSizes.buttonHeightSmall,
-              onPressed: () => showComingSoon(context),
-            ),
-          ),
-        ]),
+        AppButton.outline(
+          label: 'Cancelar solicitação',
+          icon: PhosphorIcons.x(),
+          height: AppSizes.buttonHeightSmall,
+          onPressed: () => _cancelRequest(context, ref, match.id),
+        ),
       ]),
     );
+  }
+
+  Future<void> _cancelRequest(
+      BuildContext context, WidgetRef ref, String requestId) async {
+    try {
+      await ref.read(matchRepositoryProvider).cancelMatchRequest(requestId);
+      ref.invalidate(homeProvider);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Solicitação cancelada.')),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível cancelar.')),
+      );
+    }
   }
 
   Widget _buildQuickActions(BuildContext context) {
@@ -328,20 +341,20 @@ class HomePage extends ConsumerWidget {
   Widget _buildRanking(BuildContext context, WidgetRef ref) {
     final rankings = ref
         .watch(rankingProvider)
-        .whenOrNull(data: (d) => d.teamRankings.take(3).toList());
+        .whenOrNull(data: (d) => d.playerRankings.take(3).toList());
 
-    if (rankings == null) return const SizedBox();
+    if (rankings == null || rankings.isEmpty) return const SizedBox();
 
     final colors = [
+      AppColors.warningIcon,
       AppColors.avatarBlue,
-      AppColors.avatarRed,
       AppColors.avatarGreen,
     ];
 
     return AppCard(
       child: Column(children: [
         Row(children: [
-          const Text('Ranking dos times', style: AppTextStyles.titleSmall),
+          const Text('Top Jogadores', style: AppTextStyles.titleSmall),
           const Spacer(),
           GestureDetector(
             onTap: () => context.push(AppRoutes.ranking),
@@ -351,7 +364,7 @@ class HomePage extends ConsumerWidget {
         ]),
         const SizedBox(height: AppSpacing.md),
         ...rankings.asMap().entries.map((e) {
-          final team = e.value;
+          final player = e.value;
           final color = colors[e.key % colors.length];
           return Column(children: [
             if (e.key > 0) const Divider(),
@@ -360,16 +373,16 @@ class HomePage extends ConsumerWidget {
               child: Row(children: [
                 SizedBox(
                   width: 24,
-                  child: Text('${team.rank}',
+                  child: Text('#${player.rank}',
                       style: AppTextStyles.bodySmall.copyWith(
-                          color: team.rank == 1
+                          color: player.rank == 1
                               ? AppColors.warningIcon
                               : AppColors.textSecondary,
                           fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 AppTeamAvatar(
-                    initials: initials(team.name),
+                    initials: initials(player.name),
                     color: color,
                     size: 32,
                     fontSize: 12),
@@ -378,14 +391,14 @@ class HomePage extends ConsumerWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(team.name,
+                        Text(player.name,
                             style: AppTextStyles.bodyMedium
                                 .copyWith(fontWeight: FontWeight.w700)),
-                        Text('${team.matchesPlayed} jogos',
+                        Text('${player.matchesPlayed} jogos · ${player.goals} gols',
                             style: AppTextStyles.bodySmall),
                       ]),
                 ),
-                Text('${team.points} pts',
+                Text('${player.goals} gols',
                     style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.primary, fontWeight: FontWeight.w700)),
               ]),

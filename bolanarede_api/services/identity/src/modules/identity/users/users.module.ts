@@ -14,6 +14,6 @@ import { USER_REPOSITORY } from './domain/repositories/user-repository.interface
     UserMessagingService,
     { provide: USER_REPOSITORY, useClass: DrizzleUserRepository },
   ],
-  exports: [UserService, UserMessagingService],
+  exports: [UserService, UserMessagingService, USER_REPOSITORY],
 })
 export class UsersModule {}

@@ -58,6 +58,12 @@ class GameModel {
       status: _parseStatus(status),
       createdAt: ts,
       updatedAt: ts,
+      sport: sport,
+      playerAGoals: playerAGoals,
+      playerBGoals: playerBGoals,
+      playerAAssists: playerAAssists,
+      playerBAssists: playerBAssists,
+      winnerId: winnerId,
     );
   }
 

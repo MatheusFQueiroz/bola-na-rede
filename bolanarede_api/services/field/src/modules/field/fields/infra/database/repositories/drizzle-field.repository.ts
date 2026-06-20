@@ -82,6 +82,14 @@ export class DrizzleFieldRepository implements FieldRepositoryInterface {
     return rows.map((r) => this.toField(r));
   }
 
+  async findByOwner(ownerUserId: string): Promise<Field[]> {
+    const rows = await this.drizzle.db
+      .select()
+      .from(fields)
+      .where(and(eq(fields.ownerUserId, ownerUserId), eq(fields.isActive, true)));
+    return rows.map((r) => this.toField(r));
+  }
+
   async addCourt(data: CreateCourtData): Promise<FieldCourt> {
     const [fieldRow] = await this.drizzle.db
       .select()

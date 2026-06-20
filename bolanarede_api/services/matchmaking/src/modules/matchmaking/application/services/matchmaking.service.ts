@@ -100,6 +100,10 @@ export class MatchmakingService {
     return request;
   }
 
+  async getActiveRequest(userId: string): Promise<MatchRequest | null> {
+    return this.requestRepo.findActivByUserId(userId);
+  }
+
   async acceptMatch(userId: string, matchExternalId: string): Promise<PendingMatch> {
     const match = await this.matchRepo.findByExternalId(matchExternalId);
     if (!match) throw new NotFoundException('Pending match not found');

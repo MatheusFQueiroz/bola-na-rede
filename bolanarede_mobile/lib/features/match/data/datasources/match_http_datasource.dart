@@ -13,8 +13,8 @@ class MatchHttpDataSource implements MatchDataSource {
 
   @override
   Future<List<Match>> getMatches() async {
-    final res = await dio.get<List<dynamic>>('/v1/games');
-    final data = res.data ?? [];
+    final res = await dio.get<Map<String, dynamic>>('/v1/games');
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map((e) => GameModel.fromJson(e as Map<String, dynamic>).toEntity())
         .toList();
@@ -23,7 +23,8 @@ class MatchHttpDataSource implements MatchDataSource {
   @override
   Future<Match> getMatchById(String id) async {
     final res = await dio.get<Map<String, dynamic>>('/v1/games/$id');
-    return GameModel.fromJson(res.data!).toEntity();
+    return GameModel.fromJson(res.data!['data'] as Map<String, dynamic>)
+        .toEntity();
   }
 
   @override
@@ -36,11 +37,11 @@ class MatchHttpDataSource implements MatchDataSource {
 
   @override
   Future<List<MatchRequest>> getMatchRequests({String? city}) async {
-    final res = await dio.get<List<dynamic>>(
+    final res = await dio.get<Map<String, dynamic>>(
       '/v1/match-requests',
       queryParameters: <String, dynamic>{if (city != null) 'city': city},
     );
-    final data = res.data ?? [];
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     return data
         .map(
           (e) => MatchRequestModel.fromJson(e as Map<String, dynamic>)
@@ -55,7 +56,9 @@ class MatchHttpDataSource implements MatchDataSource {
       '/v1/match-requests',
       data: {'sport': sport},
     );
-    return MatchRequestModel.fromJson(res.data!).toEntity();
+    return MatchRequestModel.fromJson(
+      res.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 
   @override
@@ -69,7 +72,8 @@ class MatchHttpDataSource implements MatchDataSource {
   @override
   Future<Match> getGame(String gameId) async {
     final res = await dio.get<Map<String, dynamic>>('/v1/games/$gameId');
-    return GameModel.fromJson(res.data!).toEntity();
+    return GameModel.fromJson(res.data!['data'] as Map<String, dynamic>)
+        .toEntity();
   }
 
   @override

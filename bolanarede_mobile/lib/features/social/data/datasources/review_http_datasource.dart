@@ -27,13 +27,17 @@ class ReviewHttpDatasource implements ReviewRepository {
         if (comment != null) 'comment': comment,
       },
     );
-    return ReviewModel.fromJson(response.data!).toEntity();
+    return ReviewModel.fromJson(
+      response.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 
   @override
   Future<PlayerScore> getPlayerScore(String userId) async {
     final response = await dio
         .get<Map<String, dynamic>>('/v1/scores/players/$userId');
-    return PlayerScoreModel.fromJson(response.data!).toEntity();
+    return PlayerScoreModel.fromJson(
+      response.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 }

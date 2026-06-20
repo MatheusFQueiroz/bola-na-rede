@@ -4,6 +4,7 @@ export const RANKING_REPOSITORY = 'RANKING_REPOSITORY';
 
 export interface UpsertRankingData {
   playerUserId: string;
+  displayName?: string;
   sport: string;
   goals: number;
   assists: number;
@@ -25,4 +26,6 @@ export interface RankingRepositoryInterface {
   findByPlayerAndSport(playerUserId: string, sport: string): Promise<PlayerRanking | null>;
   /** Retorna os top `limit` jogadores do sport, ordenados por points DESC, wins DESC. */
   getLeaderboard(sport: string, limit: number): Promise<PlayerRanking[]>;
+  /** Atualiza o displayName snapshot para todas as linhas do jogador (todos os sports). */
+  updateDisplayName(playerUserId: string, displayName: string): Promise<void>;
 }

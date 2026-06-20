@@ -22,7 +22,14 @@ export class StatsController {
 
   @Post(':id/stats')
   @Permissions('open-games:write')
-  @HateoasList(StatsDto)
+  @HateoasList<StatsDto>({
+    basePath: '/v1/open-games',
+    itemLinks: (s) => ({
+      self: { href: `/v1/open-games/${s.gameId}/stats`, method: 'GET' },
+      game: { href: `/v1/open-games/${s.gameId}`, method: 'GET' },
+      player: { href: `/v1/users/${s.playerUserId}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Registrar estatísticas dos jogadores (somente organizador)' })
   recordStats(
     @Param('id') id: string,
@@ -34,7 +41,14 @@ export class StatsController {
 
   @Get(':id/stats')
   @Public()
-  @HateoasList(StatsDto)
+  @HateoasList<StatsDto>({
+    basePath: '/v1/open-games',
+    itemLinks: (s) => ({
+      self: { href: `/v1/open-games/${s.gameId}/stats`, method: 'GET' },
+      game: { href: `/v1/open-games/${s.gameId}`, method: 'GET' },
+      player: { href: `/v1/users/${s.playerUserId}/profile`, method: 'GET' },
+    }),
+  })
   @ApiOperation({ summary: 'Listar estatísticas da partida' })
   getGameStats(@Param('id') id: string): Promise<StatsDto[]> {
     return this.service.getGameStats(id);

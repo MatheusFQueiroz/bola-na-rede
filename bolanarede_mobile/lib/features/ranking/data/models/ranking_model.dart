@@ -4,6 +4,7 @@ class LeaderboardEntryModel {
   const LeaderboardEntryModel({
     required this.position,
     required this.playerUserId,
+    required this.displayName,
     required this.sport,
     required this.gamesPlayed,
     required this.wins,
@@ -18,6 +19,7 @@ class LeaderboardEntryModel {
       LeaderboardEntryModel(
         position: json['position'] as int,
         playerUserId: json['playerUserId'] as String,
+        displayName: json['displayName'] as String? ?? '',
         sport: json['sport'] as String,
         gamesPlayed: json['gamesPlayed'] as int,
         wins: json['wins'] as int,
@@ -30,6 +32,7 @@ class LeaderboardEntryModel {
 
   final int position;
   final String playerUserId;
+  final String displayName;
   final String sport;
   final int gamesPlayed;
   final int wins;
@@ -41,7 +44,7 @@ class LeaderboardEntryModel {
 
   PlayerRanking toPlayerEntity() => PlayerRanking(
         id: playerUserId,
-        name: playerUserId,
+        name: displayName.isNotEmpty ? displayName : _shortId(playerUserId),
         teamName: '',
         position: sport,
         goals: goals,
@@ -49,4 +52,9 @@ class LeaderboardEntryModel {
         matchesPlayed: gamesPlayed,
         rank: position,
       );
+
+  static String _shortId(String id) {
+    if (id.length <= 8) return id;
+    return id.substring(0, 8).toUpperCase();
+  }
 }

@@ -12,6 +12,8 @@ export async function bootstrapHttpApp(app: INestApplication): Promise<void> {
 
   app.setGlobalPrefix('v1');
 
+  app.enableCors({ origin: '*' });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

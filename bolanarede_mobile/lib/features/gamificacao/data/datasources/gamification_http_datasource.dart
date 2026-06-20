@@ -13,6 +13,8 @@ class GamificationHttpDatasource implements GamificationDataSource {
   Future<PlayerGamification> getProfile(String userId) async {
     final response =
         await dio.get<Map<String, dynamic>>('/v1/profiles/$userId');
-    return GamificationModel.fromJson(response.data!).toEntity();
+    return GamificationModel.fromJson(
+      response.data!['data'] as Map<String, dynamic>,
+    ).toEntity();
   }
 }

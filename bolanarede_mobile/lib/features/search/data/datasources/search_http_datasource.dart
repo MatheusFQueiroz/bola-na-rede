@@ -13,8 +13,8 @@ class SearchHttpDataSource implements SearchDataSource {
 
   @override
   Future<List<Match>> searchMatches(String query) async {
-    final res = await dio.get<List<dynamic>>('/v1/games');
-    final data = res.data ?? [];
+    final res = await dio.get<Map<String, dynamic>>('/v1/games');
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     final all = data
         .map((e) => GameModel.fromJson(e as Map<String, dynamic>).toEntity())
         .toList();
@@ -30,8 +30,8 @@ class SearchHttpDataSource implements SearchDataSource {
 
   @override
   Future<List<Team>> searchTeams(String query) async {
-    final res = await dio.get<List<dynamic>>('/v1/teams');
-    final data = res.data ?? [];
+    final res = await dio.get<Map<String, dynamic>>('/v1/teams');
+    final data = (res.data?['data'] as List<dynamic>?) ?? [];
     final all = data
         .map((e) => TeamModel.fromJson(e as Map<String, dynamic>).toEntity())
         .toList();
