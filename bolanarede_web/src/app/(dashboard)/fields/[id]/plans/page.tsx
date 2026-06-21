@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCourts, type CourtDto } from '@/hooks/use-courts';
 import { usePlans, useCreatePlan, useReleaseSlot, type PlanDto } from '@/hooks/use-plans';
+import { toast } from 'sonner';
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
@@ -38,10 +39,24 @@ export default function PlansPage({ params }: { params: Promise<{ id: string }> 
   });
 
   const onSubmit = async (data: FormData) => {
-    await createPlan.mutateAsync(data);
-    reset();
-    setOpen(false);
+    try {
+      await createPlan.mutateAsync(data);
+      toast.success('Plano criado com sucesso!');
+      reset();
+      setOpen(false);
+    } catch {
+      toast.error('Erro ao criar plano.');
+    }
   };
+
+  async function handleRelease(slotId: string) {
+    try {
+      await releaseSlot.mutateAsync(slotId);
+      toast.success('Slot liberado com sucesso!');
+    } catch {
+      toast.error('Erro ao liberar slot.');
+    }
+  }
 
   function courtName(courtId: string) {
     return courts?.find((c: CourtDto) => c.id === courtId)?.name ?? courtId.slice(0, 8) + '...';
@@ -141,7 +156,7 @@ export default function PlansPage({ params }: { params: Promise<{ id: string }> 
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => releaseSlot.mutate(plan.id)}
+                      onClick={() => handleRelease(plan.id)}
                       disabled={releaseSlot.isPending}
                     >
                       Liberar

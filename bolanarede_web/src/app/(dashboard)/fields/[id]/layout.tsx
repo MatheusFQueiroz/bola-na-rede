@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useField } from '@/hooks/use-fields';
 
 const TABS = [
   { label: 'Quadras', segment: 'courts' },
@@ -22,20 +23,16 @@ export default function FieldLayout({
 }) {
   const { id } = use(params);
   const pathname = usePathname();
+  const { data: field } = useField(id);
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          render={
-            <Link href="/fields">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          }
-        />
-        <h1 className="text-2xl font-semibold">Campo</h1>
+        <Button variant="ghost" size="sm" render={<Link href="/fields"><ArrowLeft className="h-4 w-4" /></Link>} />
+        <div>
+          <h1 className="text-2xl font-semibold">{field?.name ?? 'Carregando...'}</h1>
+          {field?.city && <p className="text-sm text-muted-foreground">{field.city} · {field.address}</p>}
+        </div>
       </div>
       <div className="border-b flex gap-1">
         {TABS.map(tab => {

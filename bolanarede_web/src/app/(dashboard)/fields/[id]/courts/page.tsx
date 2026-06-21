@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useCourts, useAddCourt, type CourtDto } from '@/hooks/use-courts';
+import { toast } from 'sonner';
 
 const COURT_TYPES = ['futsal', 'society', 'campo', 'beach_tennis', 'padel'];
 
@@ -50,9 +51,14 @@ export default function CourtsPage({ params }: { params: Promise<{ id: string }>
   });
 
   const onSubmit = async (data: FormData) => {
-    await addCourt.mutateAsync(data);
-    reset();
-    setOpen(false);
+    try {
+      await addCourt.mutateAsync(data);
+      toast.success('Quadra adicionada com sucesso!');
+      reset();
+      setOpen(false);
+    } catch {
+      toast.error('Erro ao adicionar quadra.');
+    }
   };
 
   return (

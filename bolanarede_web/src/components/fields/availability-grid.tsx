@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { SlotData } from '@/hooks/use-availability';
@@ -28,15 +28,34 @@ function toSlots(grid: boolean[][]): SlotData[] {
 interface AvailabilityGridProps {
   onSave: (slots: SlotData[]) => Promise<void>;
   isSaving: boolean;
+  initialSlots?: SlotData[];
 }
 
-export function AvailabilityGrid({ onSave, isSaving }: AvailabilityGridProps) {
-  // grid[day][hourIndex] = isAvailable
-  const [grid, setGrid] = useState<boolean[][]>(
-    Array.from({ length: 7 }, () =>
+export function AvailabilityGrid({ onSave, isSaving, initialSlots = [] }: AvailabilityGridProps) {
+  // Build initial grid from initialSlots
+  const buildGrid = (slots: SlotData[]): boolean[][] => {
+    const g = Array.from({ length: 7 }, () =>
       Array.from({ length: HOURS.length }, () => false)
-    )
-  );
+    );
+    for (const slot of slots) {
+      if (!slot.isAvailable) continue;
+      const hStart = parseInt(slot.startTime.split(':')[0], 10);
+      const hEnd = parseInt(slot.endTime.split(':')[0], 10);
+      // Fill all hours in range (handles both hourly and multi-hour slots)
+      for (let h = hStart; h < hEnd; h++) {
+        const idx = HOURS.indexOf(h);
+        if (idx !== -1) g[slot.dayOfWeek][idx] = true;
+      }
+    }
+    return g;
+  };
+
+  const [grid, setGrid] = useState<boolean[][]>(() => buildGrid(initialSlots));
+
+  // Reset grid when initialSlots changes (court changed)
+  useEffect(() => {
+    setGrid(buildGrid(initialSlots));
+  }, [initialSlots]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggle(day: number, hourIdx: number) {
     setGrid(prev => {

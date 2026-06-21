@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCourts, type CourtDto } from '@/hooks/use-courts';
 import { useReservations, useCreateReservation, useCancelReservation, type ReservationDto } from '@/hooks/use-reservations';
+import { toast } from 'sonner';
 
 const schema = z.object({
   courtId: z.string().min(1, 'Quadra obrigatória'),
@@ -50,10 +51,24 @@ export default function ReservationsPage({ params }: { params: Promise<{ id: str
   });
 
   const onSubmit = async (data: FormData) => {
-    await createReservation.mutateAsync(data);
-    reset();
-    setOpen(false);
+    try {
+      await createReservation.mutateAsync(data);
+      toast.success('Reserva criada com sucesso!');
+      reset();
+      setOpen(false);
+    } catch {
+      toast.error('Erro ao criar reserva.');
+    }
   };
+
+  async function handleCancel(reservationId: string) {
+    try {
+      await cancelReservation.mutateAsync(reservationId);
+      toast.success('Reserva cancelada.');
+    } catch {
+      toast.error('Erro ao cancelar reserva.');
+    }
+  }
 
   function courtName(courtId: string) {
     return courts?.find((c: CourtDto) => c.id === courtId)?.name ?? courtId.slice(0, 8) + '...';
@@ -139,7 +154,7 @@ export default function ReservationsPage({ params }: { params: Promise<{ id: str
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => cancelReservation.mutate(r.id)}
+                      onClick={() => handleCancel(r.id)}
                       disabled={cancelReservation.isPending}
                     >
                       Cancelar

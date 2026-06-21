@@ -18,6 +18,7 @@ import { SearchFieldsDto } from '../../application/dto/search-fields.dto';
 import { FieldDto } from '../../application/dto/field.dto';
 import { FieldCourtDto } from '../../application/dto/field-court.dto';
 import { FieldAvailabilityDto } from '../../application/dto/field-availability.dto';
+import { CourtWeeklySlotDto } from '../../application/dto/court-weekly-slots.dto';
 
 @ApiTags('fields')
 @ApiBearerAuth()
@@ -148,6 +149,16 @@ export class FieldsController {
   @ApiOperation({ summary: 'Listar quadras do campo' })
   getCourts(@Param('id') id: string): Promise<FieldCourtDto[]> {
     return this.fieldService.getCourts(id);
+  }
+
+  @Get(':id/courts/:courtId/availability')
+  @Public()
+  @ApiOperation({ summary: 'Obter slots semanais de disponibilidade de uma quadra' })
+  getCourtWeeklySlots(
+    @Param('id') id: string,
+    @Param('courtId') courtId: string,
+  ): Promise<CourtWeeklySlotDto[]> {
+    return this.fieldService.getCourtWeeklySlots(id, courtId);
   }
 
   @Put(':id/courts/:courtId/availability')

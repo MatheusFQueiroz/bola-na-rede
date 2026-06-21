@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCreateField } from '@/hooks/use-fields';
+import { toast } from 'sonner';
 
 const schema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
@@ -32,15 +33,20 @@ export default function NewFieldPage() {
   });
 
   const onSubmit = async (data: FormData) => {
-    await createField.mutateAsync({
-      name: data.name,
-      description: data.description || undefined,
-      city: data.city,
-      address: data.address,
-      lat: data.lat,
-      lng: data.lng,
-    });
-    router.push('/fields');
+    try {
+      await createField.mutateAsync({
+        name: data.name,
+        description: data.description || undefined,
+        city: data.city,
+        address: data.address,
+        lat: data.lat,
+        lng: data.lng,
+      });
+      toast.success('Campo criado com sucesso!');
+      router.push('/fields');
+    } catch {
+      toast.error('Erro ao criar campo.');
+    }
   };
 
   return (

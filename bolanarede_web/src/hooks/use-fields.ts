@@ -28,6 +28,17 @@ export function useMyFields() {
   });
 }
 
+export function useField(id: string) {
+  return useQuery({
+    queryKey: ['fields', id],
+    queryFn: async () => {
+      const res = await api.get(`/v1/fields/${id}`);
+      return (res.data.data ?? res.data) as FieldDto;
+    },
+    enabled: !!id,
+  });
+}
+
 export interface CreateFieldData {
   name: string;
   description?: string;

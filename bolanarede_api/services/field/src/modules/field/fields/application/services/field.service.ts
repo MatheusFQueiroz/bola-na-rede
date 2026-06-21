@@ -5,6 +5,7 @@ import { CreateFieldDto } from '../dto/create-field.dto';
 import { CreateCourtDto } from '../dto/create-court.dto';
 import { FieldDto } from '../dto/field.dto';
 import { FieldCourtDto } from '../dto/field-court.dto';
+import { CourtWeeklySlotDto } from '../dto/court-weekly-slots.dto';
 
 @Injectable()
 export class FieldService {
@@ -80,5 +81,12 @@ export class FieldService {
     if (field.ownerUserId !== ownerUserId) throw new ForbiddenException('Only field owner can set availability');
 
     await this.fieldRepo.setAvailabilitySlots(courtExternalId, slots);
+  }
+
+  async getCourtWeeklySlots(fieldExternalId: string, courtExternalId: string): Promise<CourtWeeklySlotDto[]> {
+    const field = await this.fieldRepo.findById(fieldExternalId);
+    if (!field) throw new NotFoundException(`Field ${fieldExternalId} not found`);
+    const slots = await this.fieldRepo.getAvailabilitySlots(courtExternalId);
+    return slots.map((s) => CourtWeeklySlotDto.from(s));
   }
 }

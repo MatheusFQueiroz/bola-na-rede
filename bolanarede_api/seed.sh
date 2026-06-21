@@ -12,11 +12,9 @@
 #   ./seed.sh
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
 
 GATEWAY="http://localhost:3000"
-FIELD_DB="bolanarededb_field"
-FIELD_CONTAINER="bolanarede_api-postgres-field-1"
 
 # Cores para output
 GREEN='\033[0;32m'
@@ -25,10 +23,10 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-info()  { echo -e "${BLUE}[seed]${NC} $*"; }
-ok()    { echo -e "${GREEN}[ok]${NC}   $*"; }
-warn()  { echo -e "${YELLOW}[warn]${NC} $*"; }
-err()   { echo -e "${RED}[err]${NC}  $*"; exit 1; }
+info()  { echo -e "${BLUE}[seed]${NC} $*" >&2; }
+ok()    { echo -e "${GREEN}[ok]${NC}   $*" >&2; }
+warn()  { echo -e "${YELLOW}[warn]${NC} $*" >&2; }
+err()   { echo -e "${RED}[err]${NC}  $*" >&2; exit 1; }
 
 wait_for_gateway() {
   info "Aguardando gateway em $GATEWAY..."
@@ -68,87 +66,118 @@ register_user() {
 }
 
 # =============================================================================
-# 2. CAMPOS (via SQL direto — requer fields:write)
+# 2. CAMPOS (via API — dono autenticado)
 # =============================================================================
 
-seed_fields() {
-  info "Inserindo campos via SQL no container '$FIELD_CONTAINER'..."
+seed_field_owner() {
+  info "Registrando dono de campo: Zé do Campo (dono@bolanarede.com)"
+  TOKEN_DONO=$(register_user "Zé do Campo" "dono@bolanarede.com" "senha123")
+  [ -n "$TOKEN_DONO" ] && ok "Dono token obtido" || { warn "Dono token não obtido. Pulando campos."; return 0; }
 
-  # Verifica se o container existe
-  if ! docker ps --format '{{.Names}}' | grep -q "$FIELD_CONTAINER"; then
-    warn "Container '$FIELD_CONTAINER' não encontrado. Tentando nome alternativo..."
-    FIELD_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i "field" | head -1 || true)
-    if [ -z "$FIELD_CONTAINER" ]; then
-      warn "Nenhum container de field encontrado. Pulando campos."
-      FIELD1_ID=""
-      FIELD2_ID=""
-      return 0
-    fi
-    info "  Usando container: $FIELD_CONTAINER"
-  fi
-
-  FIELD1_ID=$(docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -tAq \
-    -c "INSERT INTO fields (name, description, city, address, lat, lng, owner_user_id, is_active)
-        VALUES ('Arena Society Xaxim', 'Quadras de society e futsal com vestiário', 'Curitiba', 'Rua das Araucárias, 450, Xaxim', -25.5108, -49.2647, 'seed-owner-1', true)
-        ON CONFLICT DO NOTHING
-        RETURNING external_id;" 2>/dev/null || true)
+  # Campo 1
+  info "Criando campo: Arena Society Xaxim"
+  local resp1
+  resp1=$(curl -sf -X POST "$GATEWAY/v1/fields" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN_DONO" \
+    -d '{"name":"Arena Society Xaxim","description":"Quadras de society e futsal com vestiário","city":"Curitiba","address":"Rua das Araucárias, 450, Xaxim","lat":-25.5108,"lng":-49.2647}' \
+    2>/dev/null || true)
+  FIELD1_ID=$(echo "$resp1" | jq -r '.data.id // .id // empty' 2>/dev/null || true)
 
   if [ -z "$FIELD1_ID" ]; then
-    FIELD1_ID=$(docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -tAq \
-      -c "SELECT external_id FROM fields WHERE name='Arena Society Xaxim' LIMIT 1;" 2>/dev/null | tr -d '[:space:]')
-  fi
+    warn "Campo 1 não criado (já existe? Tentando buscar...)"
+    # If already exists, can't easily get by name via API — skip courts for this field
+  else
+    ok "Campo 1: $FIELD1_ID"
 
-  FIELD2_ID=$(docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -tAq \
-    -c "INSERT INTO fields (name, description, city, address, lat, lng, owner_user_id, is_active)
-        VALUES ('Campo do Zé', 'Campo society iluminado', 'Curitiba', 'Av. Pinheirinho, 200, Pinheirinho', -25.5342, -49.2987, 'seed-owner-1', true)
-        ON CONFLICT DO NOTHING
-        RETURNING external_id;" 2>/dev/null || true)
+    # Quadra 1A
+    info "  Criando quadra: Quadra Society A"
+    local cr1a
+    cr1a=$(curl -sf -X POST "$GATEWAY/v1/fields/$FIELD1_ID/courts" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN_DONO" \
+      -d '{"name":"Quadra Society A","type":"society","maxPlayers":14}' \
+      2>/dev/null || true)
+    COURT1A_ID=$(echo "$cr1a" | jq -r '.data.id // .id // empty' 2>/dev/null || true)
 
-  if [ -z "$FIELD2_ID" ]; then
-    FIELD2_ID=$(docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -tAq \
-      -c "SELECT external_id FROM fields WHERE name='Campo do Zé' LIMIT 1;" 2>/dev/null | tr -d '[:space:]')
-  fi
-
-  # Quadras do campo 1
-  if [ -n "$FIELD1_ID" ]; then
-    docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -q \
-      -c "INSERT INTO field_courts (field_id, name, type, max_players, is_active)
-          SELECT f.id, 'Quadra Society A', 'society', 14, true FROM fields f WHERE f.external_id='$FIELD1_ID'
-          ON CONFLICT DO NOTHING;
-          INSERT INTO field_courts (field_id, name, type, max_players, is_active)
-          SELECT f.id, 'Quadra Futsal B', 'futsal', 10, true FROM fields f WHERE f.external_id='$FIELD1_ID'
-          ON CONFLICT DO NOTHING;" 2>/dev/null || true
-
-    # Disponibilidade (seg-sex 18:00-22:00, sab-dom 08:00-22:00)
-    COURT1_ID=$(docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -tAq \
-      -c "SELECT external_id FROM field_courts WHERE name='Quadra Society A' LIMIT 1;" 2>/dev/null | tr -d '[:space:]')
-
-    if [ -n "$COURT1_ID" ]; then
-      for day in 1 2 3 4 5; do
-        docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -q \
-          -c "INSERT INTO availability_slots (court_id, day_of_week, start_time, end_time, is_available)
-              SELECT c.id, $day, '18:00', '22:00', true FROM field_courts c WHERE c.external_id='$COURT1_ID'
-              ON CONFLICT DO NOTHING;" 2>/dev/null || true
-      done
-      for day in 0 6; do
-        docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -q \
-          -c "INSERT INTO availability_slots (court_id, day_of_week, start_time, end_time, is_available)
-              SELECT c.id, $day, '08:00', '22:00', true FROM field_courts c WHERE c.external_id='$COURT1_ID'
-              ON CONFLICT DO NOTHING;" 2>/dev/null || true
-      done
+    if [ -n "$COURT1A_ID" ]; then
+      ok "  Quadra 1A: $COURT1A_ID"
+      # Disponibilidade: seg-sex 18:00-22:00, sab-dom 08:00-22:00
+      info "  Definindo disponibilidade..."
+      curl -sf -X PUT "$GATEWAY/v1/fields/$FIELD1_ID/courts/$COURT1A_ID/availability" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $TOKEN_DONO" \
+        -d '{"slots":[
+          {"dayOfWeek":1,"startTime":"18:00","endTime":"19:00","isAvailable":true},
+          {"dayOfWeek":1,"startTime":"19:00","endTime":"20:00","isAvailable":true},
+          {"dayOfWeek":1,"startTime":"20:00","endTime":"21:00","isAvailable":true},
+          {"dayOfWeek":1,"startTime":"21:00","endTime":"22:00","isAvailable":true},
+          {"dayOfWeek":2,"startTime":"18:00","endTime":"19:00","isAvailable":true},
+          {"dayOfWeek":2,"startTime":"19:00","endTime":"20:00","isAvailable":true},
+          {"dayOfWeek":2,"startTime":"20:00","endTime":"21:00","isAvailable":true},
+          {"dayOfWeek":2,"startTime":"21:00","endTime":"22:00","isAvailable":true},
+          {"dayOfWeek":3,"startTime":"18:00","endTime":"19:00","isAvailable":true},
+          {"dayOfWeek":3,"startTime":"19:00","endTime":"20:00","isAvailable":true},
+          {"dayOfWeek":3,"startTime":"20:00","endTime":"21:00","isAvailable":true},
+          {"dayOfWeek":3,"startTime":"21:00","endTime":"22:00","isAvailable":true},
+          {"dayOfWeek":4,"startTime":"18:00","endTime":"19:00","isAvailable":true},
+          {"dayOfWeek":4,"startTime":"19:00","endTime":"20:00","isAvailable":true},
+          {"dayOfWeek":4,"startTime":"20:00","endTime":"21:00","isAvailable":true},
+          {"dayOfWeek":4,"startTime":"21:00","endTime":"22:00","isAvailable":true},
+          {"dayOfWeek":5,"startTime":"18:00","endTime":"19:00","isAvailable":true},
+          {"dayOfWeek":5,"startTime":"19:00","endTime":"20:00","isAvailable":true},
+          {"dayOfWeek":5,"startTime":"20:00","endTime":"21:00","isAvailable":true},
+          {"dayOfWeek":5,"startTime":"21:00","endTime":"22:00","isAvailable":true},
+          {"dayOfWeek":0,"startTime":"08:00","endTime":"09:00","isAvailable":true},
+          {"dayOfWeek":0,"startTime":"09:00","endTime":"10:00","isAvailable":true},
+          {"dayOfWeek":0,"startTime":"10:00","endTime":"11:00","isAvailable":true},
+          {"dayOfWeek":0,"startTime":"11:00","endTime":"12:00","isAvailable":true},
+          {"dayOfWeek":0,"startTime":"12:00","endTime":"13:00","isAvailable":true},
+          {"dayOfWeek":6,"startTime":"08:00","endTime":"09:00","isAvailable":true},
+          {"dayOfWeek":6,"startTime":"09:00","endTime":"10:00","isAvailable":true},
+          {"dayOfWeek":6,"startTime":"10:00","endTime":"11:00","isAvailable":true},
+          {"dayOfWeek":6,"startTime":"11:00","endTime":"12:00","isAvailable":true},
+          {"dayOfWeek":6,"startTime":"12:00","endTime":"13:00","isAvailable":true}
+        ]}' > /dev/null 2>&1 && ok "  Disponibilidade definida" || warn "  Disponibilidade não definida"
     fi
+
+    # Quadra 1B
+    info "  Criando quadra: Quadra Futsal B"
+    local cr1b
+    cr1b=$(curl -sf -X POST "$GATEWAY/v1/fields/$FIELD1_ID/courts" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN_DONO" \
+      -d '{"name":"Quadra Futsal B","type":"futsal","maxPlayers":10}' \
+      2>/dev/null || true)
+    COURT1B_ID=$(echo "$cr1b" | jq -r '.data.id // .id // empty' 2>/dev/null || true)
+    [ -n "$COURT1B_ID" ] && ok "  Quadra 1B: $COURT1B_ID" || warn "  Quadra 1B não criada"
   fi
 
-  # Quadra do campo 2
+  # Campo 2
+  info "Criando campo: Campo do Zé"
+  local resp2
+  resp2=$(curl -sf -X POST "$GATEWAY/v1/fields" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $TOKEN_DONO" \
+    -d '{"name":"Campo do Zé","description":"Campo society iluminado","city":"Curitiba","address":"Av. Pinheirinho, 200, Pinheirinho","lat":-25.5342,"lng":-49.2987}' \
+    2>/dev/null || true)
+  FIELD2_ID=$(echo "$resp2" | jq -r '.data.id // .id // empty' 2>/dev/null || true)
+
   if [ -n "$FIELD2_ID" ]; then
-    docker exec "$FIELD_CONTAINER" psql -U postgres -d "$FIELD_DB" -q \
-      -c "INSERT INTO field_courts (field_id, name, type, max_players, is_active)
-          SELECT f.id, 'Campo Principal', 'society', 18, true FROM fields f WHERE f.external_id='$FIELD2_ID'
-          ON CONFLICT DO NOTHING;" 2>/dev/null || true
-  fi
+    ok "Campo 2: $FIELD2_ID"
 
-  [ -n "$FIELD1_ID" ] && ok "Campo 1: $FIELD1_ID" || warn "Campo 1 não inserido"
-  [ -n "$FIELD2_ID" ] && ok "Campo 2: $FIELD2_ID" || warn "Campo 2 não inserido"
+    info "  Criando quadra: Campo Principal"
+    local cr2
+    cr2=$(curl -sf -X POST "$GATEWAY/v1/fields/$FIELD2_ID/courts" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $TOKEN_DONO" \
+      -d '{"name":"Campo Principal","type":"society","maxPlayers":18}' \
+      2>/dev/null || true)
+    COURT2_ID=$(echo "$cr2" | jq -r '.data.id // .id // empty' 2>/dev/null || true)
+    [ -n "$COURT2_ID" ] && ok "  Campo Principal: $COURT2_ID" || warn "  Campo Principal não criado"
+  else
+    warn "Campo 2 não criado"
+  fi
 }
 
 # =============================================================================
@@ -162,7 +191,7 @@ create_team() {
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $token" \
     -d "{\"name\":\"$name\",\"description\":\"$desc\",\"minPlayers\":5,\"maxPlayers\":14}" \
-    | jq -r '.id // empty' 2>/dev/null || echo ""
+    | jq -r '.data.id // .id // empty' 2>/dev/null || echo ""
 }
 
 join_team() {
@@ -186,7 +215,7 @@ create_open_game() {
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $token" \
     -d "$body" \
-    | jq -r '.id // empty' 2>/dev/null || echo ""
+    | jq -r '.data.id // .id // empty' 2>/dev/null || echo ""
 }
 
 # =============================================================================
@@ -200,7 +229,7 @@ create_match_request() {
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $token" \
     -d "{\"sport\":\"$sport\"}" \
-    | jq -r '.id // empty' 2>/dev/null || echo ""
+    | jq -r '.data.id // .id // empty' 2>/dev/null || echo ""
 }
 
 # =============================================================================
@@ -219,6 +248,7 @@ main() {
   # --- Usuários ---
   echo ""
   info "=== USUÁRIOS ==="
+  TOKEN_DONO=""
   TOKEN1=$(register_user "Carlos Souza"  "carlos@seed.com"  "senha123")
   TOKEN2=$(register_user "André Lima"    "andre@seed.com"   "senha123")
   TOKEN3=$(register_user "Marcos Rocha"  "marcos@seed.com"  "senha123")
@@ -232,7 +262,7 @@ main() {
   info "=== CAMPOS ==="
   FIELD1_ID=""
   FIELD2_ID=""
-  seed_fields
+  seed_field_owner
 
   # --- Times ---
   echo ""
@@ -294,6 +324,11 @@ main() {
   echo "======================================================"
   echo ""
   echo "  Credenciais de teste:"
+  echo ""
+  echo "  === DONO DE CAMPO ==="
+  echo "    dono@bolanarede.com  / senha123  → Dashboard web"
+  echo ""
+  echo "  === JOGADORES (app mobile) ==="
   echo "    carlos@seed.com  / senha123"
   echo "    andre@seed.com   / senha123"
   echo "    marcos@seed.com  / senha123"
