@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/peladas/presentation/viewmodels/open_game_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
@@ -24,6 +25,17 @@ class _CreatePeladaPageState extends ConsumerState<CreatePeladaPage> {
   int _duration = 90;
   int _minPlayers = 10;
   int _maxPlayers = 22;
+
+  // Task 7: field selection
+  String? _selectedFieldId;
+  String? _selectedFieldName;
+  String? _selectedFieldAddress;
+
+  // Task 8: recurring pelada
+  bool _isRecurring = false;
+  int _recurringWeeks = 4;
+  int _recurringDayOfWeek = 2;
+  static const _weekDayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
   @override
   void dispose() {
@@ -61,6 +73,17 @@ class _CreatePeladaPageState extends ConsumerState<CreatePeladaPage> {
     if (picked != null) setState(() => _time = picked);
   }
 
+  Future<void> _pickField() async {
+    final result = await context.push<Map<String, String>>(AppRoutes.fieldPicker);
+    if (result != null) {
+      setState(() {
+        _selectedFieldId = result['id'];
+        _selectedFieldName = result['name'];
+        _selectedFieldAddress = result['address'];
+      });
+    }
+  }
+
   Future<void> _submit() async {
     if (_titleCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,13 +91,22 @@ class _CreatePeladaPageState extends ConsumerState<CreatePeladaPage> {
       );
       return;
     }
+    if (_isRecurring) {
+      await _submitRecurring();
+    } else {
+      await _submitSingle(_scheduledAtIso);
+    }
+  }
+
+  Future<void> _submitSingle(String scheduledAt) async {
     final created = await ref.read(createOpenGameProvider.notifier).create(
           title: _titleCtrl.text.trim(),
           sport: _sport,
-          scheduledAt: _scheduledAtIso,
+          scheduledAt: scheduledAt,
           durationMinutes: _duration,
           minPlayers: _minPlayers,
           maxPlayers: _maxPlayers,
+          fieldId: _selectedFieldId,
           description: _descCtrl.text.trim().isEmpty
               ? null
               : _descCtrl.text.trim(),
@@ -90,10 +122,50 @@ class _CreatePeladaPageState extends ConsumerState<CreatePeladaPage> {
     }
   }
 
+  Future<void> _submitRecurring() async {
+    final dates = _nextOccurrences(_recurringDayOfWeek, _recurringWeeks);
+    var created = 0;
+    for (final date in dates) {
+      final dt = DateTime(date.year, date.month, date.day, _time.hour, _time.minute);
+      final scheduledAt = dt.toUtc().toIso8601String();
+      final result = await ref.read(createOpenGameProvider.notifier).create(
+            title: _titleCtrl.text.trim(),
+            sport: _sport,
+            scheduledAt: scheduledAt,
+            durationMinutes: _duration,
+            minPlayers: _minPlayers,
+            maxPlayers: _maxPlayers,
+            fieldId: _selectedFieldId,
+            description: _descCtrl.text.trim().isEmpty
+                ? null
+                : _descCtrl.text.trim(),
+          );
+      if (result != null) created++;
+    }
+    if (!mounted) return;
+    ref.invalidate(openGameListProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$created peladas recorrentes criadas!')),
+    );
+    context.pop();
+  }
+
+  List<DateTime> _nextOccurrences(int weekday, int weeks) {
+    final result = <DateTime>[];
+    var dt = DateTime.now();
+    while (dt.weekday != weekday) {
+      dt = dt.add(const Duration(days: 1));
+    }
+    for (var i = 0; i < weeks; i++) {
+      result.add(dt);
+      dt = dt.add(const Duration(days: 7));
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        ref.watch(createOpenGameProvider).isLoading;
+    final isLoading = ref.watch(createOpenGameProvider).isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -185,6 +257,46 @@ class _CreatePeladaPageState extends ConsumerState<CreatePeladaPage> {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Recorrente', style: AppTextStyles.labelMedium),
+                    subtitle: const Text('Criar nas próximas semanas'),
+                    value: _isRecurring,
+                    onChanged: (v) => setState(() => _isRecurring = v),
+                  ),
+                  if (_isRecurring) ...[
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      children: List.generate(7, (i) {
+                        final dayNum = i + 1;
+                        return ChoiceChip(
+                          label: Text(_weekDayLabels[i]),
+                          selected: _recurringDayOfWeek == dayNum,
+                          onSelected: (_) =>
+                              setState(() => _recurringDayOfWeek = dayNum),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        const Text('Repetir por ', style: AppTextStyles.bodyMedium),
+                        DropdownButton<int>(
+                          value: _recurringWeeks,
+                          items: [4, 8, 12]
+                              .map((w) => DropdownMenuItem(
+                                    value: w,
+                                    child: Text('$w semanas'),
+                                  ))
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _recurringWeeks = v ?? 4),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                  ],
+                  const SizedBox(height: AppSpacing.md),
                   const Text('Duração (minutos)',
                       style: AppTextStyles.labelMedium),
                   Slider(
@@ -236,6 +348,43 @@ class _CreatePeladaPageState extends ConsumerState<CreatePeladaPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  const Text('Campo (opcional)', style: AppTextStyles.labelMedium),
+                  const SizedBox(height: AppSpacing.xs),
+                  if (_selectedFieldId == null)
+                    OutlinedButton.icon(
+                      icon: Icon(PhosphorIcons.mapPin()),
+                      label: const Text('Selecionar campo'),
+                      onPressed: _pickField,
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedFieldName ?? '',
+                                style: AppTextStyles.bodyMedium,
+                              ),
+                              Text(
+                                _selectedFieldAddress ?? '',
+                                style: AppTextStyles.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(PhosphorIcons.x(), color: AppColors.textSecondary),
+                          onPressed: () => setState(() {
+                            _selectedFieldId = null;
+                            _selectedFieldName = null;
+                            _selectedFieldAddress = null;
+                          }),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: AppSpacing.md),
                   const Text('Descrição (opcional)',
                       style: AppTextStyles.labelMedium),
