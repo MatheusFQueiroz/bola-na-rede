@@ -57,9 +57,9 @@ class TeamMemberModel {
 
   factory TeamMemberModel.fromJson(Map<String, dynamic> json) =>
       TeamMemberModel(
-        userId: json['userId'] as String,
-        name: json['name'] as String? ?? '',
-        role: json['role'] as String? ?? 'MEMBER',
+        userId: json['playerUserId'] as String,
+        name: json['displayName'] as String? ?? '',
+        role: json['role'] as String? ?? 'member',
         joinedAt: json['joinedAt'] as String,
       );
 
@@ -71,7 +71,7 @@ class TeamMemberModel {
   TeamMember toEntity() => TeamMember(
         teamId: '',
         userId: userId,
-        role: role == 'CAPTAIN'
+        role: role == 'captain'
             ? TeamMemberRole.captain
             : TeamMemberRole.member,
         joinedAt: DateTime.parse(joinedAt),
