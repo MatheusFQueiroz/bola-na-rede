@@ -24,7 +24,8 @@ import 'package:bola_na_rede/features/ranking/presentation/views/ranking_page.da
 import 'package:bola_na_rede/features/search/presentation/views/search_page.dart';
 import 'package:bola_na_rede/features/team/presentation/views/create_team_page.dart';
 import 'package:bola_na_rede/features/team/presentation/views/team_manage_page.dart';
-import 'package:bola_na_rede/features/team/presentation/views/team_search_page.dart';
+import 'package:bola_na_rede/features/team/presentation/views/team_search_page.dart'
+    show TeamSearchMode, TeamSearchPage;
 import 'package:bola_na_rede/shared/widgets/app_shell.dart';
 
 /// Permissivo por ora: navegação livre mesmo sem sessão. Vira `true` quando
@@ -55,6 +56,7 @@ abstract class AppRoutes {
   static const teamManage = '/team/manage/:id';
   static const createTeam = '/team/create';
   static const teamSearch = '/team/search';
+  static const teamSearchJoin = '/team/search/join';
   static const peladas = '/peladas';
   static const peladaDetail = '/peladas/:id';
   static const createPelada = '/peladas/create';
@@ -182,6 +184,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.teamSearch,
         builder: (_, __) => const TeamSearchPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.teamSearchJoin,
+        builder: (_, __) =>
+            const TeamSearchPage(mode: TeamSearchMode.joinTeam),
       ),
       GoRoute(
         path: AppRoutes.peladas,

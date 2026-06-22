@@ -172,6 +172,7 @@ class ProfilePage extends ConsumerWidget {
 
   Widget _buildMyTeams(BuildContext context, WidgetRef ref) {
     final teamsAsync = ref.watch(teamListProvider);
+    final myTeamAsync = ref.watch(myTeamProvider);
 
     return AppCard(
       child: Column(
@@ -207,21 +208,30 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ),
             ],
-            data: (teams) => teams.isEmpty
-                ? [
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      child: Text(
-                        'Você não faz parte de nenhum time.',
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: AppColors.textSecondary),
-                      ),
+            data: (teams) {
+              final myTeam = myTeamAsync.value;
+              if (myTeam == null) {
+                return [
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    child: Text(
+                      'Você não faz parte de nenhum time.',
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: AppColors.textSecondary),
                     ),
-                  ]
-                : teams
-                    .map((t) => _teamRowFromEntity(t, context))
-                    .expand((w) => [const Divider(), w])
-                    .toList(),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        context.push(AppRoutes.teamSearchJoin),
+                    child: const Text('Procurar Time'),
+                  ),
+                ];
+              }
+              return teams
+                  .map((t) => _teamRowFromEntity(t, context))
+                  .expand((w) => [const Divider(), w])
+                  .toList();
+            },
           ),
         ],
       ),
