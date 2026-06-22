@@ -104,11 +104,20 @@ export function AvailabilityGrid({ onSave, isSaving, initialSlots = [] }: Availa
           </tbody>
         </table>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <Button onClick={() => onSave(toSlots(grid))} disabled={isSaving}>
           {isSaving ? 'Salvando...' : 'Salvar Disponibilidade'}
         </Button>
-        <p className="text-xs text-muted-foreground">Verde = disponível</p>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm bg-primary" />
+            Disponível
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm bg-muted border border-border" />
+            Indisponível
+          </span>
+        </div>
       </div>
     </div>
   );

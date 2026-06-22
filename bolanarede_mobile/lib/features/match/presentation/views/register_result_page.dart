@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/error_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class RegisterResultPage extends ConsumerStatefulWidget {
@@ -60,9 +61,7 @@ class _RegisterResultPageState extends ConsumerState<RegisterResultPage> {
     } else {
       final err = ref.read(submitResultProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text(err?.toString() ?? 'Erro ao enviar resultado')),
+        SnackBar(content: Text(errorMessage(err, fallback: 'Erro ao enviar resultado'))),
       );
     }
   }

@@ -70,6 +70,7 @@ FieldCourt _$FieldCourtFromJson(Map<String, dynamic> json) => FieldCourt(
       surface: $enumDecodeNullable(_$CourtSurfaceEnumMap, json['surface']),
       capacity: (json['capacity'] as num).toInt(),
       isActive: json['is_active'] as bool,
+      pricePerHour: (json['pricePerHour'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$FieldCourtToJson(FieldCourt instance) =>
@@ -81,6 +82,7 @@ Map<String, dynamic> _$FieldCourtToJson(FieldCourt instance) =>
       'surface': _$CourtSurfaceEnumMap[instance.surface],
       'capacity': instance.capacity,
       'is_active': instance.isActive,
+      'pricePerHour': instance.pricePerHour,
     };
 
 const _$CourtModalityEnumMap = {

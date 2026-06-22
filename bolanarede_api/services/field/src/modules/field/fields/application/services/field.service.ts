@@ -60,6 +60,7 @@ export class FieldService {
       name: dto.name,
       type: dto.type,
       maxPlayers: dto.maxPlayers ?? 10,
+      pricePerHour: dto.pricePerHour ?? null,
     });
 
     return FieldCourtDto.from(court);

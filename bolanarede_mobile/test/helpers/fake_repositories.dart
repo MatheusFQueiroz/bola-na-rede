@@ -18,7 +18,11 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<PlayerProfile> register(
-          String name, String email, String password) async =>
+    String name,
+    String email,
+    String password, {
+    String? position,
+  }) async =>
       fakeProfile(name: name);
 
   @override

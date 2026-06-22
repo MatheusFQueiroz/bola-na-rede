@@ -7,7 +7,7 @@ class ApiException implements Exception {
   final Failure failure;
 
   @override
-  String toString() => 'ApiException: ${failure.message}';
+  String toString() => failure.message;
 }
 
 class ErrorInterceptor extends Interceptor {
@@ -37,6 +37,8 @@ class ErrorInterceptor extends Interceptor {
         : 'Erro desconhecido.';
     return switch (status) {
       400 => ValidationFailure(message),
+      401 when err.requestOptions.path.contains('/auth/login') =>
+          ValidationFailure('Email ou senha incorretos.'),
       401 => const UnauthorizedFailure(),
       403 => const ServerFailure('Permissão negada.', statusCode: 403),
       404 => const NotFoundFailure(),

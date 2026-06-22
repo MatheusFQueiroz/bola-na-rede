@@ -7,6 +7,7 @@ export interface CreateUserData {
   email: string;
   passwordHash: string;
   displayName: string;
+  phone?: string;
 }
 
 export interface UserWithCredential extends User {

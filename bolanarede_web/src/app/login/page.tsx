@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Goal } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -80,10 +81,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>BolaNaRede</CardTitle>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-sidebar">
+      <Card className="w-full max-w-sm shadow-2xl">
+        <CardHeader className="text-center items-center pb-2">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+            <Goal className="h-8 w-8 text-primary" />
+          </div>
+          <CardTitle className="text-xl">BolaNaRede</CardTitle>
           <CardDescription>Painel do Dono de Campo</CardDescription>
         </CardHeader>
         <CardContent>

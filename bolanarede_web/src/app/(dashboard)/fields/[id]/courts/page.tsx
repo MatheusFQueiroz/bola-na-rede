@@ -31,6 +31,7 @@ const schema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
   type: z.string().min(1, 'Tipo obrigatório'),
   maxPlayers: z.number({ error: 'Número inválido' }).int().min(2).max(50),
+  pricePerHour: z.number({ error: 'Valor inválido' }).min(0).optional().nullable(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -64,7 +65,10 @@ export default function CourtsPage({ params }: { params: Promise<{ id: string }>
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-medium">Quadras</h2>
+        <div>
+          <h2 className="text-lg font-semibold">Quadras</h2>
+          <p className="text-xs text-muted-foreground">Gerencie as quadras deste campo</p>
+        </div>
         <Button size="sm" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Adicionar Quadra
@@ -110,6 +114,18 @@ export default function CourtsPage({ params }: { params: Promise<{ id: string }>
                 <p className="text-xs text-destructive">{errors.maxPlayers.message}</p>
               )}
             </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Preço/hora (R$) — opcional</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Ex: 90"
+                {...register('pricePerHour', { valueAsNumber: true, setValueAs: v => (isNaN(v) ? null : v) })}
+              />
+              {errors.pricePerHour && (
+                <p className="text-xs text-destructive">{errors.pricePerHour.message}</p>
+              )}
+            </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 type="button"
@@ -127,11 +143,14 @@ export default function CourtsPage({ params }: { params: Promise<{ id: string }>
       </Dialog>
 
       {isLoading ? (
-        <p className="text-muted-foreground text-sm">Carregando...</p>
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => <div key={i} className="h-12 rounded-lg bg-muted animate-pulse" />)}
+        </div>
       ) : !courts || courts.length === 0 ? (
-        <p className="text-muted-foreground text-sm py-8 text-center">
-          Nenhuma quadra cadastrada.
-        </p>
+        <div className="py-12 text-center border-2 border-dashed rounded-xl text-muted-foreground">
+          <p className="font-medium">Nenhuma quadra cadastrada.</p>
+          <p className="text-sm mt-1">Clique em &quot;Adicionar Quadra&quot; para começar.</p>
+        </div>
       ) : (
         <Table>
           <TableHeader>
@@ -139,6 +158,7 @@ export default function CourtsPage({ params }: { params: Promise<{ id: string }>
               <TableHead>Nome</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Máx. Jogadores</TableHead>
+              <TableHead>Preço/h</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -148,6 +168,11 @@ export default function CourtsPage({ params }: { params: Promise<{ id: string }>
                 <TableCell className="font-medium">{court.name}</TableCell>
                 <TableCell className="capitalize">{court.type}</TableCell>
                 <TableCell>{court.maxPlayers}</TableCell>
+                <TableCell>
+                  {court.pricePerHour != null
+                    ? `R$ ${court.pricePerHour.toFixed(2).replace('.', ',')}`
+                    : <span className="text-muted-foreground text-xs">—</span>}
+                </TableCell>
                 <TableCell>
                   <Badge variant={court.isActive ? 'default' : 'secondary'}>
                     {court.isActive ? 'Ativa' : 'Inativa'}

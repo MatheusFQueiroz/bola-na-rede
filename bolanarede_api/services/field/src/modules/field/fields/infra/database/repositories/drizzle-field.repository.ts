@@ -108,6 +108,7 @@ export class DrizzleFieldRepository implements FieldRepositoryInterface {
         name: data.name,
         type: data.type,
         maxPlayers: data.maxPlayers,
+        pricePerHour: data.pricePerHour != null ? String(data.pricePerHour) : null,
       })
       .returning();
 
@@ -198,6 +199,7 @@ export class DrizzleFieldRepository implements FieldRepositoryInterface {
       type: row.type as CourtType,
       maxPlayers: row.maxPlayers,
       isActive: row.isActive,
+      pricePerHour: row.pricePerHour != null ? Number(row.pricePerHour) : null,
     };
   }
 

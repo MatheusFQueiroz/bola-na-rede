@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
+import 'package:bola_na_rede/features/field/domain/entities/field.dart';
 import 'package:bola_na_rede/features/field/presentation/viewmodels/field_viewmodel.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
@@ -51,9 +54,11 @@ class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
               delegate: SliverChildListDelegate([
                 _buildInfoCard(field.name, address),
                 const SizedBox(height: AppSpacing.md),
-                _buildScheduleCard(),
-                const SizedBox(height: AppSpacing.md),
-                _buildCourtsCard(),
+                if (field.latitude != null && field.longitude != null) ...[
+                  _buildMapSection(field.latitude!, field.longitude!),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                _buildCourtsCard(detail),
                 const SizedBox(height: AppSpacing.md),
                 _buildReviewsCard(),
                 const SizedBox(height: AppSpacing.md),
@@ -67,7 +72,7 @@ class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
         ]),
         Positioned(
           bottom: 0, left: 0, right: 0,
-          child: _buildFooter(context),
+          child: _buildFooter(context, detail),
         ),
       ]),
     );
@@ -189,59 +194,78 @@ class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
     );
   }
 
-  Widget _buildScheduleCard() {
+  Widget _buildMapSection(double lat, double lng) {
+    final point = LatLng(lat, lng);
+    final mapsUri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
+
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Text('Horarios e Precos', style: AppTextStyles.titleSmall),
-          const Spacer(),
-          Text('Hoje, seg 07/05',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+          Icon(PhosphorIcons.mapTrifold(), size: 16, color: AppColors.primary),
+          const SizedBox(width: AppSpacing.xs),
+          const Text('Localização', style: AppTextStyles.titleSmall),
         ]),
         const SizedBox(height: AppSpacing.md),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: SizedBox(
+            height: 160,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: point,
+                initialZoom: 16,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.bolanarede.app',
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: point,
+                      width: 20,
+                      height: 20,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _days.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (_, i) => AppFilterChip(
-              label: _days[i],
-              selected: _selectedDay == i,
-              onTap: () => setState(() => _selectedDay = i),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _slotRow('08:00 – 09:00', 'R\$ 90/h', true),
-        const Divider(),
-        _slotRow('09:00 – 10:00', 'R\$ 90/h', false),
-        const Divider(),
-        _slotRow('19:00 – 20:00', 'R\$ 120/h', true),
-      ]),
-    );
-  }
-
-  Widget _slotRow(String time, String price, bool available) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(children: [
-        Text(time, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-        const SizedBox(width: AppSpacing.md),
-        Text(price, style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-          decoration: BoxDecoration(
-            color: available ? AppColors.primarySurface : AppColors.errorSurface,
-            borderRadius: BorderRadius.circular(AppRadius.xs),
-          ),
-          child: Text(
-            available ? 'DISPONIVEL' : 'LOTADO',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: available ? AppColors.primary : AppColors.error,
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              await launchUrl(mapsUri, mode: LaunchMode.externalApplication);
+            },
+            icon: Icon(PhosphorIcons.mapTrifold(), size: 16),
+            label: const Text('Abrir no Google Maps'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             ),
           ),
         ),
@@ -249,33 +273,55 @@ class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
     );
   }
 
-  Widget _buildCourtsCard() {
+  Widget _buildCourtsCard(FieldDetail detail) {
+    final courts = detail.activeCourts;
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Quadras disponiveis', style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
-        _courtItem('Quadra 1 — Society', ['14 jogadores', 'Grama sintetica']),
-        const SizedBox(height: AppSpacing.sm),
-        _courtItem('Quadra 2 — Futsal', ['10 jogadores', 'Piso emborrachado']),
+        if (courts.isEmpty)
+          Text('Nenhuma quadra cadastrada.',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary))
+        else
+          ...courts.asMap().entries.map((e) => Padding(
+            padding: EdgeInsets.only(top: e.key > 0 ? AppSpacing.sm : 0),
+            child: _courtItem(e.value),
+          )),
       ]),
     );
   }
 
-  Widget _courtItem(String name, List<String> tags) {
+  Widget _courtItem(FieldCourt court) {
+    final tags = <String>[
+      '${court.capacity} jogadores',
+      court.modality.name,
+    ];
+    final priceLabel = court.pricePerHour != null
+        ? 'R\$ ${court.pricePerHour!.toStringAsFixed(0)}/h'
+        : null;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant,
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-        const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.xs,
-          children: tags.map((t) =>
-              AppFilterChip(label: t, selected: false, onTap: () {})).toList(),
+      child: Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(court.name,
+                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              children: tags.map((t) =>
+                  AppFilterChip(label: t, selected: false, onTap: () {})).toList(),
+            ),
+          ]),
         ),
+        if (priceLabel != null)
+          Text(priceLabel,
+              style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.primary, fontWeight: FontWeight.w700)),
       ]),
     );
   }
@@ -331,7 +377,16 @@ class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
+  Widget _buildFooter(BuildContext context, FieldDetail detail) {
+    final prices = detail.activeCourts
+        .map((c) => c.pricePerHour)
+        .whereType<double>()
+        .toList();
+    final minPrice = prices.isEmpty ? null : prices.reduce((a, b) => a < b ? a : b);
+    final priceLabel = minPrice != null
+        ? 'R\$ ${minPrice.toStringAsFixed(0)}/h'
+        : 'A consultar';
+
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg, vertical: AppSpacing.md),
@@ -343,8 +398,9 @@ class _FieldDetailPageState extends ConsumerState<FieldDetailPage> {
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('A partir de',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
-          const Text('R\$ 90/h',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary)),
+          Text(priceLabel,
+              style: const TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary)),
         ]),
         const SizedBox(width: AppSpacing.lg),
         Expanded(

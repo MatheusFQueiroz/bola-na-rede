@@ -30,7 +30,16 @@
       "Bash(flutter devices:*)",
       "Bash(\"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager.bat\":*)",
       "Bash(cmd.exe:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(echo:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(flutter run:*)",
+      "Bash(pkill:*)",
+      "Bash(adb devices:*)",
+      "Bash(flutter emulators:*)",
+      "Bash(# Procurar adb no sistema find /c/Users -name \"\"adb.exe\"\")",
+      "Bash(where:*)",
+      "Bash(\"/c/Users/mf588/AppData/Local/Android/sdk/emulator/emulator.exe\":*)"
     ]
   }
 }

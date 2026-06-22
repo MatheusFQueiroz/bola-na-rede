@@ -11,6 +11,22 @@ class FakeTeamRepository implements TeamRepository {
   Future<List<Team>> getTeams() async => [];
   @override
   Future<Team> getTeamById(String id) async => throw UnimplementedError();
+  @override
+  Future<Team> createTeam({
+    required String name,
+    String? description,
+    int? minPlayers,
+    int? maxPlayers,
+  }) async =>
+      throw UnimplementedError();
+  @override
+  Future<List<TeamMember>> getMembers(String teamId) async => [];
+  @override
+  Future<void> joinTeam(String teamId) async {}
+  @override
+  Future<void> leaveTeam(String teamId) async {}
+  @override
+  Future<void> removeMember(String teamId, String userId) async {}
 }
 
 ProviderContainer makeContainer() => ProviderContainer(

@@ -21,7 +21,6 @@ const schema = z.object({
   dayOfWeek: z.number({ error: 'Dia obrigatório' }),
   startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm'),
   endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm'),
-  playerUserId: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -65,7 +64,10 @@ export default function PlansPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-medium">Planos Recorrentes</h2>
+        <div>
+          <h2 className="text-lg font-semibold">Planos Recorrentes</h2>
+          <p className="text-xs text-muted-foreground">Horários fixos semanais reservados</p>
+        </div>
         <Button size="sm" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Novo Plano
@@ -111,10 +113,6 @@ export default function PlansPage({ params }: { params: Promise<{ id: string }> 
                 {errors.endTime && <p className="text-xs text-destructive">{errors.endTime.message}</p>}
               </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>UUID do Jogador (opcional)</Label>
-              <Input placeholder="Opcional" {...register('playerUserId')} />
-            </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={createPlan.isPending}>
@@ -126,9 +124,14 @@ export default function PlansPage({ params }: { params: Promise<{ id: string }> 
       </Dialog>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando...</p>
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => <div key={i} className="h-12 rounded-lg bg-muted animate-pulse" />)}
+        </div>
       ) : !plans || plans.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">Nenhum plano recorrente.</p>
+        <div className="py-12 text-center border-2 border-dashed rounded-xl text-muted-foreground">
+          <p className="font-medium">Nenhum plano recorrente.</p>
+          <p className="text-sm mt-1">Crie um plano para reservar horários fixos semanais.</p>
+        </div>
       ) : (
         <Table>
           <TableHeader>

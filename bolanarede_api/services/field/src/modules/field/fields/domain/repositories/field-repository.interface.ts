@@ -19,6 +19,7 @@ export interface CreateCourtData {
   name: string;
   type: string;
   maxPlayers: number;
+  pricePerHour?: number | null;
 }
 
 export interface AvailabilitySlotData {

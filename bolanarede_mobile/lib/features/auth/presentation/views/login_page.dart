@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/error_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -56,10 +57,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } else {
       final error = ref.read(authViewModelProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              error?.toString().replaceAll('Exception: ', '') ?? 'Erro ao entrar'),
-        ),
+        SnackBar(content: Text(errorMessage(error, fallback: 'Erro ao entrar'))),
       );
     }
   }

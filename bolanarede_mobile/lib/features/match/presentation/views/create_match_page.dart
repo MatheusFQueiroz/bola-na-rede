@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
+import 'package:bola_na_rede/shared/utils/error_utils.dart';
 import 'package:bola_na_rede/shared/widgets/app_components.dart';
 
 class CreateMatchPage extends ConsumerStatefulWidget {
@@ -41,7 +42,7 @@ class _CreateMatchPageState extends ConsumerState<CreateMatchPage> {
     } else {
       final err = ref.read(createMatchRequestProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(err?.toString() ?? 'Erro ao buscar partida')),
+        SnackBar(content: Text(errorMessage(err, fallback: 'Erro ao buscar partida'))),
       );
     }
   }

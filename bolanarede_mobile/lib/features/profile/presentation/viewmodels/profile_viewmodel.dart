@@ -7,6 +7,7 @@ import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmode
 import 'package:bola_na_rede/features/profile/data/datasources/profile_cache.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_provider.dart';
 import 'package:bola_na_rede/features/profile/domain/repositories/profile_repository.dart';
+import 'package:bola_na_rede/features/profile/domain/repositories/update_profile_input.dart';
 
 class ProfileData {
   final PlayerProfile profile;
@@ -69,6 +70,24 @@ class ProfileVM extends AsyncNotifier<ProfileData> {
       state = AsyncData(fresh);
     } on Exception catch (_) {
       // Keep cached data on network error
+    }
+  }
+
+  Future<void> updateProfile(UpdateProfileInput input) async {
+    final repo = ref.read(profileRepositoryProvider);
+    final cache = ref.read(profileCacheProvider);
+    final userId =
+        ref.read(authViewModelProvider).value?.userId ?? 'user-001';
+
+    final updated = await repo.updateProfile(input);
+    await cache.save(userId, updated);
+
+    final current = state.value;
+    if (current != null) {
+      state = AsyncData(ProfileData(
+        profile: updated,
+        recentMatches: current.recentMatches,
+      ));
     }
   }
 }

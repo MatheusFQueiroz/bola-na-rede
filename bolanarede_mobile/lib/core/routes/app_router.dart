@@ -18,6 +18,7 @@ import 'package:bola_na_rede/features/notificacoes/presentation/views/notificati
 import 'package:bola_na_rede/features/peladas/presentation/views/create_pelada_page.dart';
 import 'package:bola_na_rede/features/peladas/presentation/views/pelada_detail_page.dart';
 import 'package:bola_na_rede/features/peladas/presentation/views/peladas_list_page.dart';
+import 'package:bola_na_rede/features/profile/presentation/views/edit_profile_page.dart';
 import 'package:bola_na_rede/features/profile/presentation/views/profile_page.dart';
 import 'package:bola_na_rede/features/ranking/presentation/views/ranking_page.dart';
 import 'package:bola_na_rede/features/search/presentation/views/search_page.dart';
@@ -58,6 +59,7 @@ abstract class AppRoutes {
   static const peladaDetail = '/peladas/:id';
   static const createPelada = '/peladas/create';
   static const notifications = '/notifications';
+  static const editProfile = '/profile/edit';
 
   static String matchDetailOf(String id) => '/match/detail/$id';
   static String fieldDetailOf(String id) => '/fields/detail/$id';
@@ -198,6 +200,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.notifications,
         builder: (_, __) => const NotificationsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (_, __) => const EditProfilePage(),
       ),
     ],
   );

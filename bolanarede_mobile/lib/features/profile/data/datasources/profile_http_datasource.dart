@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 
+import 'package:bola_na_rede/core/shared/enums.dart';
 import 'package:bola_na_rede/features/auth/data/models/user_profile_model.dart';
 import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import 'package:bola_na_rede/features/profile/data/datasources/profile_mock_datasource.dart';
+import 'package:bola_na_rede/features/profile/domain/repositories/update_profile_input.dart';
 
 class ProfileHttpDataSource implements ProfileDataSource {
   ProfileHttpDataSource({required this.dio});
@@ -16,6 +18,31 @@ class ProfileHttpDataSource implements ProfileDataSource {
       res.data!['data'] as Map<String, dynamic>,
     ).toEntity();
   }
+
+  @override
+  Future<PlayerProfile> updateProfile(UpdateProfileInput input) async {
+    final body = <String, dynamic>{
+      'displayName': input.displayName,
+      if (input.city != null) 'city': input.city,
+      if (input.bio != null) 'bio': input.bio,
+      if (input.position != null) 'position': _positionValue(input.position!),
+      if (input.skillLevel != null) 'skillLevel': input.skillLevel,
+      if (input.isPublic != null) 'isPublic': input.isPublic,
+    };
+    final res = await dio.put<Map<String, dynamic>>(
+      '/v1/users/me/profile',
+      data: body,
+    );
+    final payload = res.data!['data'] as Map<String, dynamic>? ?? res.data!;
+    return UserProfileModel.fromJson(payload).toEntity();
+  }
+
+  static String _positionValue(PlayerPosition p) => switch (p) {
+        PlayerPosition.goalkeeper => 'goalkeeper',
+        PlayerPosition.defender => 'defender',
+        PlayerPosition.midfielder => 'midfielder',
+        PlayerPosition.forward => 'forward',
+      };
 
   @override
   Future<List<Map<String, dynamic>>> getRecentMatches(String userId) async {

@@ -121,6 +121,7 @@ class FieldCourt {
     required this.capacity,
     required this.isActive,
     this.surface,
+    this.pricePerHour,
   });
 
   factory FieldCourt.fromJson(Map<String, dynamic> json) =>
@@ -140,6 +141,8 @@ class FieldCourt {
 
   @JsonKey(name: 'is_active')
   final bool isActive;
+
+  final double? pricePerHour;
 
   Map<String, dynamic> toJson() => _$FieldCourtToJson(this);
 }

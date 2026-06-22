@@ -8,6 +8,7 @@ export interface CourtDto {
   type: string;
   maxPlayers: number;
   isActive: boolean;
+  pricePerHour: number | null;
 }
 
 async function fetchCourts(fieldId: string): Promise<CourtDto[]> {
@@ -27,6 +28,7 @@ export interface CreateCourtData {
   name: string;
   type: string;
   maxPlayers: number;
+  pricePerHour?: number | null;
 }
 
 async function createCourt(fieldId: string, data: CreateCourtData): Promise<CourtDto> {

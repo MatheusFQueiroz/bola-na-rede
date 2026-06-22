@@ -25,7 +25,7 @@ export class MatchRequestsController {
   @Get()
   @ApiOperation({ summary: 'Get current user active match request' })
   async getActiveRequest(@Request() req: any): Promise<MatchRequestDto | null> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const request = await this.matchmakingService.getActiveRequest(userId);
     return request ? MatchRequestDto.from(request) : null;
   }
@@ -36,8 +36,8 @@ export class MatchRequestsController {
     @Request() req: any,
     @Body() dto: CreateMatchRequestDto,
   ): Promise<MatchRequestDto> {
-    const userId: string = req.user.sub;
-    const displayName: string = req.user.displayName ?? '';
+    const userId: string = req.user.id;
+    const displayName: string = req.user.name ?? '';
     const request = await this.matchmakingService.createRequest(userId, displayName, dto.sport);
     return MatchRequestDto.from(request);
   }
@@ -45,7 +45,7 @@ export class MatchRequestsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get match request status' })
   async getRequest(@Request() req: any, @Param('id') id: string): Promise<MatchRequestDto> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const request = await this.matchmakingService.getRequest(userId, id);
     return MatchRequestDto.from(request);
   }
@@ -54,7 +54,7 @@ export class MatchRequestsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancel a match request' })
   async cancelRequest(@Request() req: any, @Param('id') id: string): Promise<void> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     await this.matchmakingService.cancelRequest(userId, id);
   }
 }

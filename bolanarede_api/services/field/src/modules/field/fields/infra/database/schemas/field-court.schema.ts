@@ -6,6 +6,7 @@ import {
   text,
   smallint,
   boolean,
+  numeric,
 } from 'drizzle-orm/pg-core';
 import { fields } from './field.schema';
 
@@ -19,6 +20,7 @@ export const fieldCourts = pgTable('field_courts', {
   type: text('type').notNull(), // 'society' | 'futsal' | 'grass' | 'synthetic'
   maxPlayers: smallint('max_players').default(10).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
+  pricePerHour: numeric('price_per_hour', { precision: 10, scale: 2 }),
 });
 
 export type FieldCourtRow = typeof fieldCourts.$inferSelect;

@@ -78,7 +78,7 @@ export class DrizzleReservationRepository implements ReservationRepositoryInterf
       .from(reservations)
       .innerJoin(fieldCourts, eq(reservations.courtId, fieldCourts.id))
       .innerJoin(fields, eq(reservations.fieldId, fields.id))
-      .where(and(eq(reservations.fieldId, field.id), eq(reservations.status, 'confirmed')))
+      .where(eq(reservations.fieldId, field.id))
       .orderBy(reservations.startsAt)
       .limit(limit)
       .offset((page - 1) * limit);

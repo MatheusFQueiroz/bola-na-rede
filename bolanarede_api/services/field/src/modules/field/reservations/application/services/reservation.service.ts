@@ -13,10 +13,9 @@ export class ReservationService {
     private readonly messaging: FieldMessagingService,
   ) {}
 
-  async createManual(ownerUserId: string, fieldExternalId: string, dto: CreateReservationDto): Promise<ReservationDto> {
+  async createManual(userId: string, fieldExternalId: string, dto: CreateReservationDto): Promise<ReservationDto> {
     const field = await this.fieldRepo.findById(fieldExternalId);
     if (!field) throw new NotFoundException(`Field ${fieldExternalId} not found`);
-    if (field.ownerUserId !== ownerUserId) throw new ForbiddenException('Only field owner can create reservations');
 
     const startsAt = new Date(dto.startsAt);
     const endsAt = new Date(dto.endsAt);
@@ -26,9 +25,12 @@ export class ReservationService {
       throw new ConflictException('Time slot is already reserved');
     }
 
+    const isOwner = field.ownerUserId === userId;
+
     const reservation = await this.reservationRepo.create({
       courtExternalId: dto.courtId,
       fieldExternalId,
+      playerUserId: isOwner ? undefined : userId,
       channel: dto.channel,
       startsAt,
       endsAt,
@@ -44,13 +46,18 @@ export class ReservationService {
     return ReservationDto.from(reservation);
   }
 
-  async cancel(ownerUserId: string, fieldExternalId: string, reservationExternalId: string): Promise<ReservationDto> {
+  async cancel(userId: string, fieldExternalId: string, reservationExternalId: string): Promise<ReservationDto> {
     const field = await this.fieldRepo.findById(fieldExternalId);
     if (!field) throw new NotFoundException(`Field ${fieldExternalId} not found`);
-    if (field.ownerUserId !== ownerUserId) throw new ForbiddenException('Only field owner can cancel reservations');
 
     const existing = await this.reservationRepo.findById(reservationExternalId);
     if (!existing) throw new NotFoundException(`Reservation ${reservationExternalId} not found`);
+
+    const isOwner = field.ownerUserId === userId;
+    const isPlayer = existing.playerUserId === userId;
+    if (!isOwner && !isPlayer) {
+      throw new ForbiddenException('Only the field owner or the booking player can cancel this reservation');
+    }
 
     const cancelled = await this.reservationRepo.cancel(reservationExternalId);
 

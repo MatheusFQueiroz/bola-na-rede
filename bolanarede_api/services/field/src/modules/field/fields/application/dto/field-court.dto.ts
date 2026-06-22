@@ -8,6 +8,7 @@ export class FieldCourtDto {
   @ApiProperty() type!: string;
   @ApiProperty() maxPlayers!: number;
   @ApiProperty() isActive!: boolean;
+  @ApiProperty({ nullable: true }) pricePerHour!: number | null;
 
   static from(court: FieldCourt): FieldCourtDto {
     const dto = new FieldCourtDto();
@@ -17,6 +18,7 @@ export class FieldCourtDto {
     dto.type = court.type;
     dto.maxPlayers = court.maxPlayers;
     dto.isActive = court.isActive;
+    dto.pricePerHour = court.pricePerHour ?? null;
     return dto;
   }
 }

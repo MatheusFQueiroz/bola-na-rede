@@ -7,4 +7,5 @@ export class FieldCourt {
   type!: CourtType;
   maxPlayers!: number;
   isActive!: boolean;
+  pricePerHour?: number | null;
 }

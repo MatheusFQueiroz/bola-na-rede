@@ -31,11 +31,12 @@ export interface CreateReservationData {
   courtId: string;
   startsAt: string;
   endsAt: string;
+  channel?: string;
   notes?: string;
 }
 
 async function createReservation(fieldId: string, data: CreateReservationData): Promise<ReservationDto> {
-  const res = await api.post(`/v1/fields/${fieldId}/reservations`, { ...data, channel: 'manual' });
+  const res = await api.post(`/v1/fields/${fieldId}/reservations`, { ...data, channel: data.channel ?? 'manual' });
   return res.data.data ?? res.data;
 }
 

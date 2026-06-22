@@ -5,6 +5,7 @@ import 'package:bola_na_rede/features/auth/data/repositories/auth_repository_pro
 import 'package:bola_na_rede/features/auth/domain/entities/user.dart';
 import 'package:bola_na_rede/features/profile/data/repositories/profile_repository_provider.dart';
 import 'package:bola_na_rede/features/profile/domain/repositories/profile_repository.dart';
+import 'package:bola_na_rede/features/profile/domain/repositories/update_profile_input.dart';
 import 'package:bola_na_rede/features/profile/presentation/viewmodels/profile_viewmodel.dart';
 import '../../../../helpers/fake_repositories.dart';
 
@@ -15,6 +16,9 @@ class FakeProfileRepository implements ProfileRepository {
   @override
   Future<List<Map<String, dynamic>>> getRecentMatches(String userId) async =>
       [];
+  @override
+  Future<PlayerProfile> updateProfile(UpdateProfileInput input) async =>
+      fakeProfile(name: input.displayName);
 }
 
 ProviderContainer makeContainer() => ProviderContainer(

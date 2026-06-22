@@ -10,15 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCreateField } from '@/hooks/use-fields';
+import { LocationPicker } from '@/components/fields/location-picker';
 import { toast } from 'sonner';
 
 const schema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
   description: z.string().optional(),
-  city: z.string().min(1, 'Cidade obrigatória'),
-  address: z.string().min(1, 'Endereço obrigatório'),
-  lat: z.number({ error: 'Latitude inválida' }),
-  lng: z.number({ error: 'Longitude inválida' }),
+  city: z.string().min(1, 'Selecione um endereço no mapa'),
+  address: z.string().min(1, 'Selecione um endereço no mapa'),
+  lat: z.number({ error: 'Selecione um endereço no mapa' }),
+  lng: z.number({ error: 'Selecione um endereço no mapa' }),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -27,10 +28,12 @@ export default function NewFieldPage() {
   const router = useRouter();
   const createField = useCreateField();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { lat: -23.5505, lng: -46.6333 }, // São Paulo defaults
-  });
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -49,13 +52,19 @@ export default function NewFieldPage() {
     }
   };
 
+  const locationError =
+    errors.city?.message ??
+    errors.address?.message ??
+    errors.lat?.message ??
+    errors.lng?.message;
+
   return (
     <div className="flex flex-col gap-6 max-w-lg">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" render={<Link href="/fields" />}>
+        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/fields" />}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-semibold">Novo Campo</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Novo Campo</h1>
       </div>
 
       <Card>
@@ -75,35 +84,18 @@ export default function NewFieldPage() {
               <Input id="description" placeholder="Opcional" {...register('description')} />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="city">Cidade *</Label>
-              <Input id="city" placeholder="Ex: São Paulo" {...register('city')} />
-              {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="address">Endereço *</Label>
-              <Input id="address" placeholder="Rua, número, bairro" {...register('address')} />
-              {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lat">Latitude *</Label>
-                <Input id="lat" type="number" step="any" {...register('lat', { valueAsNumber: true })} />
-                {errors.lat && <p className="text-xs text-destructive">{errors.lat.message}</p>}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lng">Longitude *</Label>
-                <Input id="lng" type="number" step="any" {...register('lng', { valueAsNumber: true })} />
-                {errors.lng && <p className="text-xs text-destructive">{errors.lng.message}</p>}
-              </div>
-            </div>
+            <LocationPicker
+              error={locationError}
+              onPick={loc => {
+                setValue('address', loc.address, { shouldValidate: true });
+                setValue('city', loc.city, { shouldValidate: true });
+                setValue('lat', loc.lat, { shouldValidate: true });
+                setValue('lng', loc.lng, { shouldValidate: true });
+              }}
+            />
 
             {createField.error && (
-              <p className="text-sm text-destructive">
-                Erro ao criar campo. Tente novamente.
-              </p>
+              <p className="text-sm text-destructive">Erro ao criar campo. Tente novamente.</p>
             )}
 
             <div className="flex gap-3 pt-2">

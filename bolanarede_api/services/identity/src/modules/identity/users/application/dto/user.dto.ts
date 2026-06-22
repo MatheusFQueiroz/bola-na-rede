@@ -9,6 +9,9 @@ export class UserDto {
   @ApiPropertyOptional({ description: 'Email' })
   email!: string | null;
 
+  @ApiPropertyOptional({ description: 'Telefone' })
+  phone?: string | null;
+
   @ApiPropertyOptional({ description: 'Nome de exibição' })
   displayName?: string;
 
@@ -37,6 +40,7 @@ export class UserDto {
     const dto = new UserDto();
     dto.id = user.id;
     dto.email = user.email;
+    dto.phone = user.phone;
     dto.createdAt = user.createdAt;
 
     if (profile) {

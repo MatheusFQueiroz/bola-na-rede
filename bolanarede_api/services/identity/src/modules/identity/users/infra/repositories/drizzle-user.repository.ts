@@ -50,6 +50,10 @@ export class DrizzleUserRepository implements UserRepositoryInterface {
         passwordHash: data.passwordHash,
       });
 
+      if (data.phone) {
+        await tx.update(users).set({ phone: data.phone }).where(eq(users.id, userRow.id));
+      }
+
       await tx.insert(playerProfiles).values({
         userId: userRow.id,
         displayName: data.displayName,

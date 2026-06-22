@@ -27,14 +27,23 @@ export default function FieldLayout({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" render={<Link href="/fields"><ArrowLeft className="h-4 w-4" /></Link>} />
-        <div>
-          <h1 className="text-2xl font-semibold">{field?.name ?? 'Carregando...'}</h1>
-          {field?.city && <p className="text-sm text-muted-foreground">{field.city} · {field.address}</p>}
+      <div className="flex items-start gap-3">
+        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/fields" />} className="mt-0.5 shrink-0">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight leading-tight">
+            {field?.name ?? 'Carregando...'}
+          </h1>
+          {field?.city && (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {field.city} · {field.address}
+            </p>
+          )}
         </div>
       </div>
-      <div className="border-b flex gap-1">
+
+      <div className="border-b flex gap-0">
         {TABS.map(tab => {
           const href = `/fields/${id}/${tab.segment}`;
           const isActive = pathname === href;
@@ -43,10 +52,10 @@ export default function FieldLayout({
               key={tab.segment}
               href={href}
               className={cn(
-                'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+                'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors',
                 isActive
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               )}
             >
               {tab.label}
@@ -54,6 +63,7 @@ export default function FieldLayout({
           );
         })}
       </div>
+
       {children}
     </div>
   );

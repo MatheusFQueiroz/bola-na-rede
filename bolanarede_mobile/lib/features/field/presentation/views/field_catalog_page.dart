@@ -177,9 +177,14 @@ class _FieldCatalogPageState extends ConsumerState<FieldCatalogPage> {
             Row(children: [
               Icon(PhosphorIcons.mapPin(),
                   size: 14, color: AppColors.primary),
-              Text(' $location  ${field.city}',
+              Expanded(
+                child: Text(
+                  ' $location  ${field.city}',
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textSecondary)),
+                      .copyWith(color: AppColors.textSecondary),
+                ),
+              ),
             ]),
             const SizedBox(height: AppSpacing.sm),
             const SizedBox(height: AppSpacing.sm),

@@ -65,6 +65,7 @@ class FieldCourtModel {
     required this.type,
     required this.maxPlayers,
     required this.isActive,
+    this.pricePerHour,
   });
 
   factory FieldCourtModel.fromJson(Map<String, dynamic> json) =>
@@ -75,6 +76,7 @@ class FieldCourtModel {
         type: json['type'] as String? ?? '',
         maxPlayers: json['maxPlayers'] as int? ?? 0,
         isActive: json['isActive'] as bool? ?? true,
+        pricePerHour: (json['pricePerHour'] as num?)?.toDouble(),
       );
 
   final String id;
@@ -83,6 +85,7 @@ class FieldCourtModel {
   final String type;
   final int maxPlayers;
   final bool isActive;
+  final double? pricePerHour;
 
   FieldCourt toEntity() => FieldCourt(
         id: id,
@@ -91,6 +94,7 @@ class FieldCourtModel {
         modality: _parseModality(type),
         capacity: maxPlayers,
         isActive: isActive,
+        pricePerHour: pricePerHour,
       );
 
   static CourtModality _parseModality(String type) {

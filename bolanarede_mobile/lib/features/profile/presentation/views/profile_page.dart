@@ -291,11 +291,9 @@ class ProfilePage extends ConsumerWidget {
   Widget _buildSettings(BuildContext context, WidgetRef ref) {
     return AppCard(
       child: Column(children: [
-        _settingRow(PhosphorIcons.user(), 'Editar perfil', false, () => showComingSoon(context)),
+        _settingRow(PhosphorIcons.user(), 'Editar perfil', false, () => context.push(AppRoutes.editProfile)),
         const Divider(),
         _settingRow(PhosphorIcons.bell(), 'Notificacoes', false, () => context.push(AppRoutes.notifications)),
-        const Divider(),
-        _settingRow(PhosphorIcons.shield(), 'Privacidade', false, () => showComingSoon(context)),
         const Divider(),
         _settingRow(
           PhosphorIcons.signOut(),
