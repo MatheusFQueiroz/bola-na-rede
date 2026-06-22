@@ -13,6 +13,7 @@ import 'package:bola_na_rede/features/home/presentation/views/home_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/create_match_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/match_detail_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/match_list_page.dart';
+import 'package:bola_na_rede/features/match/presentation/views/open_challenges_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/register_result_page.dart';
 import 'package:bola_na_rede/features/notificacoes/presentation/views/notifications_page.dart';
 import 'package:bola_na_rede/features/peladas/presentation/views/create_pelada_page.dart';
@@ -62,6 +63,7 @@ abstract class AppRoutes {
   static const createPelada = '/peladas/create';
   static const notifications = '/notifications';
   static const editProfile = '/profile/edit';
+  static const matchOpenChallenges = '/match/open-challenges';
 
   static String matchDetailOf(String id) => '/match/detail/$id';
   static String fieldDetailOf(String id) => '/fields/detail/$id';
@@ -166,6 +168,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.createMatch,
         builder: (_, __) => const CreateMatchPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.matchOpenChallenges,
+        builder: (_, __) => const OpenChallengesPage(),
       ),
       GoRoute(
         path: AppRoutes.registerResult,

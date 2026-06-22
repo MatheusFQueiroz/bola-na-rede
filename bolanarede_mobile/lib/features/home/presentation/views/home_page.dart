@@ -334,6 +334,23 @@ class HomePage extends ConsumerWidget {
             Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
           ]),
         ),
+        const SizedBox(height: AppSpacing.md),
+        AppCard(
+          onTap: () => context.push(AppRoutes.matchOpenChallenges),
+          child: Row(children: [
+            Icon(PhosphorIcons.handFist(),
+                color: AppColors.primary, size: AppSizes.iconLg),
+            const SizedBox(width: AppSpacing.md),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Desafios Abertos', style: AppTextStyles.titleSmall),
+              Text('Aceite um desafio de adversário',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary)),
+            ]),
+            const Spacer(),
+            Icon(PhosphorIcons.caretRight(), color: AppColors.textDisabled),
+          ]),
+        ),
       ],
     );
   }

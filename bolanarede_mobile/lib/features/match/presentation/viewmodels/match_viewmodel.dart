@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:bola_na_rede/features/match/data/repositories/match_repository_provider.dart';
 import 'package:bola_na_rede/features/match/domain/entities/match.dart';
+import 'package:bola_na_rede/features/match/domain/entities/match_request.dart';
 
 class MatchListVM extends AsyncNotifier<List<Match>> {
   @override
@@ -82,4 +83,9 @@ final confirmResultProvider = FutureProvider.autoDispose.family<void, String>(
 final disputeResultProvider = FutureProvider.autoDispose.family<void, String>(
   (ref, gameId) =>
       ref.read(matchRepositoryProvider).disputeResult(gameId),
+);
+
+final openChallengesProvider =
+    FutureProvider.autoDispose<List<MatchRequest>>(
+  (ref) => ref.read(matchRepositoryProvider).getMatchRequests(),
 );
