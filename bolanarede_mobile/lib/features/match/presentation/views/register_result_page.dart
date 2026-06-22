@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'package:bola_na_rede/core/routes/app_router.dart';
 import 'package:bola_na_rede/core/themes/app_tokens.dart';
 import 'package:bola_na_rede/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:bola_na_rede/features/match/presentation/viewmodels/match_viewmodel.dart';
@@ -57,7 +58,10 @@ class _RegisterResultPageState extends ConsumerState<RegisterResultPage> {
           backgroundColor: Colors.green,
         ),
       );
-      context.pop();
+      final opponentId = iAmA ? match.teamBId : match.teamAId;
+      context.pushReplacement(
+        AppRoutes.ratePlayersOf(widget.gameId, opponentId),
+      );
     } else {
       final err = ref.read(submitResultProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(

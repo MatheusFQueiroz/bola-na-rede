@@ -17,6 +17,7 @@ import 'package:bola_na_rede/features/match/presentation/views/match_list_page.d
 import 'package:bola_na_rede/features/match/presentation/views/open_challenges_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/register_result_page.dart';
 import 'package:bola_na_rede/features/notificacoes/presentation/views/notifications_page.dart';
+import 'package:bola_na_rede/features/social/presentation/views/rate_players_page.dart';
 import 'package:bola_na_rede/features/peladas/presentation/views/create_pelada_page.dart';
 import 'package:bola_na_rede/features/peladas/presentation/views/pelada_detail_page.dart';
 import 'package:bola_na_rede/features/peladas/presentation/views/peladas_list_page.dart';
@@ -66,6 +67,9 @@ abstract class AppRoutes {
   static const editProfile = '/profile/edit';
   static const matchOpenChallenges = '/match/open-challenges';
   static const fieldPicker = '/fields/pick';
+  static const ratePlayersBase = '/match/rate';
+  static String ratePlayersOf(String gameId, String opponentId) =>
+      '$ratePlayersBase/$gameId/$opponentId';
 
   static String matchDetailOf(String id) => '/match/detail/$id';
   static String fieldDetailOf(String id) => '/fields/detail/$id';
@@ -183,6 +187,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.registerResult,
         builder: (_, state) => RegisterResultPage(
           gameId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/match/rate/:gameId/:opponentId',
+        builder: (_, state) => RatePlayersPage(
+          gameId: state.pathParameters['gameId']!,
+          opponentId: state.pathParameters['opponentId']!,
         ),
       ),
       GoRoute(
