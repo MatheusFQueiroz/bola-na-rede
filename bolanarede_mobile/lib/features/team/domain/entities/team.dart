@@ -26,6 +26,8 @@ class Team {
   @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
 
+  final int memberCount;
+
   const Team({
     required this.id,
     required this.name,
@@ -34,6 +36,7 @@ class Team {
     required this.createdBy,
     required this.createdAt,
     required this.updatedAt,
+    this.memberCount = 0,
   });
 
   factory Team.fromJson(Map<String, dynamic> json) => _$TeamFromJson(json);

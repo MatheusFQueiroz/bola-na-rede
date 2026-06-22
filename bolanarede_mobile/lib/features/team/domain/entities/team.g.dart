@@ -14,6 +14,7 @@ Team _$TeamFromJson(Map<String, dynamic> json) => Team(
       createdBy: json['created_by'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      memberCount: (json['memberCount'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$TeamToJson(Team instance) => <String, dynamic>{
@@ -24,6 +25,7 @@ Map<String, dynamic> _$TeamToJson(Team instance) => <String, dynamic>{
       'created_by': instance.createdBy,
       'created_at': instance.createdAt.toIso8601String(),
       'updated_at': instance.updatedAt.toIso8601String(),
+      'memberCount': instance.memberCount,
     };
 
 const _$TeamStatusEnumMap = {

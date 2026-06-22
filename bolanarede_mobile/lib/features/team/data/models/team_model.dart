@@ -44,6 +44,7 @@ class TeamModel {
         createdBy: captainUserId,
         createdAt: DateTime.parse(createdAt),
         updatedAt: DateTime.parse(createdAt),
+        memberCount: memberCount,
       );
 }
 
