@@ -13,7 +13,8 @@ export interface CourtDto {
 
 async function fetchCourts(fieldId: string): Promise<CourtDto[]> {
   const res = await api.get(`/v1/fields/${fieldId}/courts`);
-  return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  const items: (CourtDto & { data?: CourtDto })[] = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  return items.map(item => item.data ?? item);
 }
 
 export function useCourts(fieldId: string) {

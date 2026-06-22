@@ -15,7 +15,7 @@ import { NotificationService } from '../../application/services/notification.ser
 import { NotificationResponseDto } from '../../application/dto/notification-response.dto';
 
 interface AuthenticatedRequest {
-  user: { sub: string };
+  user: { id: string };
 }
 
 @Controller('notifications')
@@ -37,7 +37,7 @@ export class NotificationsController {
     const parsedSkip = Math.max(0, parseInt(skip ?? '0', 10) || 0);
     const parsedLimit = Math.min(Math.max(1, parseInt(limit ?? '20', 10) || 20), 100);
     const notifications = await this.notifService.getNotifications(
-      req.user.sub,
+      req.user.id,
       parsedSkip,
       parsedLimit,
     );
@@ -47,7 +47,7 @@ export class NotificationsController {
   @Get('unread-count')
   @ApiOperation({ summary: 'Count unread notifications' })
   async getUnreadCount(@Request() req: AuthenticatedRequest): Promise<{ count: number }> {
-    const count = await this.notifService.getUnreadCount(req.user.sub);
+    const count = await this.notifService.getUnreadCount(req.user.id);
     return { count };
   }
 
@@ -55,7 +55,7 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Mark all notifications as read' })
   async markAllAsRead(@Request() req: AuthenticatedRequest): Promise<void> {
-    await this.notifService.markAllAsRead(req.user.sub);
+    await this.notifService.markAllAsRead(req.user.id);
   }
 
   @Patch(':id/read')
@@ -64,7 +64,7 @@ export class NotificationsController {
     @Param('id') id: string,
     @Request() req: AuthenticatedRequest,
   ): Promise<NotificationResponseDto> {
-    const notif = await this.notifService.markAsRead(id, req.user.sub);
+    const notif = await this.notifService.markAsRead(id, req.user.id);
     return NotificationResponseDto.from(notif);
   }
 }

@@ -16,7 +16,8 @@ export interface ReservationDto {
 
 async function fetchReservations(fieldId: string): Promise<ReservationDto[]> {
   const res = await api.get(`/v1/fields/${fieldId}/reservations`);
-  return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  const items: (ReservationDto & { data?: ReservationDto })[] = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  return items.map(item => item.data ?? item);
 }
 
 export function useReservations(fieldId: string) {

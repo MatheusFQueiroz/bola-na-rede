@@ -14,7 +14,7 @@ export class MatchesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept a proposed match' })
   async acceptMatch(@Request() req: any, @Param('id') id: string): Promise<PendingMatchDto> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const match = await this.matchmakingService.acceptMatch(userId, id);
     return PendingMatchDto.from(match);
   }

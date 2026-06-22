@@ -32,7 +32,7 @@ export class GamesController {
   })
   @ApiOperation({ summary: 'Listar jogos do usuário autenticado' })
   async list(@Request() req: any): Promise<GameDto[]> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const games = await this.gameService.listByUser(userId);
     return games.map(GameDto.from);
   }
@@ -48,7 +48,7 @@ export class GamesController {
   })
   @ApiOperation({ summary: 'Get competitive game info' })
   async getGame(@Request() req: any, @Param('id') id: string): Promise<GameDto> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const game = await this.gameService.getGame(userId, id);
     return GameDto.from(game);
   }
@@ -68,7 +68,7 @@ export class GamesController {
     @Param('id') id: string,
     @Body() dto: SubmitResultDto,
   ): Promise<GameDto> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const game = await this.gameService.submitResult(userId, id, dto);
     return GameDto.from(game);
   }
@@ -83,7 +83,7 @@ export class GamesController {
   })
   @ApiOperation({ summary: 'Dispute the result of a completed game' })
   async disputeResult(@Request() req: any, @Param('id') id: string): Promise<GameDto> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     const game = await this.gameService.disputeResult(userId, id);
     return GameDto.from(game);
   }
@@ -92,7 +92,7 @@ export class GamesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Confirmar resultado do jogo' })
   async confirmResult(@Request() req: any, @Param('id') id: string): Promise<void> {
-    const userId: string = req.user.sub;
+    const userId: string = req.user.id;
     return this.gameService.confirmResult(userId, id);
   }
 }

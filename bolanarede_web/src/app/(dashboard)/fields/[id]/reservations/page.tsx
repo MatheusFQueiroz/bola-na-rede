@@ -87,7 +87,11 @@ export default function ReservationsPage({ params }: { params: Promise<{ id: str
 
   const onSubmit = async (data: FormData) => {
     try {
-      await createReservation.mutateAsync(data);
+      await createReservation.mutateAsync({
+        ...data,
+        startsAt: new Date(data.startsAt).toISOString(),
+        endsAt: new Date(data.endsAt).toISOString(),
+      });
       toast.success('Reserva criada com sucesso!');
       reset();
       setOpen(false);

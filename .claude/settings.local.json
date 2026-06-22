@@ -39,7 +39,8 @@
       "Bash(flutter emulators:*)",
       "Bash(# Procurar adb no sistema find /c/Users -name \"\"adb.exe\"\")",
       "Bash(where:*)",
-      "Bash(\"/c/Users/mf588/AppData/Local/Android/sdk/emulator/emulator.exe\":*)"
+      "Bash(\"/c/Users/mf588/AppData/Local/Android/sdk/emulator/emulator.exe\":*)",
+      "Bash(echo Thiago token: ${TOKEN_THIAGO:0:50}...:*)"
     ]
   }
 }

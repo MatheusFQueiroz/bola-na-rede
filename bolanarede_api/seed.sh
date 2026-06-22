@@ -58,6 +58,9 @@ truncate_all() {
     "TRUNCATE pending_matches, match_requests CASCADE;" \
     > /dev/null 2>&1 && ok "matchmaking-db truncado" || warn "matchmaking-db: truncate falhou"
 
+  docker exec bolanarede_api-redis-1 redis-cli DEL matchmaking:queue:futsal matchmaking:queue:society \
+    > /dev/null 2>&1 && ok "redis matchmaking queues limpas" || warn "redis: limpeza das filas falhou"
+
   docker exec "$DB_RANKING" psql -U postgres -d bolanarededb_ranking -c \
     "TRUNCATE ranking_processed_games, player_rankings CASCADE;" \
     > /dev/null 2>&1 && ok "ranking-db truncado" || warn "ranking-db: truncate falhou"
@@ -423,6 +426,7 @@ create_and_complete_game() {
   local assists_a="${6:-1}" assists_b="${7:-0}"
   local label="${8:-$sport}"
 
+  # 1. Criar as duas match requests
   curl -s -X POST "$GATEWAY/v1/match-requests" \
     -H "Authorization: Bearer $token_a" \
     -H "Content-Type: application/json" \
@@ -435,12 +439,33 @@ create_and_complete_game() {
     -H "Content-Type: application/json" \
     -d "{\"sport\":\"$sport\"}" > /dev/null 2>&1 || true
 
-  sleep 3
+  sleep 2
 
+  # 2. Buscar o pending match proposto no DB
+  local match_id
+  match_id=$(docker exec "$DB_MATCHMAKING" psql -U postgres -d bolanarededb_matchmaking \
+    -c "SELECT external_id FROM pending_matches WHERE status='proposed' ORDER BY updated_at DESC LIMIT 1;" \
+    -t -A 2>/dev/null | tr -d '[:space:]' || echo "")
+
+  if [ -z "$match_id" ]; then
+    warn "Jogo $label: nenhum pending match encontrado"
+    return 1
+  fi
+
+  # 3. Ambos aceitam o match — o 2o aceite publica match-accepted e cria o jogo
+  curl -s -X POST "$GATEWAY/v1/matches/$match_id/accept" \
+    -H "Authorization: Bearer $token_a" > /dev/null 2>&1 || true
+
+  curl -s -X POST "$GATEWAY/v1/matches/$match_id/accept" \
+    -H "Authorization: Bearer $token_b" > /dev/null 2>&1 || true
+
+  sleep 5
+
+  # 4. Buscar o jogo criado
   local tmp_games game_id
   tmp_games=$(curl -s "$GATEWAY/v1/games" \
     -H "Authorization: Bearer $token_a" 2>/dev/null)
-  game_id=$(echo "$tmp_games" | jq -r '.data | sort_by(.createdAt) | last | .id // empty' 2>/dev/null)
+  game_id=$(echo "$tmp_games" | jq -r '(.data // []) | map(.data // .) | sort_by(.createdAt) | last | .id // empty' 2>/dev/null)
 
   if [ -z "$game_id" ]; then
     warn "Jogo $label: nao encontrado apos matching"
@@ -456,6 +481,7 @@ create_and_complete_game() {
     return 0
   fi
 
+  # 5. Submeter resultado e confirmar
   curl -s -X POST "$GATEWAY/v1/games/$game_id/result" \
     -H "Authorization: Bearer $token_a" \
     -H "Content-Type: application/json" \
@@ -689,8 +715,9 @@ main() {
   echo ""
   info "=== JOGOS COMPLETOS ==="
 
+  # Pares sem sobreposicao de usuarios (cada usuario em no maximo 1 jogo)
   create_and_complete_game "$TOKEN_CARLOS"  "$TOKEN_ANDRE"   "futsal"  3 1 2 0 "Carlos vs Andre (futsal)"
-  create_and_complete_game "$TOKEN_CARLOS"  "$TOKEN_RAFAEL"  "society" 1 3 0 2 "Carlos vs Rafael (society)"
+  create_and_complete_game "$TOKEN_GABRIEL" "$TOKEN_RAFAEL"  "society" 1 3 0 2 "Gabriel vs Rafael (society)"
   create_and_complete_game "$TOKEN_MARCOS"  "$TOKEN_FELIPE"  "futsal"  2 1 1 0 "Marcos vs Felipe (futsal)"
   create_and_complete_game "$TOKEN_PEDRO"   "$TOKEN_BRUNO"   "futsal"  1 1 0 0 "Pedro vs Bruno (empate)"
   create_and_complete_game "$TOKEN_MATEUS"  "$TOKEN_THIAGO"  "society" 4 2 2 1 "Mateus vs Thiago (society)"
@@ -704,17 +731,18 @@ main() {
   ok_mr=0
 
   local mr_resp
-  mr_resp=$(curl -s -o "$tmp_mr" -w "%{http_code}" -X POST "$GATEWAY/v1/match-requests" \
-    -H "Authorization: Bearer $TOKEN_GABRIEL" \
-    -H "Content-Type: application/json" \
-    -d '{"sport":"futsal"}' 2>/dev/null)
-  [ "$mr_resp" = "201" ] && { ok "Match request Gabriel (futsal)"; ok_mr=$((ok_mr+1)); } || warn "Match request Gabriel falhou ($mr_resp)"
-
+  # Rodrigo e Lucas nao participaram de jogos completos, logo podem criar requests
   mr_resp=$(curl -s -o "$tmp_mr" -w "%{http_code}" -X POST "$GATEWAY/v1/match-requests" \
     -H "Authorization: Bearer $TOKEN_RODRIGO" \
     -H "Content-Type: application/json" \
+    -d '{"sport":"futsal"}' 2>/dev/null)
+  [ "$mr_resp" = "201" ] && { ok "Match request Rodrigo (futsal)"; ok_mr=$((ok_mr+1)); } || warn "Match request Rodrigo falhou ($mr_resp)"
+
+  mr_resp=$(curl -s -o "$tmp_mr" -w "%{http_code}" -X POST "$GATEWAY/v1/match-requests" \
+    -H "Authorization: Bearer $TOKEN_LUCAS" \
+    -H "Content-Type: application/json" \
     -d '{"sport":"society"}' 2>/dev/null)
-  [ "$mr_resp" = "201" ] && { ok "Match request Rodrigo (society)"; ok_mr=$((ok_mr+1)); } || warn "Match request Rodrigo falhou ($mr_resp)"
+  [ "$mr_resp" = "201" ] && { ok "Match request Lucas (society)"; ok_mr=$((ok_mr+1)); } || warn "Match request Lucas falhou ($mr_resp)"
 
   rm -f "$tmp_mr"
   ok "$ok_mr match requests abertas criadas"
@@ -753,7 +781,7 @@ main() {
   echo ""
   echo "  PELADAS: 7 criadas com participantes reais"
   echo "  JOGOS COMPLETOS: 5 (ranking e historico populados)"
-  echo "  MATCH REQUESTS ABERTOS: Gabriel (futsal), Rodrigo (society)"
+  echo "  MATCH REQUESTS ABERTOS: Rodrigo (futsal), Lucas (society)"
   echo "======================================================"
 }
 

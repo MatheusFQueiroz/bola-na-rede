@@ -17,8 +17,8 @@ export interface FieldDto {
 
 async function fetchMyFields(): Promise<FieldDto[]> {
   const res = await api.get('/v1/fields/mine');
-  // Handle HATEOAS wrapper: { data: [...] } or raw array
-  return Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  const items: (FieldDto & { data?: FieldDto })[] = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+  return items.map(item => item.data ?? item);
 }
 
 export function useMyFields() {
