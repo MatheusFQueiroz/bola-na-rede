@@ -9,6 +9,7 @@ import 'package:bola_na_rede/features/auth/presentation/views/register_page.dart
 import 'package:bola_na_rede/features/auth/presentation/views/splash_page.dart';
 import 'package:bola_na_rede/features/field/presentation/views/field_catalog_page.dart';
 import 'package:bola_na_rede/features/field/presentation/views/field_detail_page.dart';
+import 'package:bola_na_rede/features/field/presentation/views/field_picker_page.dart';
 import 'package:bola_na_rede/features/home/presentation/views/home_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/create_match_page.dart';
 import 'package:bola_na_rede/features/match/presentation/views/match_detail_page.dart';
@@ -64,6 +65,7 @@ abstract class AppRoutes {
   static const notifications = '/notifications';
   static const editProfile = '/profile/edit';
   static const matchOpenChallenges = '/match/open-challenges';
+  static const fieldPicker = '/fields/pick';
 
   static String matchDetailOf(String id) => '/match/detail/$id';
   static String fieldDetailOf(String id) => '/fields/detail/$id';
@@ -160,6 +162,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.fieldDetail,
         builder: (_, __) => const FieldDetailPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.fieldPicker,
+        builder: (_, __) => const FieldPickerPage(),
       ),
       GoRoute(
         path: AppRoutes.matchDetail,
