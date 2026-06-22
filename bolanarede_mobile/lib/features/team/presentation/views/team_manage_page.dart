@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +45,7 @@ class TeamManagePage extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              _MembersCard(teamId: team.id, isCaptain: isCaptain),
+              _MembersCard(teamId: team.id, teamName: team.name, isCaptain: isCaptain),
               const SizedBox(height: AppSpacing.md),
               if (isCaptain) _buildDangerCard(context, ref, team),
               if (!isCaptain) _buildLeaveCard(context, ref, team),
@@ -183,9 +184,14 @@ class TeamManagePage extends ConsumerWidget {
 }
 
 class _MembersCard extends ConsumerWidget {
-  const _MembersCard({required this.teamId, required this.isCaptain});
+  const _MembersCard({
+    required this.teamId,
+    required this.teamName,
+    required this.isCaptain,
+  });
 
   final String teamId;
+  final String teamName;
   final bool isCaptain;
 
   @override
@@ -203,7 +209,7 @@ class _MembersCard extends ConsumerWidget {
                       const Spacer(),
                       if (isCaptain)
                         TextButton(
-                          onPressed: () => showComingSoon(context),
+                          onPressed: () => _copyInvite(context),
                           child: const Text('Convidar'),
                         ),
                     ]),
@@ -224,6 +230,19 @@ class _MembersCard extends ConsumerWidget {
             ),
           ),
         );
+  }
+
+  Future<void> _copyInvite(BuildContext context) async {
+    final invite = 'Junte-se ao time $teamName no Bola na Rede!\n'
+        'ID do time: $teamId';
+    await Clipboard.setData(ClipboardData(text: invite));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Código copiado! Cole em qualquer chat.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   Widget _memberRow(
